@@ -62,11 +62,34 @@ describe('segment', () => {
     expect(segment(notes)).toHaveLength(1)
   })
 
-  it('splits after a note held four times the local norm', () => {
-    // A half note among eighths, then a new line with no rest: an arrival.
+  it('makes a held note an idea boundary inside the phrase, not a phrase end', () => {
+    // A half note among eighths, then more line with no rest. The owner
+    // hears bar 120's held G and the tag after it as one phrase; the held
+    // note ends an idea.
     const e = (m: number): [number, number, number] => [m, 0.5, 0]
     const notes = notesFrom([e(60), e(62), e(64), [67, 2, 0], e(65), e(67), e(69), e(70)])
-    expect(segment(notes).map((p) => p.notes.length)).toEqual([4, 4])
+    const phrases = segment(notes)
+    expect(phrases).toHaveLength(1)
+    expect(phrases[0].ideas.map((i) => i.notes.length)).toEqual([4, 4])
+    expect(phrases[0].ideas[1].confidence).toBeLessThan(1)
+  })
+
+  it('begins a phrase on the beat when its first note is inside a tuplet', () => {
+    // Blake bar 76: a triplet-eighth rest then two triplet eighths. The rest
+    // belongs to the phrase; it starts on beat 4, not a third of the way in.
+    const e = (m: number, gap = 0): [number, number, number] => [m, 0.5, gap]
+    const t = (m: number): [number, number, number] => [m, 1 / 3, 0]
+    const notes = notesFrom([e(60), e(62), e(64), e(67, 2 + 1 / 3), t(65), t(63), e(62), e(63), e(67)])
+    const [, second] = segment(notes)
+    expect(second.notes[0].beat).toBeCloseTo(1 / 3, 3)
+    expect(second.onset / Q).toBe(4)
+  })
+
+  it('does not split an eighth-grid group with a beat onset', () => {
+    const e = (m: number, gap = 0): [number, number, number] => [m, 0.5, gap]
+    const notes = notesFrom([e(60), e(62), e(64, 1.5), e(65), e(67), e(69)])
+    const [, second] = segment(notes)
+    expect(second.onset).toBe(second.notes[0].onset)
   })
 
   it('never leaves a phrase of fewer than three notes', () => {

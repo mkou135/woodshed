@@ -9,12 +9,17 @@ export interface NoteContext {
   chromatic: boolean
   /** Which phrase this note belongs to; set by analyse() after segmentation. */
   phrase: number
+  /** Which idea (a gesture within a phrase), numbered across the solo. */
+  idea: number
 }
 
-/** Do these notes sit in one phrase? A figure never straddles a boundary. */
+/**
+ * Do these notes sit in one idea? A figure never straddles a boundary: a
+ * cell across a held arrival is two gestures, not one piece of vocabulary.
+ */
 export function samePhrase(ctx: NoteContext[], from: number, to: number): boolean {
-  const phrase = ctx[from]?.phrase
-  for (let i = from; i <= to; i++) if (ctx[i]?.phrase !== phrase) return false
+  const idea = ctx[from]?.idea
+  for (let i = from; i <= to; i++) if (ctx[i]?.idea !== idea) return false
   return true
 }
 
@@ -41,7 +46,7 @@ export function contextualise(notes: Note[], chords: Chord[]): NoteContext[] {
   return notes.map((note) => {
     const chord = chordAt(sorted, note.onset)
     if (!chord) {
-      return { note, chord: null, degree: null, chordTone: false, chromatic: false, phrase: 0 }
+      return { note, chord: null, degree: null, chordTone: false, chromatic: false, phrase: 0, idea: 0 }
     }
     const degree = degreeOf(note.midi, chord)
     const chordTone = isChordTone(note.midi, chord)
@@ -52,6 +57,7 @@ export function contextualise(notes: Note[], chords: Chord[]): NoteContext[] {
       chordTone,
       chromatic: /^[b#]/.test(degree) && !chordTone,
       phrase: 0,
+      idea: 0,
     }
   })
 }

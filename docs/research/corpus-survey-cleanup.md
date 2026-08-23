@@ -252,6 +252,20 @@ Blake: 23 phrases, median ~11 notes, which matches the Weimar median. Three
 runs of 30-39 notes have no internal candidate at all (no rest, no held
 note, no leap over a fifth); on this evidence they are real lines.
 
-**Not yet validated against the owner's ear.** The page now numbers phrase
-starts in the score for exactly that purpose. The owner's judgement is the
-ground truth here, not the Weimar statistics.
+### The owner's ear (same day)
+
+Read through the 23 ticks on the page. Verdict:
+
+- Bars 66-71 (three held-note boundaries): "at first glance all one phrase
+  since there is no rest, but singing through it they are like three musical
+  ideas chained into one line."
+- Bar 120 (held G, then a four-note tag): not a separate phrase.
+- Bars 76 and 99: boundary right, tick wrong — the phrase begins on the beat
+  the triplet / sixteenth group occupies, rest included; "can't split a
+  triplet like that."
+
+So rests make **phrases**; held notes and leaps make **ideas** inside a
+phrase. `segment.ts` now returns both levels (`Phrase.ideas`), and a phrase
+whose first note is off the eighth grid has its `onset` snapped back to the
+beat. Detectors stay inside ideas. Blake: 18 phrases, 5 internal ideas.
+Weimar's "midlevel units" are the same two-level intuition.

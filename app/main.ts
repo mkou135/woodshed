@@ -1,5 +1,7 @@
 import { OpenSheetMusicDisplay } from 'opensheetmusicdisplay'
-import { run, readScoreXml, exerciseToMusicXml, UnsupportedScoreError } from '../src/index.ts'
+import {
+  run, readScoreXml, exerciseToMusicXml, UnsupportedScoreError, TICKS_PER_QUARTER,
+} from '../src/index.ts'
 import type {
   Adjustment, Exercise, Finding, FindingView, Instrument, PipelineResult,
 } from '../src/index.ts'
@@ -215,10 +217,12 @@ const noteKey = (bar: number, beat: number): string => `${bar}:${beat.toFixed(3)
  * the engine stores as `Note.bar`; its in-measure timestamp is in whole
  * notes, where the engine's beat is in quarters.
  */
-async function renderSolo(
-  container: HTMLElement,
-  xml: string,
-): Promise<Map<string, SVGGElement[]>> {
+interface SoloMap {
+  notes: Map<string, SVGGElement[]>
+  rests: Map<string, SVGGElement>
+}
+
+async function renderSolo(container: HTMLElement, xml: string): Promise<SoloMap> {
   const osmd = new OpenSheetMusicDisplay(container, {
     autoResize: true,
     drawTitle: false,
@@ -227,7 +231,8 @@ async function renderSolo(
   await osmd.load(xml)
   osmd.render()
 
-  const byKey = new Map<string, SVGGElement[]>()
+  const notes = new Map<string, SVGGElement[]>()
+  const rests = new Map<string, SVGGElement>()
   for (const row of osmd.GraphicSheet.MeasureList) {
     for (const measure of row) {
       if (!measure) continue
@@ -235,17 +240,37 @@ async function renderSolo(
         const beat = entry.relInMeasureTimestamp.RealValue * 4
         for (const voiceEntry of entry.graphicalVoiceEntries) {
           for (const note of voiceEntry.notes) {
-            if (note.sourceNote.isRest()) continue
             const svg = (note as unknown as { getSVGGElement(): SVGGElement }).getSVGGElement()
             if (!svg) continue
             const key = noteKey(measure.MeasureNumber, beat)
-            byKey.set(key, [...(byKey.get(key) ?? []), svg])
+            if (note.sourceNote.isRest()) rests.set(key, svg)
+            else notes.set(key, [...(notes.get(key) ?? []), svg])
           }
         }
       }
     }
   }
-  return byKey
+  return { notes, rests }
+}
+
+function tick(svg: SVGSVGElement, box: DOMRect, className: string, label?: string): void {
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+  g.setAttribute('class', className)
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
+  const pad = label ? 14 : 4
+  line.setAttribute('x', String(box.x - 9))
+  line.setAttribute('y', String(box.y - pad))
+  line.setAttribute('width', label ? '2.5' : '1.5')
+  line.setAttribute('height', String(box.height + pad * 2))
+  g.appendChild(line)
+  if (label) {
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+    text.setAttribute('x', String(box.x - 9))
+    text.setAttribute('y', String(box.y - 18))
+    text.textContent = label
+    g.appendChild(text)
+  }
+  svg.appendChild(g)
 }
 
 /**
@@ -253,27 +278,25 @@ async function renderSolo(
  * segmentation can be judged against the ear. Geometry comes from the note's
  * own SVG group; the tick lives in the same SVG so it scrolls with it.
  */
-function markPhrases(result: PipelineResult, byKey: Map<string, SVGGElement[]>): void {
+function markPhrases(result: PipelineResult, map: SoloMap): void {
   result.analysis.phrases.forEach((phrase, i) => {
     const first = phrase.notes[0]
-    const target = byKey.get(noteKey(first.bar, first.beat))?.[0]
-    const svg = target?.ownerSVGElement
-    if (!target || !svg) return
-    const box = target.getBBox()
-    const tick = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-    tick.setAttribute('class', `phrase-tick${phrase.confidence < 1 ? ' weak' : ''}`)
-    const line = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-    line.setAttribute('x', String(box.x - 9))
-    line.setAttribute('y', String(box.y - 14))
-    line.setAttribute('width', '2.5')
-    line.setAttribute('height', String(box.height + 28))
-    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-    label.setAttribute('x', String(box.x - 9))
-    label.setAttribute('y', String(box.y - 18))
-    label.textContent = String(i + 1)
-    tick.append(line, label)
-    tick.setAttribute('data-title', `phrase ${i + 1}: bars ${phrase.startBar}–${phrase.endBar}, ${phrase.notes.length} notes`)
-    svg.appendChild(tick)
+    // A phrase that begins on a rest inside a tuplet is marked at the rest.
+    let anchor: SVGGElement | undefined
+    if (phrase.onset !== first.onset) {
+      const beat = (phrase.onset - (first.onset - first.beat * TICKS_PER_QUARTER)) / TICKS_PER_QUARTER
+      anchor = map.rests.get(noteKey(first.bar, beat))
+    }
+    anchor ??= map.notes.get(noteKey(first.bar, first.beat))?.[0]
+    if (!anchor?.ownerSVGElement) return
+    tick(anchor.ownerSVGElement, anchor.getBBox(),
+      `phrase-tick${phrase.confidence < 0.6 ? ' weak' : ''}`, String(i + 1))
+
+    for (const idea of phrase.ideas.slice(1)) {
+      const note = idea.notes[0]
+      const target = map.notes.get(noteKey(note.bar, note.beat))?.[0]
+      if (target?.ownerSVGElement) tick(target.ownerSVGElement, target.getBBox(), 'idea-tick')
+    }
   })
 }
 
@@ -320,8 +343,8 @@ async function annotatedSolo(result: PipelineResult, xml: string): Promise<HTMLE
 
   aside.appendChild(el('h2', undefined, `Vocabulary (${result.findingViews.length})`))
   aside.appendChild(el('p', 'hint',
-    `${result.analysis.phrases.length} phrases, numbered in the score. ` +
-    'A lighter tick is a boundary the engine is less sure of.'))
+    `${result.analysis.phrases.length} phrases, numbered in the score; ` +
+    'small ticks mark ideas within a phrase. A lighter tick is a boundary the engine is less sure of.'))
   if (result.findingViews.length === 0) {
     aside.appendChild(el('p', 'empty', 'Nothing recognised in this solo.'))
   }
@@ -338,8 +361,9 @@ async function annotatedSolo(result: PipelineResult, xml: string): Promise<HTMLE
   resultBox.appendChild(section)
   let byKey = new Map<string, SVGGElement[]>()
   try {
-    byKey = await renderSolo(scoreBox, xml)
-    markPhrases(result, byKey)
+    const map = await renderSolo(scoreBox, xml)
+    byKey = map.notes
+    markPhrases(result, map)
   } catch (error) {
     scoreBox.appendChild(el('p', 'empty', `Could not render the solo: ${(error as Error).message}`))
   }

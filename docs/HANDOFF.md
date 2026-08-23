@@ -111,8 +111,10 @@ at 4x) and leap as secondary cues, threshold 0.45, no phrase under three
 notes. Replaced rests-only, which split Blake's lines at eighth-rest breaths.
 The earlier probe's "long notes destroy the signal" was about a hard rule at
 2x; 4x is a different claim. Blake: 23 phrases, median 11 notes (Weimar
-median 12). **Awaiting the owner's ear** — phrase starts are numbered in the
-score for that. Detectors now refuse to match across a phrase boundary.
+median 12). Checked by the owner's ear the same day: rests make phrases,
+held notes make *ideas* within a phrase — so `Phrase.ideas` is a second
+level, and a phrase starting inside a tuplet begins on the beat. Blake: 18
+phrases. Detectors never match across an idea boundary.
 
 **Exercises render in even eighth notes.** What the method books do, and it
 means transcription rhythm errors never propagate into a drill.
@@ -203,8 +205,8 @@ the b3 (bars 81, 90, 106) now visible where it was previously buried.
   the period against marks or the soloist region, `SoloProfile.choruses` is a
   single region for this file and forced phrase boundaries land in the wrong
   bar.
-- **Phrase boundaries are unvalidated by a listener.** The Weimar numbers
-  match, but the owner has not yet checked the 23 Blake phrases by ear.
+- **Phrase boundaries are validated on one solo by one listener.** Other
+  players and tempos will need the same read-through.
 - **Target/enclosure devices produce no exercises.** They are found and reported,
   but only dictionary cells generate drills. Re-targeting is designed in the spec
   and not built.

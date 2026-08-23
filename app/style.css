@@ -228,3 +228,4 @@ button:hover { background: #17493c; }
 .phrase-tick rect { fill: #b8862b; }
 .phrase-tick text { fill: #b8862b; font: 600 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
 .phrase-tick.weak rect, .phrase-tick.weak text { opacity: 0.45; }
+.idea-tick rect { fill: #b8862b; opacity: 0.5; }

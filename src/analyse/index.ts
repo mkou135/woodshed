@@ -72,8 +72,16 @@ export function analyse(score: Score, report: CleanupReport): Analysis {
   // Detectors look inside phrases: a figure that straddles a phrase boundary
   // is two gestures, not one piece of vocabulary.
   let index = 0
+  let idea = 0
   phrases.forEach((phrase, p) => {
-    for (let k = 0; k < phrase.notes.length; k++) contexts[index++].phrase = p
+    for (const gesture of phrase.ideas) {
+      for (let k = 0; k < gesture.notes.length; k++) {
+        contexts[index].phrase = p
+        contexts[index].idea = idea
+        index++
+      }
+      idea++
+    }
   })
 
   const spanOf = (start: number, end: number): FindingSpan => ({
