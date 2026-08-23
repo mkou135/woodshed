@@ -1,6 +1,7 @@
 import { semitonesOfDegree, qualityFamily } from '../core/pitch.ts'
 import type { Chord, Instrument, Quality } from '../core/types.ts'
 import type { Finding } from '../analyse/index.ts'
+import { barContains } from './validity.ts'
 
 export interface ExerciseBar {
   rootPc: number
@@ -112,7 +113,9 @@ export function overChanges(
     if (seen.has(key)) continue
     seen.add(key)
     const bar = buildBar(chord.rootPc, chord.quality, degrees, intervals, instrument)
-    if (bar) bars.push(bar)
+    // Family is not enough: a maj7 arpeggio is not vocabulary over a sus4 or
+    // a dominant, and the validity gate would rightly fail the exercise.
+    if (bar && barContains(bar, finding)) bars.push(bar)
     if (bars.length >= 8) break
   }
   if (bars.length === 0) return null

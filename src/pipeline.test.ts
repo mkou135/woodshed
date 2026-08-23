@@ -12,6 +12,7 @@ const finding = (over: Partial<Finding> = {}): Finding => ({
   spans: [{ startIndex: 0, endIndex: 3, bar: 73, beat: 2 }],
   degrees: ['1', '2', '3', '5'],
   detectedBy: ['shape'],
+  weights: { shape: 1 },
   confidence: 0.8,
   ...over,
 })
@@ -58,6 +59,55 @@ describe('run', () => {
     ]
     for (const name of names) {
       expect(() => run(new Uint8Array(readFileSync(`fixtures/${name}.musicxml`)))).not.toThrow()
+    }
+  })
+})
+
+/**
+ * Golden check on a real solo. Green unit tests are not evidence the output
+ * is any good — the engine once passed 156 of them while ranking its best
+ * finding 9th of 81. This pins what a player should see.
+ */
+describe('run: the Blake solo, read as a player would', () => {
+  const result = run(new Uint8Array(readFileSync(BLAKE)))
+
+  it('ranks the hand-derived figure first, with every detector agreeing', () => {
+    const top = result.analysis.findings[0]
+    expect(top.name).toBe('major-seventh arpeggio from the b3')
+    expect([...new Set(top.spans.map((s) => s.bar))]).toEqual([73, 77])
+    expect(top.detectedBy.sort()).toEqual(['recurring', 'shape', 'target'])
+  })
+
+  it('offers a menu a player can read, not a dump', () => {
+    expect(result.analysis.findings.length).toBeLessThanOrEqual(15)
+    expect(result.analysis.findings.length).toBeGreaterThanOrEqual(6)
+  })
+
+  it('does not tie six findings at the same confidence', () => {
+    const counts = new Map<number, number>()
+    for (const f of result.analysis.findings) {
+      const key = Math.round(f.confidence * 100)
+      counts.set(key, (counts.get(key) ?? 0) + 1)
+    }
+    expect(Math.max(...counts.values())).toBeLessThanOrEqual(3)
+  })
+
+  it('drills the top figure with the contour Blake played', () => {
+    const cycle = result.exercises.find((e) => e.id === 'f1-cycle')!
+    for (const bar of cycle.bars) {
+      const m = bar.midis
+      expect(m[1]).toBeGreaterThan(m[0])
+      expect(m[2]).toBeGreaterThan(m[1])
+      expect(m[3]).toBeGreaterThan(m[2])
+    }
+  })
+
+  it('never drills a major seventh over a dominant or sus chord', () => {
+    for (const e of result.exercises) {
+      if (!e.findingName.startsWith('major-seventh arpeggio')) continue
+      for (const bar of e.bars) {
+        expect(['dominant', 'suspended-fourth', 'augmented-seventh']).not.toContain(bar.quality)
+      }
     }
   })
 })

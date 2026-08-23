@@ -17,6 +17,7 @@ const cellFinding = (): Finding => ({
   intervals: [2, 2, 3],
   quality: 'major-seventh',
   detectedBy: ['shape'],
+  weights: { shape: 1 },
   confidence: 0.7,
 })
 
@@ -113,5 +114,39 @@ describe('overChanges', () => {
   it('returns null when no chord matches the family', () => {
     const minorOnly: Chord[] = [{ onset: 0, bar: 1, rootPc: 2, quality: 'minor-seventh', tensions: [] }]
     expect(overChanges(cellFinding(), minorOnly, tenor)).toBeNull()
+  })
+})
+
+describe('contour', () => {
+  it('keeps the played contour rather than rebuilding it from degrees mod 12', () => {
+    // Blake's Ab C Eb G ascends. Degrees 3 5 7 2 rebuilt mod 12 drop the 9 an
+    // octave, so the drill ended on a leap down a seventh he never played.
+    const f: Finding = {
+      ...cellFinding(),
+      name: 'major-seventh arpeggio from the b3',
+      degrees: ['3', '5', '7', '2'],
+      intervals: [4, 3, 4],
+      quality: 'minor-seventh',
+    }
+    const ex = throughCycleOfFourths(f, tenor)!
+    for (const bar of ex.bars) {
+      expect(bar.midis[3]).toBeGreaterThan(bar.midis[2])
+    }
+  })
+
+  it('only puts a cell over the changes it is vocabulary for', () => {
+    const f: Finding = {
+      ...cellFinding(),
+      name: 'major-seventh arpeggio',
+      degrees: ['1', '3', '5', '7'],
+      intervals: [4, 3, 4],
+    }
+    const chords: Chord[] = [
+      { onset: 0, bar: 1, rootPc: 0, quality: 'major-seventh', tensions: [] },
+      { onset: 4 * Q, bar: 2, rootPc: 10, quality: 'suspended-fourth', tensions: [] },
+      { onset: 8 * Q, bar: 3, rootPc: 5, quality: 'dominant', tensions: [] },
+    ]
+    const ex = overChanges(f, chords, tenor)!
+    expect(ex.bars.map((b) => b.quality)).toEqual(['major-seventh'])
   })
 })

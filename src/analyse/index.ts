@@ -25,6 +25,12 @@ export interface Finding {
   intervals?: number[]
   quality?: Quality
   detectedBy: string[]
+  /**
+   * Each detector's own confidence in its best occurrence, 0-1. Shape and
+   * recurring hits are binary; a target hit scores itself, and a diatonic
+   * two-note approach must not count for as much as a chromatic enclosure.
+   */
+  weights: Record<string, number>
   confidence: number
 }
 
@@ -40,6 +46,12 @@ const CREDIT_PER_DETECTOR = 0.3
 const NAMED_BONUS = 0.25
 const REPEAT_BONUS = 0.15
 const CHORD_WEIGHT = 0.15
+/**
+ * The list is a menu the player chooses from, and a menu of twenty-six with
+ * a tail of one-off two-note approaches is one nobody reads. Below this a
+ * finding is a single weak detector's guess.
+ */
+const MIN_CONFIDENCE = 0.4
 
 export function analyse(score: Score, report: CleanupReport): Analysis {
   const region =
@@ -72,8 +84,10 @@ export function analyse(score: Score, report: CleanupReport): Analysis {
       name: hit.name,
       spans: [spanOf(hit.startIndex, hit.startIndex + hit.length - 1)],
       degrees: hit.degrees,
+      intervals: hit.intervals,
       quality: hit.quality,
       detectedBy: ['shape'],
+      weights: { shape: 1 },
       confidence: 0,
     })
   }
@@ -95,6 +109,7 @@ export function analyse(score: Score, report: CleanupReport): Analysis {
         .map((c, i, all) => (i === 0 ? 0 : c.note.midi - all[i - 1].note.midi))
         .slice(1),
       detectedBy: ['target'],
+      weights: { target: hit.score },
       confidence: 0,
     })
   }
@@ -107,6 +122,7 @@ export function analyse(score: Score, report: CleanupReport): Analysis {
       spans: hit.occurrences.map((start) => spanOf(start, start + hit.intervals.length)),
       intervals: hit.intervals,
       detectedBy: ['recurring'],
+      weights: { recurring: 1 },
       confidence: 0,
     })
   }
@@ -125,15 +141,20 @@ export function analyse(score: Score, report: CleanupReport): Analysis {
       id: `f${i + 1}`,
       confidence: Math.min(
         1,
-        Math.min(MAX_DETECTOR_CREDIT, f.detectedBy.length * CREDIT_PER_DETECTOR) +
+        Math.min(MAX_DETECTOR_CREDIT, detectorCredit(f)) +
           (f.degrees ? NAMED_BONUS : 0) +
           (f.spans.length > 1 ? REPEAT_BONUS : 0) +
           chordConfidence * CHORD_WEIGHT,
       ),
     }))
+    .filter((f) => f.confidence >= MIN_CONFIDENCE)
     .sort((a, b) => b.confidence - a.confidence)
 
   return { phrases, contexts, findings }
+}
+
+function detectorCredit(f: Finding): number {
+  return f.detectedBy.reduce((sum, d) => sum + CREDIT_PER_DETECTOR * (f.weights[d] ?? 1), 0)
 }
 
 /**
@@ -166,6 +187,7 @@ function overlaps(a: Finding, b: Finding): boolean {
 function absorb(into: Finding, from: Finding, takeSpans = true): void {
   for (const source of from.detectedBy) {
     if (!into.detectedBy.includes(source)) into.detectedBy.push(source)
+    into.weights[source] = Math.max(into.weights[source] ?? 0, from.weights[source] ?? 1)
   }
   if (takeSpans) {
     for (const span of from.spans) {
@@ -192,7 +214,12 @@ function mergeByIdentity(raw: Finding[]): Finding[] {
   for (const finding of raw) {
     const match = out.find((m) => sameIdentity(m, finding))
     if (match) absorb(match, finding)
-    else out.push({ ...finding, spans: [...finding.spans], detectedBy: [...finding.detectedBy] })
+    else out.push({
+      ...finding,
+      spans: [...finding.spans],
+      detectedBy: [...finding.detectedBy],
+      weights: { ...finding.weights },
+    })
   }
   return out
 }

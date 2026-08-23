@@ -1,11 +1,30 @@
 # woodshed — handoff
 
-**Written 2026-08-23.** Read this first, then `docs/superpowers/specs/2026-08-23-woodshed-design.md`.
+**Written 2026-08-23, revised the same day after a second review.** Read this
+first, then `docs/superpowers/specs/2026-08-23-woodshed-design.md`.
 
 ## What this is
 
 A tool for jazz musicians: feed it a transcribed solo, it identifies the
 vocabulary the player actually used, and generates exercises that drill it.
+
+## Thesis (settled 2026-08-23)
+
+The job is to reduce the cost of getting from *"I transcribed this"* to *"I am
+practising something"*. Consequences:
+
+- **The findings list is a menu, not a verdict.** The top item must be
+  credible so the list is trusted; beyond that the player chooses. We do not
+  need corpus surprisal to say "here are eight things in your solo, pick one".
+- **The annotated transcription is the product.** An exercise is an action on
+  an item in it, not a parallel output. (Not yet built this way: the page
+  still lists findings and exercises separately.)
+- **A wrong note in a drill is worse than no drill.** Exercises are kept to
+  what cannot be wrong; anything the validity gate cannot re-detect is dropped.
+- **Any model is a describer, not a curator.** It narrates deterministic
+  measurements (a `SoloProfile` of density, phrase length, register,
+  chromaticism over time) and writes one line per finding. It never reads
+  pitches and never chooses for the player.
 
 The owner is a **tenor saxophonist** (B♭). Their transcriptions live in
 `~/Documents/MuseScore4/Scores/` and `~/Downloads/MusicXML Transcriptions/`.
@@ -143,8 +162,39 @@ From surveying nine real transcriptions. Full detail in `corpus-survey-cleanup.m
   one ranked 9th). **Green tests are not evidence the output is any good.** Run
   it on a real solo and read what comes out.
 
+## Second-review fixes (2026-08-23)
+
+Found by running the pipeline on the Blake solo and reading the output, not by
+tests — every one of these shipped with 161 tests green.
+
+- **Generated drills had the wrong contour.** `3 5 7 2` rebuilt from degrees
+  mod 12 gave `+4 +3 -8`; the cycle exercise ended on a leap down a seventh
+  Blake never played. Shape hits now carry the intervals as played.
+- **A maj7 arpeggio over D7 was called "seventh arpeggio" and drilled through
+  every dominant and sus chord in the tune.** The dictionary is now keyed by
+  quality, not family, and the validity gate re-runs `matchShapes` rather than
+  comparing degree strings. `overChanges` only uses chords the cell is
+  vocabulary over.
+- **The target detector threw its own score away**, so six findings tied at
+  0.90 in insertion order. `Finding.weights` now carries each detector's own
+  confidence and detector credit is weighted by it.
+- **Diatonic scale walks (`F G Ab` into the b3) were reported as devices** —
+  six occurrences in one solo. An approach must now be chromatic or change
+  direction, and a diatonic approach gets three notes of lead at most.
+- **`targets.ts` used object identity on chords** — the trap this document
+  already warned about.
+- **A confidence floor of 0.4** turns 26 findings into 12.
+- `npm run solo -- <file.mxl>` prints what a player would see, and
+  `pipeline.test.ts` pins the Blake output as a golden test.
+
+Blake after: 12 findings, top unchanged, the `Gb F G Ab` chromatic turn into
+the b3 (bars 81, 90, 106) now visible where it was previously buried.
+
 ## Known limitations
 
+- **`Analysis.phrases` has no consumer.** Segmentation runs and is returned;
+  no detector reads it, so a cell can straddle a rest. The `SoloProfile`
+  (below) is its intended first consumer.
 - **Target/enclosure devices produce no exercises.** They are found and reported,
   but only dictionary cells generate drills. Re-targeting is designed in the spec
   and not built.
@@ -160,26 +210,36 @@ From surveying nine real transcriptions. Full detail in `corpus-survey-cleanup.m
 
 ## Suggested next steps, highest value first
 
-1. **The AI naming and curation layer** (spec §8). Turn
-   `major-seventh arpeggio from the b3` into a sentence a teacher would write,
-   and choose which of 20 findings are worth someone's practice time. The
-   output format is already settled — Mintzer's numbered *things to look for*
-   list, each item anchored to a bar. Use `claude-opus-5`, TypeScript SDK, tool
-   runner, structured outputs. **No fine-tuning**: the model does no musical
-   computation, so there is nothing to fine-tune for.
-2. **Re-targeting**, so devices generate exercises. It is the novel contribution
-   and currently produces nothing for the player.
-3. **Grow the shape dictionary**, quality-aware.
-4. **Density and silence measurement.** Mintzer's best observation is about notes
-   that *aren't there*; no detector can currently see that.
-5. **Implied reharmonisation.** Compare played against written to infer the
+1. **Annotated transcription as the primary view.** Render the solo with OSMD,
+   highlight finding spans, list findings beside it, put "drill this" on each
+   item that can generate. One screen, inside music the player already knows.
+2. **`SoloProfile`**: deterministic per-chorus / per-phrase statistics — note
+   density per bar, phrase count and mean length, rest proportion, register,
+   chromaticism ratio, where findings cluster. Gives `phrases` a consumer and
+   delivers the "density and silence" item for free.
+3. **The AI layer, scoped as a describer** (spec §8, narrowed). A `summarise()`
+   that takes the `SoloProfile` plus findings and returns a two-paragraph
+   overview (Mintzer's "architecture over time") and one line per finding.
+   `claude-opus-5`, TypeScript SDK, structured outputs. It narrates numbers;
+   it never reads pitches. **No fine-tuning.**
+4. **The same vocabulary over other standards.** Take a finding and generate
+   it over the changes of a chosen jazz standard (a stored chord-chart library,
+   transposed for the instrument) — "your Blake figure over Stella", bar by
+   bar where the chord quality fits. Same generator, different `Chord[]`;
+   the work is the chart library and choosing where the cell belongs.
+5. **Re-targeting**, so devices generate exercises. Novel, but produces nothing
+   a learner needs until the menu is trustworthy. Keep it as a detector.
+6. **Grow the shape dictionary**, quality-aware.
+7. **Implied reharmonisation.** Compare played against written to infer the
    substitution. F6 gives the raw material free — low periodicity agreement marks
    exactly the choruses where changes were substituted.
 
 ## Open questions for the owner
 
 - Should the cycle exercise print all twelve keys, or one key and the cycle named?
-  (Coker's argument says the latter; currently it prints twelve.)
+  (Coker's argument says the latter; currently it prints twelve. Under the
+  thesis above, the safest default is the exact notes played, in the original
+  key, chord named, with "take it through the cycle" as the instruction.)
 - Is the WBA atom parser worth building as substrate, given it reads as nothing
   on its own?
 - Should the head (bars 9-62 in the Blake file) be analysed too, to detect the

@@ -14,6 +14,12 @@ export interface TargetHit {
 
 const MIN_WINDOW = 2
 const MAX_WINDOW = 5
+/**
+ * A diatonic approach gets three notes of lead at most: a turn into the
+ * target (G F G Ab) is a figure, a turn followed by a scale run up to it
+ * (G F G Ab Bb C) is a scale run with a turn somewhere before it.
+ */
+const MAX_DIATONIC_APPROACH = 3
 const MIN_TARGET_STRENGTH = 0.3
 
 interface TargetWindow {
@@ -40,13 +46,33 @@ function targetStrength(ctx: NoteContext[], i: number): number {
   const next = ctx[i + 1]
   if (!next || here.note.duration > next.note.duration) strength += 0.3
 
+  // First note under a new harmony. Compared by root and quality, not object
+  // identity: a chord repeated across a bar line is two <harmony> elements.
   const previous = ctx[i - 1]
-  if (!previous || previous.chord !== here.chord) strength += 0.3
+  const newChord = !previous || !previous.chord ||
+    previous.chord.rootPc !== here.chord.rootPc ||
+    previous.chord.quality !== here.chord.quality
+  if (newChord) strength += 0.3
 
   // Thirds and sevenths are what players aim at.
   if (here.degree === '3' || here.degree === '7' || here.degree === 'b7') strength += 0.2
 
   return Math.min(1, strength)
+}
+
+/**
+ * A diatonic line that simply walks into its target — F G Ab into the b3 — is
+ * a scale fragment, not a device. Frieler found exactly these at the top of
+ * Parker's frequency table, and the recurring detector already discards them
+ * as trivia. A window with a chromatic note, or one that changes direction
+ * on the way (G F G Ab), has made a choice worth naming.
+ */
+function isScaleWalk(lead: NoteContext[], target: NoteContext): boolean {
+  if (lead.some((c) => c.chromatic)) return false
+  const midis = [...lead.map((c) => c.note.midi), target.note.midi]
+  const up = midis.every((m, i) => i === 0 || m > midis[i - 1])
+  const down = midis.every((m, i) => i === 0 || m < midis[i - 1])
+  return up || down
 }
 
 /**
@@ -72,11 +98,14 @@ function bestWindow(ctx: NoteContext[], i: number): TargetWindow | null {
     if (!above && !below) continue
 
     const kind: TargetKind = above && below ? 'enclosure' : 'approach'
+    if (kind === 'approach' && isScaleWalk(lead, target)) continue
+    const chromaticCount = lead.filter((c) => c.chromatic).length
+    if (kind === 'approach' && chromaticCount === 0 && size > MAX_DIATONIC_APPROACH) continue
     const found: TargetWindow = {
       start,
       size,
       kind,
-      chromaticCount: lead.filter((c) => c.chromatic).length,
+      chromaticCount,
     }
     if (kind === 'enclosure') return found
     if (!fallback) fallback = found

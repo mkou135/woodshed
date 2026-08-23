@@ -15,6 +15,7 @@ const finding = (over: Partial<Finding> = {}): Finding => ({
   intervals: [2, 2, 3],
   quality: 'major-seventh',
   detectedBy: ['shape'],
+  weights: { shape: 1 },
   confidence: 0.7,
   ...over,
 })
@@ -44,5 +45,14 @@ describe('isValid', () => {
     const exercise = throughCycleOfFourths(f, tenor)!
     exercise.bars = exercise.bars.map((b) => ({ ...b, midis: b.midis.map((m) => m - 12) }))
     expect(isValid(exercise, f)).toBe(true)
+  })
+})
+
+describe('isValid: quality, not just family', () => {
+  it('rejects a major-seventh arpeggio drilled over a dominant', () => {
+    const f = finding({ name: 'major-seventh arpeggio', degrees: ['1', '3', '5', '7'], intervals: [4, 3, 4] })
+    const exercise = throughCycleOfFourths(f, tenor)!
+    exercise.bars[0].quality = 'dominant'
+    expect(isValid(exercise, f)).toBe(false)
   })
 })

@@ -71,3 +71,27 @@ describe('detectTargets', () => {
     expect(detectTargets(contextualise(line([70, 72, 71]), []))).toEqual([])
   })
 })
+
+describe('detectTargets: what is not a device', () => {
+  it('ignores a diatonic scale walk into a chord tone', () => {
+    // F G Ab into the b3 of Fm. This fired six times in one solo and is
+    // just the scale.
+    const ctx = contextualise(line([65, 67, 68]), [chord(5, 'minor-seventh')])
+    expect(detectTargets(ctx)).toEqual([])
+  })
+
+  it('still reports a chromatic walk into a chord tone', () => {
+    // F Gb G into the 3 of Eb: the Gb is a choice.
+    const ctx = contextualise(line([65, 66, 67]), [chord(3, 'major-seventh')])
+    expect(detectTargets(ctx)).toHaveLength(1)
+  })
+
+  it('does not credit a repeated chord across a bar line as a new harmony', () => {
+    const chords: Chord[] = [chord(7, 'dominant'), { ...chord(7, 'dominant'), onset: 4 * Q, bar: 2 }]
+    const one = contextualise(line([70, 72, 71]), [chord(7, 'dominant')])
+    const notes = line([70, 72, 71]).map((n) => ({ ...n, onset: n.onset + 3 * Q, bar: n.onset + 3 * Q >= 4 * Q ? 2 : 1 }))
+    const two = contextualise(notes, chords)
+    expect(two[2].chord).not.toBe(two[1].chord)
+    expect(detectTargets(two)[0].score).toBeCloseTo(detectTargets(one)[0].score, 5)
+  })
+})

@@ -64,3 +64,31 @@ describe('matchShapes', () => {
     expect(matchShapes(ctx).map((h) => h.startIndex)).toEqual([0, 4])
   })
 })
+
+describe('matchShapes: quality, not just family', () => {
+  it('carries the intervals as played, so a generated drill keeps the contour', () => {
+    // Ab C Eb G ascending. Rebuilding from degrees mod 12 would drop the G an
+    // octave; the exercise then ends with a leap the player never made.
+    const ctx = contextualise(line([68, 72, 75, 79]), [chord(1, 5, 'minor-seventh')])
+    expect(matchShapes(ctx)[0].intervals).toEqual([4, 3, 4])
+  })
+
+  it('does not call a major-seventh arpeggio vocabulary over a dominant', () => {
+    // D F# A C# over D7: the C# clashes with the chord's C. Keying the
+    // dictionary by family alone matched this and drilled it through every
+    // dominant in the tune.
+    const ctx = contextualise(line([62, 66, 69, 73]), [chord(1, 2, 'dominant')])
+    expect(matchShapes(ctx)).toEqual([])
+  })
+
+  it('names the dominant seventh arpeggio over a dominant', () => {
+    const ctx = contextualise(line([62, 66, 69, 72]), [chord(1, 2, 'dominant')])
+    expect(matchShapes(ctx)[0].name).toBe('dominant seventh arpeggio')
+  })
+
+  it('does not put the maj7-from-the-b3 over a half-diminished chord', () => {
+    // Its 5 is not a chord tone there.
+    const ctx = contextualise(line([63, 67, 70, 74]), [chord(1, 0, 'half-diminished')])
+    expect(matchShapes(ctx).map((h) => h.name)).not.toContain('major-seventh arpeggio from the b3')
+  })
+})

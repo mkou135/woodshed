@@ -10,6 +10,7 @@ and their evidence, the traps that already cost time, and what to do next.
 
 ```bash
 npm run dev        # Vite dev server; drop a .mxl on the page
+npm run solo -- <file.mxl>   # print findings and exercises for a real solo
 npm run test:run   # NEVER bare `npm test` — watch mode, hangs tool calls
 npm run typecheck
 npm run build
@@ -34,4 +35,6 @@ solo and read what comes out:
 
 `~/Documents/MuseScore4/Scores/Hey Lock! - Seamus Blake Solo Transcription.mxl`
 should yield "major-seventh arpeggio from the b3" at bars 73 and 77 as the top
-finding, with all three detectors agreeing.
+finding, with all three detectors agreeing, about 12 findings in all, and a
+cycle exercise whose bars all ascend. `npm run solo` prints it;
+`pipeline.test.ts` pins it.
