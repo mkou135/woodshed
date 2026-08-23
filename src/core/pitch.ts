@@ -58,3 +58,12 @@ export function degreeOf(midi: number, chord: Chord): string {
 export function isChordTone(midi: number, chord: Chord): boolean {
   return CHORD_TONES[chord.quality].includes(pitchClass(midi - chord.rootPc))
 }
+
+/** Inverse of degreeOf: a degree label and chord quality back to semitones. */
+export function semitonesOfDegree(degree: string, quality: Quality): number | null {
+  const table = MINOR_QUALITIES.has(quality) ? MINOR_FAMILY : MAJOR_FAMILY
+  for (const [semis, label] of Object.entries(table)) {
+    if (label === degree) return Number(semis)
+  }
+  return null
+}
