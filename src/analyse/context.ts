@@ -7,6 +7,15 @@ export interface NoteContext {
   degree: string | null
   chordTone: boolean
   chromatic: boolean
+  /** Which phrase this note belongs to; set by analyse() after segmentation. */
+  phrase: number
+}
+
+/** Do these notes sit in one phrase? A figure never straddles a boundary. */
+export function samePhrase(ctx: NoteContext[], from: number, to: number): boolean {
+  const phrase = ctx[from]?.phrase
+  for (let i = from; i <= to; i++) if (ctx[i]?.phrase !== phrase) return false
+  return true
 }
 
 /** The chord sounding at an onset, or null if none has started yet. */
@@ -32,7 +41,7 @@ export function contextualise(notes: Note[], chords: Chord[]): NoteContext[] {
   return notes.map((note) => {
     const chord = chordAt(sorted, note.onset)
     if (!chord) {
-      return { note, chord: null, degree: null, chordTone: false, chromatic: false }
+      return { note, chord: null, degree: null, chordTone: false, chromatic: false, phrase: 0 }
     }
     const degree = degreeOf(note.midi, chord)
     const chordTone = isChordTone(note.midi, chord)
@@ -42,6 +51,7 @@ export function contextualise(notes: Note[], chords: Chord[]): NoteContext[] {
       degree,
       chordTone,
       chromatic: /^[b#]/.test(degree) && !chordTone,
+      phrase: 0,
     }
   })
 }

@@ -1,5 +1,6 @@
 import { intervalsOf } from '../../core/pitch.ts'
 import type { Quality } from '../../core/types.ts'
+import { samePhrase } from '../context.ts'
 import type { NoteContext } from '../context.ts'
 
 export interface ShapeHit {
@@ -62,6 +63,7 @@ export function matchShapes(ctx: NoteContext[]): ShapeHit[] {
   const hits: ShapeHit[] = []
 
   for (let i = 0; i + CELL_LENGTH <= ctx.length; i++) {
+    if (!samePhrase(ctx, i, i + CELL_LENGTH - 1)) continue
     const cell = ctx.slice(i, i + CELL_LENGTH)
     const chord = cell[0].chord
     if (!chord) continue

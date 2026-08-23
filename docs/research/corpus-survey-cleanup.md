@@ -211,3 +211,47 @@ Honest caveat: even the best variant reproduces the expected asymmetry in only
 two of four solos (Blake 18/9, Coltrane 10/1; Rollins 9/11 and Bartley 17/18 show
 none). Long unbroken runs survive — up to 39-55 notes with no rest — and on this
 evidence those appear to be real, not segmentation failures.
+
+## Addendum 2 (2026-08-23): phrase boundaries, second pass
+
+The rests-only rule above was revisited after reading the Blake output: an
+eighth rest among eighths split lines at breaths (bar 66: `G Ab E` | `G G F
+G Ab A` became a 3-note "phrase"), bars 110-113 shattered into 2-6 note
+fragments, and 30-39 note runs survived untouched.
+
+### What the literature says
+
+- **Weimar Jazz Database** (Frieler, *Exploring phrase form structures II*,
+  FMA 2014; 100 solos, 2,643 phrases, annotated by jazz students): median
+  phrase **12 tones** (mean 15.9, range 1-129), **1.53 bars** median (mean
+  2.04), **2.4 s** median (mean 2.95, "coincides with estimates for the
+  subjective presence time"). "In the case of wind instruments phrase
+  boundaries often coincide with breathing rests." Phrases per chorus fall
+  as the solo goes on (longer lines later).
+- **Lerdahl & Jackendoff** grouping preference rules: boundary after a rest
+  or larger gap (GPR 2), at a change of register / articulation / length
+  (GPR 3), and *avoid very small groups* (GPR 1).
+- **Cambouropoulos' LBDM**: boundary *strength* per gap as a weighted sum of
+  rest, inter-onset change and pitch-interval change, thresholded. The
+  standard algorithm; no single cue is a rule on its own.
+
+### What changed
+
+`segment.ts` is now a boundary-strength profile: rest (weight 0.6, full at
+a quarter, ignored below a sixteenth), held note (0.45, counts from 2x the
+median duration, full at 4x — a half note among eighths), leap (0.15, from a
+fifth). Threshold 0.45. GPR 1 dissolves the weaker edge of any group under
+three notes. Per-boundary strength is kept as the phrase's confidence.
+
+The earlier finding that "a long-note rule destroys the signal" was about a
+**hard rule at 2x median**. That is a quarter among eighths, which is not
+an arrival. At 4x it fires on held notes — Blake's G over bar 67 and F over
+bar 70 — and nowhere else in this solo.
+
+Blake: 23 phrases, median ~11 notes, which matches the Weimar median. Three
+runs of 30-39 notes have no internal candidate at all (no rest, no held
+note, no leap over a fifth); on this evidence they are real lines.
+
+**Not yet validated against the owner's ear.** The page now numbers phrase
+starts in the score for exactly that purpose. The owner's judgement is the
+ground truth here, not the Weimar statistics.

@@ -1,3 +1,4 @@
+import { samePhrase } from '../context.ts'
 import type { NoteContext } from '../context.ts'
 import { intervalsOf } from '../../core/pitch.ts'
 
@@ -41,6 +42,7 @@ export function findRecurring(
   for (let length = minLength; length <= maxLength; length++) {
     const seen = new Map<string, number[]>()
     for (let i = 0; i + length <= intervals.length; i++) {
+      if (!samePhrase(ctx, i, i + length)) continue
       const cell = intervals.slice(i, i + length)
       if (isTrivia(cell)) continue
       const key = cell.join(',')

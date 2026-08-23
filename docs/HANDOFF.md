@@ -105,11 +105,14 @@ second ingestion path, ODbL questions), so v1 scores by how many independent
 detectors agree instead. It works: the top Blake finding is the one all three
 found.
 
-**Segment on rests only** (`corpus-survey-cleanup.md` addendum). Four variants
-tested over four real solos, scored by the Weimar chromaticism asymmetry. Rests
-alone won; every "a long note ends a phrase" variant *destroyed* the signal and
-fragmented phrases. Do not re-add a long-note or inter-onset rule without
-re-running that probe.
+**Phrase boundaries are a strength profile, not a rule** (`corpus-survey-cleanup.md`
+addendum 2). LBDM-style: rest weighted most, held note (from 2x median, full
+at 4x) and leap as secondary cues, threshold 0.45, no phrase under three
+notes. Replaced rests-only, which split Blake's lines at eighth-rest breaths.
+The earlier probe's "long notes destroy the signal" was about a hard rule at
+2x; 4x is a different claim. Blake: 23 phrases, median 11 notes (Weimar
+median 12). **Awaiting the owner's ear** — phrase starts are numbered in the
+score for that. Detectors now refuse to match across a phrase boundary.
 
 **Exercises render in even eighth notes.** What the method books do, and it
 means transcription rhythm errors never propagate into a drill.
@@ -200,8 +203,8 @@ the b3 (bars 81, 90, 106) now visible where it was previously buried.
   the period against marks or the soloist region, `SoloProfile.choruses` is a
   single region for this file and forced phrase boundaries land in the wrong
   bar.
-- **No detector reads `Analysis.phrases`**, so a cell can straddle a rest.
-  `SoloProfile` is now its only consumer.
+- **Phrase boundaries are unvalidated by a listener.** The Weimar numbers
+  match, but the owner has not yet checked the 23 Blake phrases by ear.
 - **Target/enclosure devices produce no exercises.** They are found and reported,
   but only dictionary cells generate drills. Re-targeting is designed in the spec
   and not built.

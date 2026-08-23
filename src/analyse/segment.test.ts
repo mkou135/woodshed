@@ -34,22 +34,46 @@ describe('segment', () => {
     expect(phrases[0].startBar).toBe(1)
   })
 
-  it('splits on a rest of an eighth or longer', () => {
-    const notes = notesFrom([[60, 1, 0], [62, 1, 0.5], [64, 1, 0], [65, 1, 0]])
+  it('splits on a rest of a quarter or longer', () => {
+    const q = [60, 0.5, 0] as [number, number, number]
+    const notes = notesFrom([q, q, q, [62, 0.5, 1], q, q, q, [65, 0.5, 0]])
     const phrases = segment(notes)
-    expect(phrases.map((p) => p.notes.length)).toEqual([2, 2])
+    expect(phrases.map((p) => p.notes.length)).toEqual([4, 4])
     expect(phrases[0].confidence).toBe(1)
+    expect(phrases[1].confidence).toBeGreaterThanOrEqual(0.6)
   })
 
-  it('does not split on a gap shorter than an eighth', () => {
-    const notes = notesFrom([[60, 1, 0], [62, 1, 0.25], [64, 1, 0]])
+  it('treats an eighth rest among eighths as a breath, not a phrase end', () => {
+    // Blake, bar 66: G Ab E [eighth rest] G G F G Ab A. One line.
+    const e = (m: number, gap = 0): [number, number, number] => [m, 0.5, gap]
+    const notes = notesFrom([e(67), e(68), e(64, 0.5), e(67), e(67), e(65), e(67), e(68), e(69)])
     expect(segment(notes)).toHaveLength(1)
   })
 
-  it('does not split on a long note, which the corpus probe showed is wrong', () => {
-    // A whole note among quarters must NOT create a boundary.
-    const notes = notesFrom([[60, 1, 0], [62, 4, 0], [64, 1, 0], [65, 1, 0]])
+  it('does not split on a gap shorter than a sixteenth', () => {
+    const notes = notesFrom([[60, 1, 0], [62, 1, 0.2], [64, 1, 0], [65, 1, 0]])
     expect(segment(notes)).toHaveLength(1)
+  })
+
+  it('does not split on a note twice the local norm, which the corpus probe showed is wrong', () => {
+    // A quarter among eighths is not an arrival.
+    const e = (m: number): [number, number, number] => [m, 0.5, 0]
+    const notes = notesFrom([e(60), e(62), [64, 1, 0], e(65), e(67), e(69)])
+    expect(segment(notes)).toHaveLength(1)
+  })
+
+  it('splits after a note held four times the local norm', () => {
+    // A half note among eighths, then a new line with no rest: an arrival.
+    const e = (m: number): [number, number, number] => [m, 0.5, 0]
+    const notes = notesFrom([e(60), e(62), e(64), [67, 2, 0], e(65), e(67), e(69), e(70)])
+    expect(segment(notes).map((p) => p.notes.length)).toEqual([4, 4])
+  })
+
+  it('never leaves a phrase of fewer than three notes', () => {
+    // Two notes between quarter rests get absorbed into a neighbour.
+    const e = (m: number, gap = 0): [number, number, number] => [m, 0.5, gap]
+    const notes = notesFrom([e(60), e(62), e(64), e(65, 1), e(67), e(69, 1), e(60), e(62), e(64), e(65)])
+    for (const p of segment(notes)) expect(p.notes.length).toBeGreaterThanOrEqual(3)
   })
 
   it('forces a boundary before a listed bar and marks it lower confidence', () => {

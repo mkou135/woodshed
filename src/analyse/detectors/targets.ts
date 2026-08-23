@@ -1,3 +1,4 @@
+import { samePhrase } from '../context.ts'
 import type { NoteContext } from '../context.ts'
 
 export type TargetKind = 'enclosure' | 'approach'
@@ -89,6 +90,7 @@ function bestWindow(ctx: NoteContext[], i: number): TargetWindow | null {
     const start = i - size
     if (start < 0) continue
 
+    if (!samePhrase(ctx, start, i)) break
     const lead = ctx.slice(start, i)
     if (lead.some((c) => c.chord === null)) continue
 

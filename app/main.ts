@@ -248,6 +248,35 @@ async function renderSolo(
   return byKey
 }
 
+/**
+ * Draw a tick before the first note of every phrase, with its number, so the
+ * segmentation can be judged against the ear. Geometry comes from the note's
+ * own SVG group; the tick lives in the same SVG so it scrolls with it.
+ */
+function markPhrases(result: PipelineResult, byKey: Map<string, SVGGElement[]>): void {
+  result.analysis.phrases.forEach((phrase, i) => {
+    const first = phrase.notes[0]
+    const target = byKey.get(noteKey(first.bar, first.beat))?.[0]
+    const svg = target?.ownerSVGElement
+    if (!target || !svg) return
+    const box = target.getBBox()
+    const tick = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+    tick.setAttribute('class', `phrase-tick${phrase.confidence < 1 ? ' weak' : ''}`)
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
+    line.setAttribute('x', String(box.x - 9))
+    line.setAttribute('y', String(box.y - 14))
+    line.setAttribute('width', '2.5')
+    line.setAttribute('height', String(box.height + 28))
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+    label.setAttribute('x', String(box.x - 9))
+    label.setAttribute('y', String(box.y - 18))
+    label.textContent = String(i + 1)
+    tick.append(line, label)
+    tick.setAttribute('data-title', `phrase ${i + 1}: bars ${phrase.startBar}–${phrase.endBar}, ${phrase.notes.length} notes`)
+    svg.appendChild(tick)
+  })
+}
+
 function findingElements(
   finding: Finding,
   result: PipelineResult,
@@ -290,6 +319,9 @@ async function annotatedSolo(result: PipelineResult, xml: string): Promise<HTMLE
   section.append(aside, scoreBox)
 
   aside.appendChild(el('h2', undefined, `Vocabulary (${result.findingViews.length})`))
+  aside.appendChild(el('p', 'hint',
+    `${result.analysis.phrases.length} phrases, numbered in the score. ` +
+    'A lighter tick is a boundary the engine is less sure of.'))
   if (result.findingViews.length === 0) {
     aside.appendChild(el('p', 'empty', 'Nothing recognised in this solo.'))
   }
@@ -307,6 +339,7 @@ async function annotatedSolo(result: PipelineResult, xml: string): Promise<HTMLE
   let byKey = new Map<string, SVGGElement[]>()
   try {
     byKey = await renderSolo(scoreBox, xml)
+    markPhrases(result, byKey)
   } catch (error) {
     scoreBox.appendChild(el('p', 'empty', `Could not render the solo: ${(error as Error).message}`))
   }

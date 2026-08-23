@@ -222,3 +222,9 @@ button:hover { background: #17493c; }
 .profile td { padding: 0.2rem 0.75rem 0.2rem 0; }
 .profile td:first-child { color: var(--muted); }
 .profile .note { margin: 0.6rem 0 0; color: var(--muted); font-size: 0.9rem; }
+
+.menu .hint { margin: -0.4rem 0 0.75rem; color: var(--muted); font-size: 0.85rem; }
+
+.phrase-tick rect { fill: #b8862b; }
+.phrase-tick text { fill: #b8862b; font: 600 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+.phrase-tick.weak rect, .phrase-tick.weak text { opacity: 0.45; }
