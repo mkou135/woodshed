@@ -6,6 +6,9 @@ export interface FormResult {
   agreement: number
   method: 'absolute' | 'relative'
   chorusStarts: number[]
+  /** Which marks fixed the phase (rehearsal letters beat double bars). */
+  phaseFrom: 'rehearsal' | 'double-bar' | 'none'
+  /** True when the marks that set the phase all sit a whole number of periods apart. */
   agreesWithMarks: boolean
 }
 
@@ -64,6 +67,33 @@ function smallestPeriod<T>(items: T[]): { period: number; agreement: number } | 
 }
 
 /**
+ * Autocorrelation gives the period but not the phase. Marks give the phase:
+ * a chorus starts on a marked bar. Rehearsal letters are the stronger
+ * evidence (letter A is conventionally the head), double bars the fallback —
+ * both mark section ends, so the chorus start is the earliest mark whose
+ * congruent marks (mod period) include at least one other mark.
+ * See docs/research/notation-conventions.md.
+ */
+function phase(
+  score: Score,
+  period: number,
+): { firstStart: number; phaseFrom: FormResult['phaseFrom']; agreesWithMarks: boolean } {
+  for (const kind of ['rehearsal', 'double-bar'] as const) {
+    const bars = [...new Set(score.marks.filter((m) => m.kind === kind).map((m) => m.bar))]
+      .sort((a, b) => a - b)
+    if (bars.length < 2) continue
+    for (const b of bars) {
+      const aligned = bars.filter((x) => (x - b) % period === 0)
+      if (aligned.length >= 2) {
+        // Bars before b are an intro (or a head shorter than a chorus).
+        return { firstStart: b, phaseFrom: kind, agreesWithMarks: true }
+      }
+    }
+  }
+  return { firstStart: 1, phaseFrom: 'none', agreesWithMarks: false }
+}
+
+/**
  * Recover the chorus length from the changes. Tries absolute roots first, then
  * root intervals — the latter catches forms that transpose each chorus, which
  * absolute matching cannot see at all.
@@ -87,23 +117,19 @@ export function detectForm(score: Score): FormResult | null {
 
   if (!hit) return null
 
+  const { firstStart, phaseFrom, agreesWithMarks } = phase(score, hit.period)
+
   const chorusStarts: number[] = []
-  for (let bar = 1; bar + hit.period - 1 <= score.barCount; bar += hit.period) {
+  for (let bar = firstStart; bar + hit.period - 1 <= score.barCount; bar += hit.period) {
     chorusStarts.push(bar)
   }
-
-  const rehearsalBars = score.marks
-    .filter((m) => m.kind === 'rehearsal')
-    .map((m) => m.bar)
-  const agreesWithMarks =
-    rehearsalBars.length >= 2 &&
-    rehearsalBars.every((b) => (b - rehearsalBars[0]) % hit.period === 0)
 
   return {
     periodBars: hit.period,
     agreement: hit.agreement,
     method,
     chorusStarts,
+    phaseFrom,
     agreesWithMarks,
   }
 }

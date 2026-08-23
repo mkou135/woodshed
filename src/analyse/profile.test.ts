@@ -69,9 +69,9 @@ describe('profile', () => {
     const a = analyse(score, report)
     const p = a.profile
     expect(p.overall.startBar).toBe(63)
-    // Form phase is anchored to bar 1 (chorus starts 1, 57), so the solo at
-    // 63-122 is not split. See HANDOFF "form phase" — fix lives in prepare/.
-    expect(p.choruses.length).toBeGreaterThanOrEqual(1)
+    // Chorus starts 9 and 65 (phased by the double bars); the solo enters
+    // with a two-bar pickup at 63, which becomes its own region.
+    expect(p.choruses.map((c) => [c.startBar, c.endBar])).toEqual([[63, 64], [65, 122]])
     // Phrase starts are more chromatic than phrase ends — the Weimar
     // asymmetry the segmentation probe was scored on (Blake 18/9 there).
     expect(p.phraseChromaticism.start).toBeGreaterThan(p.phraseChromaticism.end)

@@ -48,6 +48,9 @@ describe('run', () => {
     const result = run(new Uint8Array(readFileSync(BLAKE)))
     expect(result.score.notes.length).toBeGreaterThan(0)
     expect(result.report.form?.periodBars).toBe(56)
+    // 8-bar intro, head at 9, solo chorus at 65: phased by the double bars.
+    expect(result.report.form?.chorusStarts).toEqual([9, 65])
+    expect(result.report.form?.agreesWithMarks).toBe(true)
     expect(result.findingViews.length).toBe(result.analysis.findings.length)
   })
 

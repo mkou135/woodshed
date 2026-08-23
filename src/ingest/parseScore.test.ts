@@ -74,3 +74,11 @@ describe('parseScore', () => {
     expect(parseScore(load('minimal-tenor.musicxml')).chordTracks).toEqual([])
   })
 })
+
+describe('double bars', () => {
+  it('records a double bar as a mark on the bar that follows it', () => {
+    const score = parseScore(load('form-intro-doublebars.musicxml'))
+    const bars = score.marks.filter((m) => m.kind === 'double-bar').map((m) => m.bar)
+    expect(bars).toEqual([5, 13, 21])
+  })
+})

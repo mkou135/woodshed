@@ -35,3 +35,10 @@ renderer rhythm support, page rebuilt as Ideas menu · 17c0f97 · 211 tests.
 2026-08-24 · session 2 · Adopted four-file context system; backfilled
 ENGINE_SPEC, DECISIONS, OPEN_QUESTIONS, LEDGER; CLAUDE.md rewired · closes
 session 2.
+2026-08-24 · session 3 · Dropped "peer feedback" open question (ongoing, not
+a gate). Researched double-bar/rehearsal conventions ·
+docs/research/notation-conventions.md.
+2026-08-24 · session 3 · Form phase from marks (rehearsal → double bars →
+bar 1); `double-bar` Mark kind at ingest; new fixture
+form-intro-doublebars; Blake choruses 9/65, profile 63–64 + 65–122 ·
+spec/decisions/questions updated · 214 tests.

@@ -44,3 +44,18 @@ describe('formAdjustments', () => {
     expect(formAdjustments(null, score)).toEqual([])
   })
 })
+
+describe('form phase', () => {
+  it('starts the choruses at the double bars, not bar 1, when a chart has an intro', () => {
+    const form = detectForm(load('form-intro-doublebars.musicxml'))!
+    expect(form.periodBars).toBe(8)
+    expect(form.chorusStarts).toEqual([5, 13, 21])
+    expect(form.phaseFrom).toBe('double-bar')
+    expect(form.agreesWithMarks).toBe(true)
+  })
+
+  it('reports where the phase came from', () => {
+    expect(detectForm(load('form-8bar-x3.musicxml'))!.phaseFrom).toBe('rehearsal')
+    expect(detectForm(load('transposing-form.musicxml'))!.phaseFrom).toBe('none')
+  })
+})

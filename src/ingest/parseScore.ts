@@ -134,6 +134,14 @@ export function parseScore(xml: string): Score {
         continue
       }
 
+      if (tag === 'barline') {
+        const style = findChild(el, 'bar-style')
+        if (style && textOf(style).trim() === 'light-light') {
+          marks.push({ bar: barNumber + 1, kind: 'double-bar', text: '' })
+        }
+        continue
+      }
+
       const scale = TICKS_PER_QUARTER / divisions
 
       if (tag === 'backup') {

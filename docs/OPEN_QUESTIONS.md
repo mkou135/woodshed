@@ -3,19 +3,17 @@
 Everything unresolved, with what would resolve it. Remove an entry only by
 moving its resolution into DECISIONS.md.
 
-- **Form phase is anchored to bar 1.** Blake has a 6-bar intro; period 56
-  is right, chorus starts (1, 57) are wrong, so per-chorus profile and the
-  "through this solo" tune use head+intro bars. Resolve: phase the
-  autocorrelation against rehearsal marks / the soloist region in
-  `prepare/form.ts`; check `agreesWithMarks` flips true on Blake.
+- **A pickup before the first chorus shows as its own "chorus" region** in
+  the profile (Blake 63–64). Resolve: label regions before the first chorus
+  start as "pickup" in `analyse/profile.ts` and the page.
+- **Charts with neither letters nor double bars** fall back to bar 1 with
+  no warning. Resolve: when `phaseFrom` is 'none' and the solo starts
+  mid-period, raise a warning adjustment; test on such a chart when one
+  arrives.
 - **Idea recall is 68%.** The missing boundaries are changes of character /
   motivic repetition with no duration cue (14% have no surface cue at all).
   Resolve: a "same contour or rhythm as the previous unit" detector, scored
   against WJD IDEA sections.
-- **Are the practice units right, musically?** Built from one session of
-  choices; peers are being shown the hosted page. Resolve: peer feedback on
-  (a) phrase/idea marks, (b) which units they'd practise, (c) whether the
-  four steps match how they shed.
 - **AI summariser** (SoloProfile → two-paragraph overview + one line per
   finding). Blocked: owner has no API key yet; and where should the call
   run (CLI with env key vs local proxy for the page)? Resolve: owner gets a
@@ -37,7 +35,7 @@ moving its resolution into DECISIONS.md.
   entry, watch the Blake goldens.
 - **WBA atom parser as substrate** — probe said its output reads as
   nothing on its own. Keep deferred unless something needs it.
-- **Analyse the head (bars 9–62)** to catch the soloist quoting the tune.
-  Cheap once form phase is fixed.
+- **Analyse the head (bars 9–64)** to catch the soloist quoting the tune.
+  Form phase is fixed, so this is now cheap.
 - **displace step and 3/4+ time**: placements assume 4/4 feel (beat 2,
   and-of-1). Check against a 3/4 solo when one arrives.

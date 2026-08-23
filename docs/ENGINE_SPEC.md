@@ -6,7 +6,7 @@ the code. Each section names the file that implements it — if this file and
 the code disagree, that is a bug to fix immediately, in whichever direction
 the DECISIONS log supports.
 
-Last updated: 2026-08-24 (session 2 close).
+Last updated: 2026-08-24 (session 3).
 
 ## Units
 
@@ -40,6 +40,19 @@ first note is off the eighth grid starts on its quarter-note beat
 (`Phrase.onset`). Scores vs Weimar Jazz Database (456 solos,
 `npm run eval:wjd`): phrases P 82.3 / R 85.4 / F1 **83.8** (human ceiling
 .83); ideas 87.0 / 67.9 / **76.3**.
+
+## Form (`prepare/form.ts`)
+
+- Period: smallest p ≥ 2 with bar-symbol agreement > 0.75 (`MIN_AGREEMENT`),
+  absolute root+quality first, then root intervals (`relative`). Needs ≥ 8
+  bars with chords.
+- Phase, from marks: rehearsal letters first, else double bars
+  (`Mark.kind 'double-bar'`, placed on the bar *after* a `light-light`
+  barline at ingest). First chorus start = earliest mark bar with ≥ 1 other
+  mark a whole number of periods later. No such marks → bar 1,
+  `phaseFrom: 'none'`, `agreesWithMarks: false`. Bars before the first
+  start are an intro. Rationale: docs/research/notation-conventions.md.
+- Adjustment confidence 0.95 when phased by marks, else the agreement.
 
 ## Note context (`analyse/context.ts`, `core/pitch.ts`)
 
@@ -115,7 +128,9 @@ jazz standards parse.
 
 ## Verification targets
 
-Blake (`npm run solo`): top finding "major-seventh arpeggio from the b3",
+Blake (`npm run solo`): form 56 bars, chorus starts **9 and 65** (8-bar
+intro, head, solo from a pickup at 63); profile regions 63–64, 65–122.
+Top finding "major-seventh arpeggio from the b3",
 bars 73+77, all three detectors, 12 findings; 18 phrases (numbered in the
 score), 21 ideas, 32 practice units, u1 = bars 76–77 with that cell; cycle
 exercise bars all ascend. WJD scores as above.

@@ -72,3 +72,21 @@ Actions on push to main · owner (peers need a link) · —.
 (ENGINE_SPEC, DECISIONS, OPEN_QUESTIONS, LEDGER) replace one-shot handover
 prompts; HANDOFF.md remains as narrative history, no longer authoritative ·
 owner (friend's system) · owner.
+
+## 2026-08-24 — How is the form's phase found?
+
+**Question.** Autocorrelation gives the chorus length but assumes the
+first chorus starts at bar 1; Blake has an 8-bar intro.
+**Decision.** Phase from the transcriber's marks: rehearsal letters, then
+double bars (parsed at ingest as `double-bar` marks on the following bar).
+Earliest mark with another mark a whole number of periods later starts the
+first chorus. No marks → bar 1, flagged `phaseFrom: 'none'`.
+**Evidence.** Notation convention research (double bars mark section ends,
+not fixed intervals; letter A is the head) — docs/research/
+notation-conventions.md. Blake: double bars after 8, 24, 40, 48, 64, 80,
+96, 104, 120 → starts 9 and 65; profile now splits the solo correctly.
+**Who.** Owner asked for the research before accepting; engine change by
+Claude.
+**Would reverse it.** A body of transcriptions where double bars fall at
+arbitrary bars (e.g. every 8 regardless of form), or where the earliest
+aligned mark is not the head.

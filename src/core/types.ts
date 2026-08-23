@@ -60,8 +60,9 @@ export interface Instrument {
 
 export interface Mark {
   bar: number
-  kind: 'rehearsal' | 'words'
-  /** Verbatim. Never normalised at ingest. */
+  /** 'double-bar' sits on the bar *after* a light-light barline. */
+  kind: 'rehearsal' | 'words' | 'double-bar'
+  /** Verbatim. Never normalised at ingest; '' for a double bar. */
   text: string
 }
 
