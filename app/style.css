@@ -208,3 +208,17 @@ button {
 button:hover { background: #17493c; }
 
 .empty { color: var(--muted); }
+
+.profile {
+  margin: 1.25rem 0 0;
+  padding: 0.9rem 1.1rem;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.profile table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+.profile th { text-align: left; font-weight: 500; color: var(--muted); padding: 0 0.75rem 0.35rem 0; }
+.profile td { padding: 0.2rem 0.75rem 0.2rem 0; }
+.profile td:first-child { color: var(--muted); }
+.profile .note { margin: 0.6rem 0 0; color: var(--muted); font-size: 0.9rem; }

@@ -85,6 +85,50 @@ function summarySection(result: PipelineResult): HTMLElement {
   return section
 }
 
+const NOTE_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
+const noteName = (midi: number): string =>
+  `${NOTE_NAMES[((midi % 12) + 12) % 12]}${Math.floor(midi / 12) - 1}`
+
+/** The shape of the solo in numbers: what a summary would be written from. */
+function profileSection(result: PipelineResult): HTMLElement {
+  const { profile } = result.analysis
+  const section = el('section', 'profile')
+  const regions = profile.choruses.length > 1
+    ? profile.choruses.map((c, i) => ({ label: `Chorus ${i + 1}`, r: c }))
+    : [{ label: 'Solo', r: profile.overall }]
+
+  const table = el('table')
+  const head = el('tr')
+  for (const h of ['', 'Bars', 'Notes / bar', 'Silence', 'Phrases', 'Register', 'Chromatic']) {
+    head.appendChild(el('th', undefined, h))
+  }
+  table.appendChild(head)
+  for (const { label, r } of regions) {
+    const row = el('tr')
+    const cells = [
+      label,
+      `${r.startBar}–${r.endBar}`,
+      r.notesPerBar.toFixed(1),
+      `${Math.round(r.silence * 100)}%`,
+      `${r.phrases} of ~${Math.round(r.meanPhraseNotes)}`,
+      r.register ? `${noteName(r.register.lo)}–${noteName(r.register.hi)}` : '–',
+      `${Math.round(r.chromaticRatio * 100)}%`,
+    ]
+    for (const c of cells) row.appendChild(el('td', undefined, c))
+    table.appendChild(row)
+  }
+  section.appendChild(table)
+
+  const silent = profile.bars.filter((b) => b.silence >= 0.75).map((b) => b.bar)
+  const busiest = [...profile.bars].sort((a, b) => b.notes - a.notes).slice(0, 3)
+  section.appendChild(el('p', 'note',
+    `Busiest bars ${busiest.map((b) => b.bar).join(', ')}. ` +
+    (silent.length ? `Mostly silent: ${silent.join(', ')}. ` : '') +
+    `Phrase starts ${Math.round(profile.phraseChromaticism.start * 100)}% chromatic, ` +
+    `phrase ends ${Math.round(profile.phraseChromaticism.end * 100)}%.`))
+  return section
+}
+
 function adjustmentSections(adjustments: Adjustment[]): HTMLElement[] {
   const out: HTMLElement[] = []
   const blocking = adjustments.filter((a) => a.severity === 'blocking')
@@ -330,6 +374,7 @@ async function renderResult(result: PipelineResult, xml: string): Promise<void> 
 
   resultBox.appendChild(summarySection(result))
   for (const node of adjustmentSections(result.report.adjustments)) resultBox.appendChild(node)
+  resultBox.appendChild(profileSection(result))
   await annotatedSolo(result, xml)
 }
 

@@ -193,9 +193,15 @@ the b3 (bars 81, 90, 106) now visible where it was previously buried.
 
 ## Known limitations
 
-- **`Analysis.phrases` has no consumer.** Segmentation runs and is returned;
-  no detector reads it, so a cell can straddle a rest. The `SoloProfile`
-  (below) is its intended first consumer.
+- **Form phase is anchored to bar 1.** The Blake file has a 6-bar intro;
+  autocorrelation finds the 56-bar period correctly but reports chorus starts
+  at 1 and 57 when the marks say the solo choruses begin at 63 (and B at 73).
+  `agreesWithMarks: false` already flags it. Until `prepare/form.ts` phases
+  the period against marks or the soloist region, `SoloProfile.choruses` is a
+  single region for this file and forced phrase boundaries land in the wrong
+  bar.
+- **No detector reads `Analysis.phrases`**, so a cell can straddle a rest.
+  `SoloProfile` is now its only consumer.
 - **Target/enclosure devices produce no exercises.** They are found and reported,
   but only dictionary cells generate drills. Re-targeting is designed in the spec
   and not built.
@@ -215,10 +221,12 @@ the b3 (bars 81, 90, 106) now visible where it was previously buried.
    are matched to OSMD by `bar:beat` (MusicXML measure number, in-measure
    timestamp × 4); highlighting toggles a class on the note's SVG group, no
    re-render. Untested on a score with a pickup bar.
-2. **`SoloProfile`**: deterministic per-chorus / per-phrase statistics — note
-   density per bar, phrase count and mean length, rest proportion, register,
-   chromaticism ratio, where findings cluster. Gives `phrases` a consumer and
-   delivers the "density and silence" item for free.
+2. ~~`SoloProfile`~~ Done 2026-08-23: `src/analyse/profile.ts`, on
+   `Analysis.profile`, printed by `npm run solo` and shown on the page. Per
+   bar: notes, silence, register, chromatic count. Per chorus and overall:
+   density, silence, phrases, register, chromatic ratio, finding ids. Plus
+   phrase-edge chromaticism (Blake: starts 16%, ends 13% — the Weimar
+   direction). Blocked on form phase for a real per-chorus split (below).
 3. **The AI layer, scoped as a describer** (spec §8, narrowed). A `summarise()`
    that takes the `SoloProfile` plus findings and returns a two-paragraph
    overview (Mintzer's "architecture over time") and one line per finding.

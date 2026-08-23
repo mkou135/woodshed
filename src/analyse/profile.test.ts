@@ -1,0 +1,80 @@
+import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { profile } from './profile.ts'
+import { contextualise } from './context.ts'
+import { segment } from './segment.ts'
+import { ingest } from '../ingest/index.ts'
+import { prepare } from '../prepare/index.ts'
+import { analyse } from './index.ts'
+import { TICKS_PER_QUARTER as Q } from '../core/types.ts'
+import type { Chord, Note } from '../core/types.ts'
+
+const BLAKE = '/Users/michaelkourkov/Documents/MuseScore4/Scores/Hey Lock! - Seamus Blake Solo Transcription.mxl'
+
+const chord = (bar: number): Chord =>
+  ({ onset: (bar - 1) * 4 * Q, bar, rootPc: 0, quality: 'major-seventh', tensions: [] })
+
+/** Eighth notes from the start of `bar`, a rest of `gap` quarters after. */
+const eighths = (bar: number, midis: number[]): Note[] =>
+  midis.map((midi, i) => ({
+    midi, onset: (bar - 1) * 4 * Q + i * (Q / 2), duration: Q / 2, bar, beat: i / 2,
+  }))
+
+describe('profile', () => {
+  it('measures density and silence per bar', () => {
+    // Bar 1: four eighths then silence. Bar 2: empty. Bar 3: eight eighths.
+    const notes = [...eighths(1, [60, 62, 64, 65]), ...eighths(3, [60, 62, 64, 65, 67, 69, 71, 72])]
+    const ctx = contextualise(notes, [chord(1), chord(2), chord(3)])
+    const p = profile({
+      contexts: ctx, phrases: segment(notes), findings: [], timeSig: [4, 4], chorusStarts: [],
+    })
+    expect(p.bars.map((b) => b.notes)).toEqual([4, 0, 8])
+    expect(p.bars.map((b) => b.silence)).toEqual([0.5, 1, 0])
+    expect(p.bars[1].register).toBeNull()
+    expect(p.overall.notesPerBar).toBe(4)
+    expect(p.overall.phrases).toBe(2)
+    expect(p.overall.register).toEqual({ lo: 60, hi: 72, mean: 65.083 })
+  })
+
+  it('splits the solo at chorus starts, beginning from the first sounding bar', () => {
+    const notes = [...eighths(2, [60, 62]), ...eighths(5, [64, 65]), ...eighths(9, [67])]
+    const ctx = contextualise(notes, [chord(1)])
+    const p = profile({
+      contexts: ctx, phrases: segment(notes), findings: [], timeSig: [4, 4], chorusStarts: [1, 5, 9, 13],
+    })
+    expect(p.choruses.map((c) => [c.startBar, c.endBar])).toEqual([[2, 4], [5, 8], [9, 9]])
+    expect(p.choruses.map((c) => c.notes)).toEqual([2, 2, 1])
+  })
+
+  it('counts chromaticism against chords, at phrase edges', () => {
+    // Phrase of six over Cmaj7: chromatic at the end only.
+    const notes = eighths(1, [60, 64, 67, 72, 73, 74])
+    const ctx = contextualise(notes, [chord(1)])
+    const p = profile({
+      contexts: ctx, phrases: segment(notes), findings: [], timeSig: [4, 4], chorusStarts: [],
+    })
+    expect(p.phraseChromaticism).toEqual({ start: 0, end: 0.5 })
+    expect(p.overall.chromaticRatio).toBeCloseTo(1 / 6, 3)
+  })
+
+  it('is empty for an empty solo', () => {
+    const p = profile({ contexts: [], phrases: [], findings: [], timeSig: [4, 4], chorusStarts: [] })
+    expect(p.bars).toEqual([])
+    expect(p.choruses).toEqual([])
+  })
+
+  it('describes the Blake solo in numbers a teacher would recognise', () => {
+    const score = ingest(new Uint8Array(readFileSync(BLAKE)))
+    const report = prepare(score)
+    const a = analyse(score, report)
+    const p = a.profile
+    expect(p.overall.startBar).toBe(63)
+    // Form phase is anchored to bar 1 (chorus starts 1, 57), so the solo at
+    // 63-122 is not split. See HANDOFF "form phase" — fix lives in prepare/.
+    expect(p.choruses.length).toBeGreaterThanOrEqual(1)
+    // Phrase starts are more chromatic than phrase ends — the Weimar
+    // asymmetry the segmentation probe was scored on (Blake 18/9 there).
+    expect(p.phraseChromaticism.start).toBeGreaterThan(p.phraseChromaticism.end)
+    expect(p.overall.findingIds).toContain('f1')
+  })
+})

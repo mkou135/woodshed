@@ -8,6 +8,8 @@ import { matchShapes } from './detectors/shapes.ts'
 import { detectTargets } from './detectors/targets.ts'
 import { findRecurring } from './detectors/recurring.ts'
 import { qualityFamily } from '../core/pitch.ts'
+import { profile } from './profile.ts'
+import type { SoloProfile } from './profile.ts'
 
 export interface FindingSpan {
   startIndex: number
@@ -38,6 +40,7 @@ export interface Analysis {
   phrases: Phrase[]
   contexts: NoteContext[]
   findings: Finding[]
+  profile: SoloProfile
 }
 
 const MAX_DETECTOR_CREDIT = 0.6
@@ -150,7 +153,12 @@ export function analyse(score: Score, report: CleanupReport): Analysis {
     .filter((f) => f.confidence >= MIN_CONFIDENCE)
     .sort((a, b) => b.confidence - a.confidence)
 
-  return { phrases, contexts, findings }
+  return {
+    phrases,
+    contexts,
+    findings,
+    profile: profile({ contexts, phrases, findings, timeSig: score.timeSig, chorusStarts: forced }),
+  }
 }
 
 function detectorCredit(f: Finding): number {
