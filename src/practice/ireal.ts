@@ -79,7 +79,7 @@ function parseChord(token: string, bar: number, onset: number): Chord {
   if (!m) throw new UnsupportedChartError(`unrecognised chord "${token}"`)
   const [, step, accidental, rest] = m
   const suffix = rest.replace(/\/[A-G][b#]?$/, '')
-  const tensions = suffix.match(TENSION) ?? []
+  const tensions: string[] = suffix.match(TENSION) ?? []
   let core = suffix.replace(TENSION, '')
   // "7susb9" and "7b13sus": the sus can sit either side of a tension.
   if (core.endsWith('sus') && core !== 'sus' && !(core in CORE)) core = core.replace(/sus$/, '') + 'sus'

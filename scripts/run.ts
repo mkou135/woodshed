@@ -73,3 +73,13 @@ for (const e of exercises) {
   }
   if (e.bars.length > 4) console.log(`      ... ${e.bars.length - 4} more bars`)
 }
+
+console.log()
+console.log(`practice units: ${result.units.length}`)
+for (const u of result.units.slice(0, 6)) {
+  console.log(`  ${u.id}  rank ${u.rank}  ${u.header}`)
+  for (const s of u.steps) {
+    const n = s.kind === 'loop' ? 1 : s.kind === 'write' ? 1 : s.exercises.length
+    console.log(`      ${s.kind.padEnd(9)} ${n} exercise(s)  ${s.prompt.slice(0, 90)}…`)
+  }
+}

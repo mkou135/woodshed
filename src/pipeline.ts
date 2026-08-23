@@ -6,6 +6,10 @@ import { analyse } from './analyse/index.ts'
 import type { Analysis, Finding } from './analyse/index.ts'
 import { generateExercises } from './generate/index.ts'
 import type { Exercise } from './generate/index.ts'
+import { buildUnits } from './practice/unit.ts'
+import type { PracticeUnit } from './practice/unit.ts'
+import { tuneFromScore } from './practice/tune.ts'
+import type { Tune } from './practice/tune.ts'
 
 export interface FindingView {
   id: string
@@ -23,6 +27,10 @@ export interface PipelineResult {
   analysis: Analysis
   exercises: Exercise[]
   findingViews: FindingView[]
+  /** The solo's own changes, one chorus. */
+  tune: Tune
+  /** Ideas ranked by the vocabulary inside them, each with its four steps. */
+  units: PracticeUnit[]
 }
 
 const STRONG = 0.7
@@ -59,6 +67,8 @@ export function run(bytes: Uint8Array): PipelineResult {
   const report = prepare(score)
   const analysis = analyse(score, report)
   const exercises = generateExercises(analysis, score)
+  const tune = tuneFromScore(score, report.form?.chorusStarts ?? [])
+  const units = buildUnits(analysis, score, { tune })
 
   return {
     score,
@@ -66,5 +76,12 @@ export function run(bytes: Uint8Array): PipelineResult {
     analysis,
     exercises,
     findingViews: analysis.findings.map(describeFinding),
+    tune,
+    units,
   }
+}
+
+/** Rebuild the units against a different tune, e.g. a pasted iReal chart. */
+export function practiseOver(result: PipelineResult, tune: Tune, tuneName: string): PracticeUnit[] {
+  return buildUnits(result.analysis, result.score, { tune, tuneName })
 }
