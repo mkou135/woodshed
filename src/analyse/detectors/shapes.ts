@@ -49,19 +49,19 @@ export function matchShapes(ctx: NoteContext[]): ShapeHit[] {
   const hits: ShapeHit[] = []
 
   for (let i = 0; i + CELL_LENGTH <= ctx.length; i++) {
-    const window = ctx.slice(i, i + CELL_LENGTH)
-    const chord = window[0].chord
+    const cell = ctx.slice(i, i + CELL_LENGTH)
+    const chord = cell[0].chord
     if (!chord) continue
     // Same harmony, compared by root and quality rather than object identity:
     // a cell often spans two bars carrying the same chord as separate <harmony>
     // elements, and identity would reject it. A genuine chord change still
     // rejects, because the degrees would then describe two harmonies.
-    if (!window.every((c) => c.chord !== null
+    if (!cell.every((c) => c.chord !== null
       && c.chord.rootPc === chord.rootPc
       && c.chord.quality === chord.quality)) continue
-    if (window.some((c) => c.degree === null)) continue
+    if (cell.some((c) => c.degree === null)) continue
 
-    const degrees = window.map((c) => c.degree as string)
+    const degrees = cell.map((c) => c.degree as string)
     const name = DICTIONARY[familyOf(chord.quality)][degrees.join('')]
     if (!name) continue
 

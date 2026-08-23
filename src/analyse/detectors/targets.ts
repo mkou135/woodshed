@@ -63,12 +63,12 @@ function bestWindow(ctx: NoteContext[], i: number): TargetWindow | null {
     const start = i - size
     if (start < 0) continue
 
-    const window = ctx.slice(start, i)
-    if (window.some((c) => c.chord === null)) continue
+    const lead = ctx.slice(start, i)
+    if (lead.some((c) => c.chord === null)) continue
 
     const target = ctx[i]
-    const above = window.some((c) => c.note.midi > target.note.midi)
-    const below = window.some((c) => c.note.midi < target.note.midi)
+    const above = lead.some((c) => c.note.midi > target.note.midi)
+    const below = lead.some((c) => c.note.midi < target.note.midi)
     if (!above && !below) continue
 
     const kind: TargetKind = above && below ? 'enclosure' : 'approach'
@@ -76,7 +76,7 @@ function bestWindow(ctx: NoteContext[], i: number): TargetWindow | null {
       start,
       size,
       kind,
-      chromaticCount: window.filter((c) => c.chromatic).length,
+      chromaticCount: lead.filter((c) => c.chromatic).length,
     }
     if (kind === 'enclosure') return found
     if (!fallback) fallback = found
@@ -104,24 +104,24 @@ export function detectTargets(ctx: NoteContext[]): TargetHit[] {
     const stepSize = Math.abs(target.note.midi - ctx[i - 1].note.midi)
     if (stepSize !== 1 && stepSize !== 2) continue
 
-    const window = bestWindow(ctx, i)
-    if (!window) continue
+    const best = bestWindow(ctx, i)
+    if (!best) continue
 
     const score = Math.min(
       1,
       strength * 0.5 +
-        (window.kind === 'enclosure' ? 0.3 : 0.1) +
-        Math.min(0.2, window.chromaticCount * 0.1) -
-        (window.size - MIN_WINDOW) * 0.03,
+        (best.kind === 'enclosure' ? 0.3 : 0.1) +
+        Math.min(0.2, best.chromaticCount * 0.1) -
+        (best.size - MIN_WINDOW) * 0.03,
     )
 
     hits.push({
       targetIndex: i,
-      windowStart: window.start,
-      kind: window.kind,
+      windowStart: best.start,
+      kind: best.kind,
       fromBelow: target.note.midi > ctx[i - 1].note.midi,
       stepSize,
-      chromaticCount: window.chromaticCount,
+      chromaticCount: best.chromaticCount,
       score,
     })
   }
