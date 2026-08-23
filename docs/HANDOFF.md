@@ -113,8 +113,11 @@ The earlier probe's "long notes destroy the signal" was about a hard rule at
 2x; 4x is a different claim. Blake: 23 phrases, median 11 notes (Weimar
 median 12). Checked by the owner's ear the same day: rests make phrases,
 held notes make *ideas* within a phrase — so `Phrase.ideas` is a second
-level, and a phrase starting inside a tuplet begins on the beat. Blake: 18
-phrases. Detectors never match across an idea boundary.
+level, and a phrase starting inside a tuplet begins on the beat. **Then
+scored against the Weimar Jazz Database** (`npm run eval:wjd`, 456 solos):
+phrase boundaries F1 83.8 — the human–human ceiling is .83 — and idea
+boundaries 76.3. Weights tuned there; see `phrases-and-ideas.md` §8. Blake:
+18 phrases, 21 ideas. Detectors never match across an idea boundary.
 
 **Exercises render in even eighth notes.** What the method books do, and it
 means transcription rhythm errors never propagate into a drill.
@@ -205,8 +208,12 @@ the b3 (bars 81, 90, 106) now visible where it was previously buried.
   the period against marks or the soloist region, `SoloProfile.choruses` is a
   single region for this file and forced phrase boundaries land in the wrong
   bar.
-- **Phrase boundaries are validated on one solo by one listener.** Other
-  players and tempos will need the same read-through.
+- **Idea recall is 68%.** The missing boundaries are changes of character
+  and motivic repetition with no duration cue; they need a "same contour or
+  rhythm as the previous unit" detector, not more tuning.
+- **The Weimar database is ODbL** and lives at
+  `~/dev/personal/woodshed-data/wjazzd.db`, outside the repo. Never commit
+  it. `npm run eval:wjd` reads it from there (or `$WJD`).
 - **Target/enclosure devices produce no exercises.** They are found and reported,
   but only dictionary cells generate drills. Re-targeting is designed in the spec
   and not built.
@@ -219,6 +226,18 @@ the b3 (bars 81, 90, 106) now visible where it was previously buried.
 - The WBA atom parser is designed but deliberately unbuilt: a probe showed its
   output (`-X4 -F2 +A4 +D7`) is dominated by residuals and reads as nothing.
 - Vite warns the bundle is 1.4 MB, driven by OSMD.
+
+## Practice methodology (2026-08-23)
+
+`docs/research/practice-methodology.md` surveys how players and teachers
+take a solo apart (Terry, Berliner, Baker, Coker, Crook, Galper, Mintzer;
+Duke, Stambaugh, Norgaard). Consensus procedure: listen → sing → work in
+phrases → play with the record → analyse → micro-units → 12 keys by ear →
+through a tune → vary and write your own. Ranked implications for the tool
+are in its §7; the top ones — unit = phrase/device, "things to look for"
+before each drill, a per-device practice sequence, interleave rather than
+block, rank by recurrence and the player's own taste, surface non-pitch
+features — are the methodology the owner asked for.
 
 ## Suggested next steps, highest value first
 

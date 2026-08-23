@@ -11,6 +11,7 @@ and their evidence, the traps that already cost time, and what to do next.
 ```bash
 npm run dev        # Vite dev server; drop a .mxl on the page
 npm run solo -- <file.mxl>   # print findings and exercises for a real solo
+npm run eval:wjd   # score phrase/idea boundaries against the Weimar Jazz Database
 npm run test:run   # NEVER bare `npm test` — watch mode, hangs tool calls
 npm run typecheck
 npm run build

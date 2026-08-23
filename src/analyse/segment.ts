@@ -39,26 +39,50 @@ export interface Phrase {
  * Jazz Database, where the median phrase is 12 notes and about 2 bars.
  */
 
-/** A rest this long is a boundary on its own. */
-const FULL_REST = TICKS_PER_QUARTER
-/** Below this, a gap is articulation, not a rest. */
-const MIN_REST = TICKS_PER_QUARTER / 4
+export interface SegmentOptions {
+  /** A rest this long (ticks) is a boundary on its own. */
+  fullRest: number
+  /** Below this (ticks), a gap is articulation, not a rest. */
+  minRest: number
+  wRest: number
+  wLength: number
+  wLeap: number
+  threshold: number
+  /**
+   * A held note starts to count at `lengthFrom` times the median duration
+   * and counts fully at `lengthFull` times. The earlier corpus probe used a
+   * hard rule at 2x and it shattered phrases; a quarter among eighths is not
+   * an arrival, a half note usually is.
+   */
+  lengthFrom: number
+  lengthFull: number
+  /** GPR 1: a group this small is absorbed into a neighbour. */
+  minGroup: number
+  /**
+   * A gap at least this long (ticks) that does not reach the phrase
+   * threshold still opens a new idea. In the Weimar annotations a short
+   * rest is the single strongest idea cue (58% of idea boundaries).
+   */
+  ideaRest: number
+}
 
-const W_REST = 0.6
-const W_LENGTH = 0.45
-const W_LEAP = 0.15
-const THRESHOLD = 0.45
-/**
- * A held note starts to count at twice the median duration and counts fully
- * at four times — a half note among eighths. The earlier corpus probe used a
- * hard rule at 2x and it shattered phrases; a quarter note among eighths is
- * not an arrival, a half note usually is.
- */
-const LENGTH_FROM = 2
-const LENGTH_FULL = 4
-
-/** GPR 1: a group this small is absorbed into a neighbour. */
-const MIN_GROUP = 3
+export const DEFAULTS: SegmentOptions = {
+  fullRest: TICKS_PER_QUARTER,
+  minRest: TICKS_PER_QUARTER / 4,
+  // Tuned against the Weimar Jazz Database (scripts/eval-wjd.ts): phrase
+  // boundaries F1 83.8, idea boundaries F1 76.3 on 456 solos, within 0.6
+  // of the best setting found while keeping a long-held note (6x the
+  // median — three beats among eighths) as an idea cue on its own, which
+  // the owner hears. See docs/research/phrases-and-ideas.md.
+  wRest: 0.6,
+  wLength: 0.45,
+  wLeap: 0.25,
+  threshold: 0.45,
+  lengthFrom: 2,
+  lengthFull: 6,
+  minGroup: 3,
+  ideaRest: Infinity,
+}
 
 const STRUCTURAL_CONFIDENCE = 0.6
 const EIGHTH = TICKS_PER_QUARTER / 2
@@ -73,29 +97,36 @@ export interface Cue {
   rest: number
   length: number
   leap: number
+  /** The silence after the note, in ticks. */
+  gap: number
   total: number
 }
 
 /** How strongly the gap after note i reads as a boundary, by cue. */
-export function boundaryCue(notes: Note[], i: number, medianDuration: number): Cue {
+export function boundaryCue(
+  notes: Note[],
+  i: number,
+  medianDuration: number,
+  o: SegmentOptions = DEFAULTS,
+): Cue {
   const here = notes[i]
   const next = notes[i + 1]
-  if (!next) return { rest: 1, length: 0, leap: 0, total: 1 }
+  if (!next) return { rest: 1, length: 0, leap: 0, gap: 0, total: 1 }
 
   const gap = Math.max(0, next.onset - (here.onset + here.duration))
-  const rest = gap < MIN_REST ? 0 : Math.min(1, gap / FULL_REST)
+  const rest = gap < o.minRest ? 0 : Math.min(1, gap / o.fullRest)
 
   // Measured against the median so the rule means the same at any tempo.
   const length = medianDuration > 0
     ? Math.min(1, Math.max(0,
-      (here.duration / medianDuration - LENGTH_FROM) / (LENGTH_FULL - LENGTH_FROM)))
+      (here.duration / medianDuration - o.lengthFrom) / (o.lengthFull - o.lengthFrom)))
     : 0
 
   const leap = Math.min(1, Math.max(0, (Math.abs(next.midi - here.midi) - 4) / 8))
 
   return {
-    rest, length, leap,
-    total: Math.min(1, W_REST * rest + W_LENGTH * length + W_LEAP * leap),
+    rest, length, leap, gap,
+    total: Math.min(1, o.wRest * rest + o.wLength * length + o.wLeap * leap),
   }
 }
 
@@ -112,7 +143,7 @@ interface Boundary {
 }
 
 /** GPR 1: dissolve the weaker edge of any group below the minimum size. */
-function enforceMinimum(boundaries: Boundary[], count: number): Boundary[] {
+function enforceMinimum(boundaries: Boundary[], count: number, minGroup: number): Boundary[] {
   const out = [...boundaries]
   let changed = true
   while (changed) {
@@ -120,7 +151,7 @@ function enforceMinimum(boundaries: Boundary[], count: number): Boundary[] {
     for (let b = 0; b <= out.length; b++) {
       const start = b === 0 ? 0 : out[b - 1].at
       const end = b === out.length ? count : out[b].at
-      if (end - start >= MIN_GROUP) continue
+      if (end - start >= minGroup) continue
       const left = b > 0 ? out[b - 1] : null
       const right = b < out.length ? out[b] : null
       if (!left && !right) return out
@@ -158,8 +189,13 @@ function group<T extends { notes: Note[] }>(
   return out
 }
 
-export function segment(notes: Note[], forcedBoundaryBars: number[] = []): Phrase[] {
+export function segment(
+  notes: Note[],
+  forcedBoundaryBars: number[] = [],
+  options: Partial<SegmentOptions> = {},
+): Phrase[] {
   if (notes.length === 0) return []
+  const o = { ...DEFAULTS, ...options }
 
   const medianDuration = median(notes.map((n) => n.duration))
   const forced = new Set(forcedBoundaryBars)
@@ -167,16 +203,18 @@ export function segment(notes: Note[], forcedBoundaryBars: number[] = []): Phras
 
   for (let i = 0; i < notes.length - 1; i++) {
     const next = notes[i + 1]
-    const cue = boundaryCue(notes, i, medianDuration)
-    if (cue.total >= THRESHOLD) {
+    const cue = boundaryCue(notes, i, medianDuration, o)
+    if (cue.total >= o.threshold) {
       all.push({ at: i + 1, strength: cue.total, kind: cue.rest > 0 ? 'rest' : 'arrival' })
     } else if (forced.has(next.bar) && notes[i].bar !== next.bar) {
       all.push({ at: i + 1, strength: STRUCTURAL_CONFIDENCE, kind: 'structural' })
+    } else if (cue.gap >= o.ideaRest) {
+      all.push({ at: i + 1, strength: cue.total, kind: 'arrival' })
     }
   }
 
-  const phraseBoundaries = enforceMinimum(all.filter((b) => b.kind !== 'arrival'), notes.length)
-  const ideaBoundaries = enforceMinimum(all, notes.length)
+  const phraseBoundaries = enforceMinimum(all.filter((b) => b.kind !== 'arrival'), notes.length, o.minGroup)
+  const ideaBoundaries = enforceMinimum(all, notes.length, o.minGroup)
 
   const ideaStarts = new Map(ideaBoundaries.map((b) => [b.at, b.strength]))
 

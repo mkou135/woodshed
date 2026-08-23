@@ -56,10 +56,13 @@ describe('segment', () => {
   })
 
   it('does not split on a note twice the local norm, which the corpus probe showed is wrong', () => {
-    // A quarter among eighths is not an arrival.
+    // A quarter among eighths is not an arrival, and neither is a half note
+    // on its own (Weimar: a held note alone has low precision as an idea cue).
     const e = (m: number): [number, number, number] => [m, 0.5, 0]
-    const notes = notesFrom([e(60), e(62), [64, 1, 0], e(65), e(67), e(69)])
-    expect(segment(notes)).toHaveLength(1)
+    expect(segment(notesFrom([e(60), e(62), [64, 1, 0], e(65), e(67), e(69)]))).toHaveLength(1)
+    const half = segment(notesFrom([e(60), e(62), e(64), [67, 2, 0], e(65), e(67), e(69), e(70)]))
+    expect(half).toHaveLength(1)
+    expect(half[0].ideas).toHaveLength(1)
   })
 
   it('makes a held note an idea boundary inside the phrase, not a phrase end', () => {
@@ -67,7 +70,9 @@ describe('segment', () => {
     // hears bar 120's held G and the tag after it as one phrase; the held
     // note ends an idea.
     const e = (m: number): [number, number, number] => [m, 0.5, 0]
-    const notes = notesFrom([e(60), e(62), e(64), [67, 2, 0], e(65), e(67), e(69), e(70)])
+    // Three beats among eighths (6x the median): the Weimar annotations say
+    // a two-beat hold on its own is not enough.
+    const notes = notesFrom([e(60), e(62), e(64), [67, 3, 0], e(65), e(67), e(69), e(70)])
     const phrases = segment(notes)
     expect(phrases).toHaveLength(1)
     expect(phrases[0].ideas.map((i) => i.notes.length)).toEqual([4, 4])
