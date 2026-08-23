@@ -119,6 +119,12 @@ interface Score {
   timeSig: [number, number]
   marks: Mark[]                 // rehearsal marks and words, verbatim
 }
+
+interface Mark {
+  bar: number
+  kind: 'rehearsal' | 'words'
+  text: string                  // verbatim; never normalised at ingest
+}
 ```
 
 `Score` is immutable. Cleanup does not edit it.
@@ -140,16 +146,16 @@ rewritten; every change is inspectable and revertible. This is what makes "the
 tool never quietly alters the transcription" enforceable rather than aspirational.
 
 ```ts
-type Finding =
-  | { type: 'cell';   degrees: string[]; intervals: number[]; quality: Quality; … }
-  | { type: 'device'; procedure: DeviceKind; target: Note; window: Note[]; … }
-
 interface FindingCommon {
   occurrences: { bar: number; beat: number }[]
   detectedBy: DetectorId[]        // convergence — see §6.4
-  confidence: number
+  confidence: number              // 0..1, heuristic; see §6.5
   chordProvenance: Provenance
 }
+
+type Finding =
+  | (FindingCommon & { type: 'cell';   degrees: string[]; intervals: number[]; quality: Quality })
+  | (FindingCommon & { type: 'device'; procedure: DeviceKind; target: Note; window: Note[] })
 
 interface Exercise {
   notes: Note[]
@@ -224,9 +230,15 @@ Checks, ordered by the damage their failure does:
 4. **Structure-annotation interpretation.** (F4) Present in 5 of 8 files in three
    incompatible conventions — chorus numbers, section letters, or nothing.
    Cannot be parsed by convention; the model reads the marks and proposes.
-5. **Chord track validation and replacement.** Flag implausible persistence and
-   section boundaries with no change. Allow replacing the track wholesale from a
-   reference source, carrying `provenance: 'reference'`.
+5. **Chord track validation and replacement.** MusicXML harmony persists until
+   the next `<harmony>`, so *chord held* and *chord not entered* are
+   indistinguishable from the file alone — the Blake solo carries 60-odd notes
+   under a single symbol across bars 1-6. Flag a chord that persists across a
+   detected section boundary, or beyond one bar where the surrounding harmonic
+   rhythm is faster. Regular, section-aligned gaps are held chords, not errors:
+   the bridge of the Blake solo moves in two-bar units, which produced five such
+   gaps legitimately. Allow replacing the track wholesale from a reference source,
+   carrying `provenance: 'reference'`.
 6. **Unmarked pickup detection.** (F8) Exactly one bar across eight files fails to
    sum to its time signature — bar 1 of the Mintzer rhythm changes, an anacrusis
    not marked `implicit="yes"`. Cheap check; an unmarked pickup shifts every
@@ -276,14 +288,18 @@ wrong.
   object: `3572` over C major is 3-5-7-9; over Cm7 it is the relative-major
   maj7 arpeggio off the ♭3, which is what it actually was in the Blake solo.
 
-### 6.3 The four detectors
+### 6.3 Detectors
 
-| Detector | Finds | Needs chords | Source |
+**v1 has three detectors plus a scorer, not four detectors.** Earlier drafts
+listed corpus surprisal as the fourth; §1 defers it, so convergence scoring
+(§6.4) takes its place as the way a finding earns confidence.
+
+| Component | Finds | Needs chords | Source |
 |---|---|---|---|
 | Shape matcher | dictionary vocabulary, quality-aware | for degree matching | Frieler's n-gram work |
 | WBA atom parser | scale runs, arpeggios, trills, 3-note approaches | no | Frieler 2019, implemented from the paper |
 | Target/approach detector | multi-note enclosures and approaches | helps, not required | **ours** |
-| Convergence scorer | agreement between the above | — | **ours** |
+| *Convergence scorer* | agreement between the three above | — | **ours** |
 
 **WBA atom parser.** Nine classes (R, D, C, A, J, T, F, X, L) over the interval
 sequence, timing discarded. Class-sweep parse in priority order — repetitions,
@@ -332,7 +348,14 @@ surprisal. In the Blake sample the shape matcher, the interval miner and the WBA
 arpeggio class independently converged on the same span — a far stronger signal
 than any one firing alone.
 
-Confidence also inherits chord provenance and any transcriber annotation (F10).
+### 6.5 Confidence
+
+A single 0..1 heuristic score on every finding, combining: how many detectors
+converged, the provenance of the chord track the degrees rest on, the confidence
+of the phrase boundaries involved, metrical fuzziness at the target, and any
+transcriber annotation covering those bars (F10). It is a ranking signal for the
+agent and a hedging signal for the report — not a probability, and the report
+should never present it as one.
 
 ---
 
@@ -364,6 +387,10 @@ start, not retrofitted.
 
 > A transformation is valid for a finding if re-running the detector on the
 > output still finds the same finding.
+
+"Same" is defined per finding type: for a **cell**, the same degree string against
+the same chord quality; for a **device**, the same procedure with a target of the
+same chord function. Neither requires the same pitches — that is the point.
 
 An executable test rather than a hardcoded allow-list, and it produces the right
 answers unprompted: inversion **fails** for a digital pattern (1235 becomes
