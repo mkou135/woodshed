@@ -1,0 +1,79 @@
+import type { Score } from '../core/types.ts'
+import type { Adjustment } from './adjustments.ts'
+import { parseChordSymbol } from '../ingest/parseChordText.ts'
+
+export interface SoloistRegion {
+  name: string
+  startBar: number
+  endBar: number
+}
+
+/**
+ * Words that appear above the staff but describe how to play, not who is
+ * playing. Compared case-insensitively as whole words.
+ */
+const DIRECTIONS = new Set([
+  'swing', 'straight', 'straight 8ths', 'lay back', 'sloppy', 'flat', 'sharp',
+  'growl', 'half-tonguing', 'subtone', 'rubato', 'solo', 'head', 'intro',
+  'outro', 'tema', 'fine', 'break', 'vamp', 'open',
+])
+
+function looksLikeName(text: string): boolean {
+  const t = text.trim()
+  if (t.length === 0 || t.length > 24) return false
+  if (DIRECTIONS.has(t.toLowerCase())) return false
+  if (parseChordSymbol(t)) return false
+  // A name starts with a capital and contains no digits.
+  if (!/^[A-Z]/.test(t)) return false
+  if (/\d/.test(t)) return false
+  return true
+}
+
+/**
+ * Identify which bars belong to which soloist. Attribution lives only in free
+ * text, so this is a proposal for the user to confirm, never a silent split.
+ */
+export function detectSoloists(score: Score): SoloistRegion[] {
+  const names = score.marks
+    .filter((m) => m.kind === 'words' && looksLikeName(m.text))
+    .map((m) => ({ name: m.text.trim(), bar: m.bar }))
+
+  if (names.length === 0) {
+    return [{ name: 'unknown', startBar: 1, endBar: score.barCount }]
+  }
+
+  const regions: SoloistRegion[] = []
+  for (let i = 0; i < names.length; i++) {
+    regions.push({
+      name: names[i].name,
+      startBar: names[i].bar,
+      endBar: i + 1 < names.length ? names[i + 1].bar - 1 : score.barCount,
+    })
+  }
+
+  // A name appearing after bar 1 leaves an unattributed head; keep it only if
+  // it actually contains bars.
+  if (regions[0].startBar > 1) {
+    regions.unshift({ name: 'unknown', startBar: 1, endBar: regions[0].startBar - 1 })
+  }
+  return regions
+}
+
+export function soloistAdjustments(regions: SoloistRegion[]): Adjustment[] {
+  const named = regions.filter((r) => r.name !== 'unknown')
+  if (named.length < 2) return []
+
+  return [
+    {
+      kind: 'soloist-boundary',
+      severity: 'blocking',
+      target: { range: [regions[0].startBar, regions[regions.length - 1].endBar] },
+      after: regions,
+      reason:
+        `This score contains ${named.length} soloists (${named.map((r) => r.name).join(', ')}). ` +
+        'Analysing across the boundary would blend their vocabularies. Choose one.',
+      decidedBy: 'engine',
+      confidence: 0.8,
+    },
+  ]
+}
