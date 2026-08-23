@@ -227,6 +227,40 @@ the b3 (bars 81, 90, 106) now visible where it was previously buried.
   output (`-X4 -F2 +A4 +D7`) is dominated by residuals and reads as nothing.
 - Vite warns the bundle is 1.4 MB, driven by OSMD.
 
+## Practice units (2026-08-23)
+
+Spec: `docs/superpowers/specs/2026-08-23-practice-units-design.md`. The
+owner chose four steps from the methodology research as the spine:
+*analyse → micro-units → through a tune → vary and write your own.*
+
+- **The practice unit is the idea** (`Phrase.ideas[]`), split at bar lines
+  into parts of at most two bars when long (`practice/unit.ts`,
+  `partition`). Findings are chips inside it. Ranked by strongest finding,
+  breadth, recurrence, a chord-tone landing, and +2 if it can be taken
+  through a tune. Blake: 32 units; u1 is the maj7-from-the-b3 line at 76–77.
+- **Four steps per unit** (`practice/steps/`): *loop* (as played, real
+  rhythm, chords; sing, then with the record from bar N beat M), *through*
+  (each degree-cell over every fitting chord of the tune; cycle of fourths
+  available, not default), *displace* (same pitches and rhythm starting on
+  1, the and of 1, 2, or as a pickup — the smallest move modulo the bar;
+  dropped if the arrival stops being a chord tone), *write* (MusicXML
+  template with the arrival degree as cue notes on fitting chords;
+  `checkWriting` ingests the player's file and says which devices are in it).
+- **Tunes**: this solo's changes (one chorus) by default, or an
+  `irealb://` link pasted on the page (`practice/ireal.ts`). The parser is
+  ours; 1,458 of the 1,460 forum jazz standards parse (two are malformed).
+  Charts are concert; transposed by `instrument.transpose`. The pasted link
+  is kept in `localStorage`. No chart collections are bundled.
+- **Renderer** (`render/musicxml.ts`) now takes `ExerciseBar.events`
+  (durations in ticks, rests, cue notes, several chords per bar) alongside
+  the even-eighth path.
+- The page lists **Ideas**, not findings; selecting one highlights its
+  notes and opens the four step panels under it. Notation renders when a
+  panel opens.
+
+Not done: session planning / interleaving; motivic-repetition detection for
+the 14% of idea boundaries with no duration cue.
+
 ## Practice methodology (2026-08-23)
 
 `docs/research/practice-methodology.md` surveys how players and teachers
@@ -241,6 +275,7 @@ features — are the methodology the owner asked for.
 
 ## Suggested next steps, highest value first
 
+0. ~~Practice units with the four steps.~~ Done 2026-08-23; see above.
 1. ~~Annotated transcription as the primary view.~~ Done 2026-08-23. Notes
    are matched to OSMD by `bar:beat` (MusicXML measure number, in-measure
    timestamp × 4); highlighting toggles a class on the note's SVG group, no

@@ -25,6 +25,8 @@ npm run build
 - Any future model layer never produces or reasons about note data — every
   count, interval and generated note comes from deterministic code.
 - Never modify `fixtures/`; tests assert their exact values.
+- `src/practice/` consumes `Analysis`; it never changes detection. Chord
+  quality in iReal charts comes from the explicit core table, never guessed.
 - Style: no semicolons, single quotes, 2-space indent, ESM with explicit `.ts`
   extensions in imports.
 

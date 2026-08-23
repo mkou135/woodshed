@@ -24,8 +24,10 @@ export function throughStep(
   const exercises: Exercise[] = []
   const where: string[] = []
 
+  const nowhere: string[] = []
   for (const finding of cells) {
     const over = overChanges(finding, chords, instrument)
+    if (!over || !isValid(over, finding)) nowhere.push(finding.name)
     if (over && isValid(over, finding)) {
       over.id = `${unit.id}-${finding.id}-through`
       over.title = `${finding.name} through ${tuneName}`
@@ -44,12 +46,17 @@ export function throughStep(
   }
   if (exercises.length === 0) return []
 
+  const lines = [
+    ...where.map((w) => `${w}.`),
+    ...nowhere.map((n) => `No chord in ${tuneName} fits ${n}; the cycle of fourths stands in.`),
+    'Play it slowly in each place by ear — think in degrees, not note names — then with a play-along.',
+  ]
+  if (where.length > 0) lines.push('The cycle-of-fourths version is there when you want all twelve keys.')
+
   return [{
     kind: 'through',
     tune: tuneName,
     exercises,
-    prompt:
-      `${where.join('. ')}. Play it slowly in each place by ear — think in degrees, not note names — ` +
-      'then with a play-along. The cycle-of-fourths version is there when you want all twelve keys.',
+    prompt: lines.join(' '),
   }]
 }

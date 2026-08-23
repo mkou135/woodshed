@@ -1,9 +1,10 @@
 import { OpenSheetMusicDisplay } from 'opensheetmusicdisplay'
 import {
   run, readScoreXml, exerciseToMusicXml, UnsupportedScoreError, TICKS_PER_QUARTER,
+  parseIReal, practiseOver, transposeTune, checkWriting, chordName, noteName,
 } from '../src/index.ts'
 import type {
-  Adjustment, Exercise, Finding, FindingView, Instrument, PipelineResult,
+  Adjustment, Exercise, Instrument, PipelineResult, PracticeUnit, Step, IRealSong,
 } from '../src/index.ts'
 
 const dropZone = document.getElementById('drop') as HTMLDivElement
@@ -87,9 +88,7 @@ function summarySection(result: PipelineResult): HTMLElement {
   return section
 }
 
-const NOTE_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
-const noteName = (midi: number): string =>
-  `${NOTE_NAMES[((midi % 12) + 12) % 12]}${Math.floor(midi / 12) - 1}`
+const noteOctave = (midi: number): string => `${noteName(midi)}${Math.floor(midi / 12) - 1}`
 
 /** The shape of the solo in numbers: what a summary would be written from. */
 function profileSection(result: PipelineResult): HTMLElement {
@@ -113,7 +112,7 @@ function profileSection(result: PipelineResult): HTMLElement {
       r.notesPerBar.toFixed(1),
       `${Math.round(r.silence * 100)}%`,
       `${r.phrases} of ~${Math.round(r.meanPhraseNotes)}`,
-      r.register ? `${noteName(r.register.lo)}–${noteName(r.register.hi)}` : '–',
+      r.register ? `${noteOctave(r.register.lo)}–${noteOctave(r.register.hi)}` : '–',
       `${Math.round(r.chromaticRatio * 100)}%`,
     ]
     for (const c of cells) row.appendChild(el('td', undefined, c))
@@ -325,66 +324,206 @@ function markPhrases(result: PipelineResult, map: SoloMap): void {
   })
 }
 
-function findingElements(
-  finding: Finding,
+function unitElements(
+  unit: PracticeUnit,
   result: PipelineResult,
   byKey: Map<string, SVGGElement[]>,
 ): SVGGElement[] {
   const out: SVGGElement[] = []
-  for (const span of finding.spans) {
-    for (let i = span.startIndex; i <= span.endIndex; i++) {
-      const note = result.analysis.contexts[i]?.note
-      if (!note) continue
-      out.push(...(byKey.get(noteKey(note.bar, note.beat)) ?? []))
-    }
+  for (let i = unit.startIndex; i <= unit.endIndex; i++) {
+    const note = result.analysis.contexts[i]?.note
+    if (note) out.push(...(byKey.get(noteKey(note.bar, note.beat)) ?? []))
   }
   return out
 }
 
-function findingItem(view: FindingView, drillCount: number): HTMLLIElement {
-  const item = el('li', 'finding')
+const STEP_TITLES: Record<Step['kind'], string> = {
+  loop: '1 · Loop it as played',
+  through: '2 · Through the tune',
+  displace: '3 · Vary it',
+  write: '4 · Write your own',
+}
+
+function unitItem(unit: PracticeUnit): HTMLLIElement {
+  const item = el('li', 'finding unit')
   item.tabIndex = 0
-  item.dataset.id = view.id
+  item.dataset.id = unit.id
+  const first = unit.notes[0]
+  const last = unit.notes[unit.notes.length - 1]
+  const where = first.bar === last.bar ? `bar ${first.bar}` : `bars ${first.bar}–${last.bar}`
+  const part = unit.part ? ` · part ${unit.part.n} of ${unit.part.of}` : ''
   item.append(
-    el('span', 'name', view.name),
-    el('span', 'where', view.location),
+    el('span', 'name', `${where}${part} · ${unit.harmony.map(chordName).join(' → ') || 'no chord'}`),
+    el('span', 'where', unit.notes.map((n) => noteName(n.midi)).join(' ')),
   )
-  const meta = el('span', 'meta')
-  meta.append(
-    el('span', `badge ${view.confidenceLabel}`, view.confidenceLabel),
-    el('span', 'by', `${view.detectedBy.join(' + ')}`),
-  )
-  if (drillCount > 0) meta.appendChild(el('span', 'drills', `${drillCount} drills`))
-  item.appendChild(meta)
+  const chips = el('span', 'chips')
+  for (const name of new Set(unit.findings.map((f) => f.name))) chips.appendChild(el('span', 'chip', name))
+  if (unit.findings.length === 0) chips.appendChild(el('span', 'chip faint', 'no named vocabulary'))
+  item.appendChild(chips)
   return item
+}
+
+/** The four steps under a selected idea. Notation renders when a panel opens. */
+async function stepPanels(unit: PracticeUnit, result: PipelineResult, host: HTMLElement): Promise<void> {
+  host.appendChild(el('p', 'header', unit.header))
+  const renderers: (() => Promise<void>)[] = []
+
+  unit.steps.forEach((step, index) => {
+    const details = el('details', 'step')
+    details.open = index === 0
+    details.appendChild(el('summary', undefined, STEP_TITLES[step.kind]))
+    details.appendChild(el('p', 'prompt', step.prompt))
+    const exercises =
+      step.kind === 'loop' ? [step.exercise]
+        : step.kind === 'write' ? []
+          : step.exercises
+    const pending: { notation: HTMLElement; xml: string }[] = []
+    for (const exercise of exercises) {
+      const { card, notation, xml } = exerciseCard(exercise, result.score.instrument)
+      details.appendChild(card)
+      pending.push({ notation, xml })
+    }
+    const renderMine = async (): Promise<void> => {
+      for (const item of pending.splice(0)) await renderNotation(item.notation, item.xml)
+    }
+    details.addEventListener('toggle', () => { if (details.open) void renderMine() })
+    if (details.open) renderers.push(renderMine)
+
+    if (step.kind === 'write') {
+      const button = el('button', undefined, 'Download the template')
+      button.type = 'button'
+      button.addEventListener('click', () => download(`${unit.id}-write-your-own.musicxml`, step.template))
+      details.appendChild(button)
+      const check = el('label', 'check')
+      check.append(el('span', undefined, 'Then check your writing: '))
+      const input = el('input')
+      input.type = 'file'
+      input.accept = '.mxl,.musicxml,.xml'
+      const verdict = el('p', 'verdict')
+      input.addEventListener('change', async () => {
+        const file = input.files?.[0]
+        if (!file) return
+        try {
+          const res = checkWriting(new Uint8Array(await file.arrayBuffer()), unit)
+          verdict.replaceChildren()
+          for (const name of res.found) {
+            verdict.appendChild(el('span', 'ok', `✓ ${name} — bars ${res.bars[name].join(', ')}`))
+          }
+          for (const name of res.missing) verdict.appendChild(el('span', 'miss', `✗ ${name} not found`))
+        } catch (error) {
+          verdict.textContent = `Could not read that file: ${(error as Error).message}`
+        }
+      })
+      check.appendChild(input)
+      details.append(check, verdict)
+    }
+    host.appendChild(details)
+  })
+  for (const render of renderers) await render()
+}
+
+const TUNE_KEY = 'woodshed.tune'
+
+function tuneControl(
+  result: PipelineResult,
+  onChange: (units: PracticeUnit[]) => void,
+): HTMLElement {
+  const box = el('div', 'tune')
+  const select = el('select')
+  const own = el('option', undefined, 'this solo')
+  own.value = 'solo'
+  select.appendChild(own)
+  const paste = el('input')
+  paste.type = 'text'
+  paste.placeholder = 'paste an irealb:// link'
+  const note = el('span', 'faint')
+
+  let songs: IRealSong[] = []
+  const apply = (): void => {
+    if (select.value === 'solo') { onChange(result.units); return }
+    const song = songs[Number(select.value)]
+    if (!song) return
+    // Charts are concert pitch; the player reads written pitch.
+    const written = transposeTune(song.tune, -result.score.instrument.transpose.chromatic)
+    onChange(practiseOver(result, written, song.title))
+  }
+  const load = (link: string): void => {
+    try {
+      songs = parseIReal(link)
+      for (const o of [...select.options]) if (o.value !== 'solo') o.remove()
+      songs.forEach((s, i) => {
+        const o = el('option', undefined, `${s.title} (${s.key})`)
+        o.value = String(i)
+        select.appendChild(o)
+      })
+      select.value = '0'
+      note.textContent = songs.length > 1 ? `${songs.length} tunes loaded` : ''
+      try { localStorage.setItem(TUNE_KEY, link) } catch { /* private mode */ }
+      apply()
+    } catch (error) {
+      note.textContent = (error as Error).message
+    }
+  }
+  paste.addEventListener('change', () => { if (paste.value.trim()) load(paste.value) })
+  select.addEventListener('change', apply)
+  box.append(el('span', undefined, 'Take it through: '), select, paste, note)
+  try {
+    const saved = localStorage.getItem(TUNE_KEY)
+    if (saved) { paste.value = saved; load(saved) }
+  } catch { /* no storage */ }
+  return box
 }
 
 async function annotatedSolo(result: PipelineResult, xml: string): Promise<HTMLElement> {
   const section = el('section', 'workspace')
   const aside = el('aside', 'menu')
   const scoreBox = el('div', 'solo')
-  const drills = el('div', 'drills-panel')
+  const panels = el('div', 'drills-panel')
   section.append(aside, scoreBox)
 
-  aside.appendChild(el('h2', undefined, `Vocabulary (${result.findingViews.length})`))
-  aside.appendChild(el('p', 'hint',
-    `${result.analysis.phrases.length} phrases, marked in the score in amber and numbered; ` +
-    'ideas within a phrase are in blue, numbered 2.2, 2.3… A lighter tick is a boundary the engine is less sure of.'))
-  if (result.findingViews.length === 0) {
-    aside.appendChild(el('p', 'empty', 'Nothing recognised in this solo.'))
-  }
-
+  let units = result.units
+  let selected: string | null = null
   const list = el('ul', 'findings')
-  const exercisesFor = (id: string): Exercise[] =>
-    result.exercises.filter((e) => e.findingId === id)
-  for (const view of result.findingViews) {
-    list.appendChild(findingItem(view, exercisesFor(view.id).length))
+  const heading = el('h2', undefined, `Ideas (${units.length})`)
+  const hint = el('p', 'hint',
+    `${result.analysis.phrases.length} phrases, marked in the score in amber and numbered; ` +
+    'ideas within a phrase are in blue, numbered 2.2, 2.3… Pick an idea to see how to practise it.')
+
+  const fill = (): void => {
+    list.replaceChildren()
+    for (const unit of units) list.appendChild(unitItem(unit))
+    heading.textContent = `Ideas (${units.length})`
   }
-  aside.appendChild(list)
 
   // Attached first, rendered second: OSMD measures its container.
   resultBox.appendChild(section)
   let byKey = new Map<string, SVGGElement[]>()
+  let highlighted: SVGGElement[] = []
+
+  const select = async (id: string, scroll: boolean): Promise<void> => {
+    const unit = units.find((u) => u.id === id)
+    if (!unit) return
+    selected = id
+    for (const item of list.querySelectorAll<HTMLLIElement>('li.unit')) {
+      const on = item.dataset.id === id
+      item.classList.toggle('selected', on)
+      if (on) item.appendChild(panels)
+    }
+    for (const node of highlighted) node.classList.remove('hit')
+    highlighted = unitElements(unit, result, byKey)
+    for (const node of highlighted) node.classList.add('hit')
+    if (scroll && highlighted[0]) highlighted[0].scrollIntoView({ block: 'center', behavior: 'smooth' })
+    panels.replaceChildren()
+    await stepPanels(unit, result, panels)
+  }
+
+  const control = tuneControl(result, (next) => {
+    units = next
+    fill()
+    if (selected) void select(selected, false)
+  })
+  aside.append(heading, hint, control, list)
+
   try {
     const map = await renderSolo(scoreBox, xml)
     byKey = map.notes
@@ -393,60 +532,20 @@ async function annotatedSolo(result: PipelineResult, xml: string): Promise<HTMLE
     scoreBox.appendChild(el('p', 'empty', `Could not render the solo: ${(error as Error).message}`))
   }
 
-  let highlighted: SVGGElement[] = []
-
-  const select = async (id: string, scroll: boolean): Promise<void> => {
-    const finding = result.analysis.findings.find((f) => f.id === id)
-    if (!finding) return
-
-    for (const item of list.querySelectorAll<HTMLLIElement>('li')) {
-      const selected = item.dataset.id === id
-      item.classList.toggle('selected', selected)
-      // The drills live under the item they belong to, so choosing an
-      // item and seeing what to practise is one glance, not a scroll.
-      if (selected) item.appendChild(drills)
-    }
-    for (const node of highlighted) node.classList.remove('hit')
-    highlighted = findingElements(finding, result, byKey)
-    for (const node of highlighted) node.classList.add('hit')
-    if (scroll && highlighted[0]) {
-      highlighted[0].scrollIntoView({ block: 'center', behavior: 'smooth' })
-    }
-
-    drills.replaceChildren()
-    const exercises = exercisesFor(id)
-    if (exercises.length === 0) {
-      drills.appendChild(el('p', 'empty',
-        finding.kind === 'device'
-          ? 'Devices are reported but not yet drilled.'
-          : 'No drill survived the validity gate for this one.'))
-      return
-    }
-    const pending: { notation: HTMLElement; xml: string }[] = []
-    for (const exercise of exercises) {
-      const { card, notation, xml: exerciseXml } = exerciseCard(exercise, result.score.instrument)
-      drills.appendChild(card)
-      pending.push({ notation, xml: exerciseXml })
-    }
-    for (const item of pending) await renderNotation(item.notation, item.xml)
-  }
-
   list.addEventListener('click', (event) => {
-    const item = (event.target as HTMLElement).closest<HTMLLIElement>('li.finding')
+    if ((event.target as HTMLElement).closest('.drills-panel')) return
+    const item = (event.target as HTMLElement).closest<HTMLLIElement>('li.unit')
     if (item?.dataset.id) void select(item.dataset.id, true)
   })
   list.addEventListener('keydown', (event) => {
     if (event.key !== 'Enter' && event.key !== ' ') return
-    const item = (event.target as HTMLElement).closest<HTMLLIElement>('li.finding')
-    if (item?.dataset.id) {
-      event.preventDefault()
-      void select(item.dataset.id, true)
-    }
+    if ((event.target as HTMLElement).closest('.drills-panel')) return
+    const item = (event.target as HTMLElement).closest<HTMLLIElement>('li.unit')
+    if (item?.dataset.id) { event.preventDefault(); void select(item.dataset.id, true) }
   })
 
-  const first = result.findingViews[0]
-  if (first) await select(first.id, true)
-
+  fill()
+  if (units[0]) await select(units[0].id, true)
   return section
 }
 
