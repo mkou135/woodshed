@@ -164,3 +164,50 @@ Ordered by how much damage the failure does:
 6. **Ingest transcriber annotations as confidence signals** (F10).
 7. **Flag but never auto-correct** range outliers (F7) and spelling (F11).
 8. **Refuse to guess** when repeats/endings appear (F9) — ask.
+
+---
+
+## Addendum — phrase segmentation probe (2026-08-23)
+
+Ran four segmentation variants over the solo regions of four real transcriptions
+(Blake 335 notes, Coltrane 26-2 678, Rollins 568, Bartley 1209), scoring each by
+the chromaticism asymmetry the Weimar work reports: phrase beginnings should be
+markedly more chromatic than phrase endings.
+
+| variant | mean start | mean end | spread |
+|---|---|---|---|
+| **rests only** (gap >= an eighth) | **14%** | **10%** | **4** |
+| rests + note >= 2.0x local median duration | 11% | 11% | 0 |
+| rests + note >= 2.5x local median duration | 12% | 11% | 1 |
+| rests + note >= 3.0x local median duration | 12% | 11% | 1 |
+
+**Rests alone win, and the long-note rule actively destroys the signal.** The
+intuition that a held note ends a phrase is not supported: adding it splits at
+points that are not phrase endings, flattening the asymmetry to nothing. It also
+fragments badly — 30-108 phrases of two notes or fewer per solo.
+
+An earlier variant keyed on inter-onset interval was worse still, for a reason
+worth recording: an absolute floor of one quarter note means that at bebop tempo
+*every quarter note* becomes a boundary.
+
+### Two measurement traps found on the way
+
+1. **Do not count every accidental as chromatic.** The first run marked the b7 of
+   a dominant chromatic — spelt with a flat, but the most consonant note in the
+   chord, and a very common phrase ending. That inflated end-chromaticism to 18%
+   and hid the asymmetry completely. Correct definition: *altered AND not a chord
+   tone*.
+2. **The absolute percentages are not comparable to Frieler's** (20.4% / 5.0%).
+   Those are computed relative to the key; ours are relative to the sounding
+   chord, which is a stricter and different measure. Only the *direction* of the
+   asymmetry is a valid check.
+
+### Decision for v1
+
+Segment on rests only, plus forced boundaries at soloist-region and chorus
+starts. No long-note rule, no IOI rule. Report per-boundary confidence.
+
+Honest caveat: even the best variant reproduces the expected asymmetry in only
+two of four solos (Blake 18/9, Coltrane 10/1; Rollins 9/11 and Bartley 17/18 show
+none). Long unbroken runs survive — up to 39-55 notes with no rest — and on this
+evidence those appear to be real, not segmentation failures.
