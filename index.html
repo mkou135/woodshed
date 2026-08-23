@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>woodshed</title>
+    <link rel="stylesheet" href="/app/style.css" />
+  </head>
+  <body>
+    <main>
+      <h1>woodshed</h1>
+      <p class="lede">
+        Drop in a transcribed solo — <code>.mxl</code> or <code>.musicxml</code> —
+        and see the vocabulary it contains, with exercises that drill it.
+      </p>
+
+      <div id="drop" class="drop">
+        <p>Drop a transcription here</p>
+        <label class="file">
+          <input id="file" type="file" accept=".mxl,.musicxml,.xml" />
+          <span>or choose a file</span>
+        </label>
+      </div>
+
+      <p id="status" class="status" hidden></p>
+      <div id="error" class="error" hidden></div>
+      <div id="result" hidden></div>
+    </main>
+    <script type="module" src="/app/main.ts"></script>
+  </body>
+</html>
