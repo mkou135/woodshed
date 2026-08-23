@@ -3,21 +3,46 @@ import type { Chord, Instrument, Quality } from '../core/types.ts'
 import type { Finding } from '../analyse/index.ts'
 import { barContains } from './validity.ts'
 
+/** A note or rest with a real duration, in ticks. */
+export interface ExerciseEvent {
+  /** null is a rest. */
+  midi: number | null
+  duration: number
+  /** Drawn small: a target to write towards, not a note to play. */
+  cue?: boolean
+}
+
+export interface BarChord {
+  /** Ticks from the start of the bar. */
+  onset: number
+  rootPc: number
+  quality: Quality
+}
+
 export interface ExerciseBar {
   rootPc: number
   quality: Quality
+  /** The cell as even eighths. Used when `events` is absent. */
   midis: number[]
+  /** Rhythm as played (or as displaced). Overrides `midis` when present. */
+  events?: ExerciseEvent[]
+  /** Every chord in the bar, when there is more than the one above. */
+  chords?: BarChord[]
 }
+
+export type Transformation =
+  | 'cycle-of-fourths' | 'over-changes' | 'loop' | 'displace' | 'template'
 
 export interface Exercise {
   id: string
   title: string
   findingId: string
   findingName: string
-  transformation: 'cycle-of-fourths' | 'over-changes'
+  transformation: Transformation
   bars: ExerciseBar[]
   sourceBar: number
   rationale: string
+  timeSig?: [number, number]
 }
 
 /** Shift the whole cell by octaves so it fits the horn without changing shape. */

@@ -4,7 +4,7 @@ import { throughCycleOfFourths, overChanges } from './transform.ts'
 import type { Exercise } from './transform.ts'
 import { isValid } from './validity.ts'
 
-export type { Exercise, ExerciseBar } from './transform.ts'
+export type { Exercise, ExerciseBar, ExerciseEvent, BarChord, Transformation } from './transform.ts'
 
 export interface GenerateOptions {
   maxFindings?: number
