@@ -17,8 +17,9 @@ practising something"*. Consequences:
   credible so the list is trusted; beyond that the player chooses. We do not
   need corpus surprisal to say "here are eight things in your solo, pick one".
 - **The annotated transcription is the product.** An exercise is an action on
-  an item in it, not a parallel output. (Not yet built this way: the page
-  still lists findings and exercises separately.)
+  an item in it, not a parallel output. Built: `app/main.ts` renders the
+  whole solo with OSMD, lists findings beside it, highlights the selected
+  finding's notes in the score and shows its drills under the item.
 - **A wrong note in a drill is worse than no drill.** Exercises are kept to
   what cannot be wrong; anything the validity gate cannot re-detect is dropped.
 - **Any model is a describer, not a curator.** It narrates deterministic
@@ -210,9 +211,10 @@ the b3 (bars 81, 90, 106) now visible where it was previously buried.
 
 ## Suggested next steps, highest value first
 
-1. **Annotated transcription as the primary view.** Render the solo with OSMD,
-   highlight finding spans, list findings beside it, put "drill this" on each
-   item that can generate. One screen, inside music the player already knows.
+1. ~~Annotated transcription as the primary view.~~ Done 2026-08-23. Notes
+   are matched to OSMD by `bar:beat` (MusicXML measure number, in-measure
+   timestamp × 4); highlighting toggles a class on the note's SVG group, no
+   re-render. Untested on a score with a pickup bar.
 2. **`SoloProfile`**: deterministic per-chorus / per-phrase statistics — note
    density per bar, phrase count and mean length, rest proportion, register,
    chromaticism ratio, where findings cluster. Gives `phrases` a consumer and

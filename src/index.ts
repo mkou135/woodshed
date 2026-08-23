@@ -1,4 +1,5 @@
 export { ingest, UnsupportedScoreError } from './ingest/index.ts'
+export { readScoreXml } from './ingest/readScoreFile.ts'
 export { prepare } from './prepare/index.ts'
 export type { CleanupReport } from './prepare/index.ts'
 export type { Adjustment, AdjustmentKind, Severity } from './prepare/adjustments.ts'

@@ -18,6 +18,11 @@ body {
 
 main {
   max-width: 52rem;
+}
+
+/* Once a solo is loaded the page widens: the score needs the room. */
+main:has(.workspace) {
+  max-width: 88rem;
   margin: 0 auto;
   padding: 2.5rem 1.25rem 6rem;
 }
@@ -107,20 +112,63 @@ details summary { cursor: pointer; color: var(--muted); }
 
 details ul { margin: 0.75rem 0 0.25rem; padding-left: 1.1rem; }
 
-.findings { list-style: none; margin: 0; padding: 0; }
-
-.findings li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.5rem 0.75rem;
-  padding: 0.6rem 0;
-  border-bottom: 1px solid var(--line);
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(18rem, 24rem) 1fr;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  align-items: start;
 }
 
-.findings .name { font-weight: 600; }
-.findings .where { color: var(--muted); }
-.findings .by { margin-left: auto; color: var(--muted); font-size: 0.85rem; }
+@media (max-width: 60rem) {
+  .workspace { grid-template-columns: 1fr; }
+}
+
+.menu {
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.menu h2 { margin-top: 0; }
+
+.solo {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.5rem;
+  overflow-x: auto;
+}
+
+.findings { list-style: none; margin: 0; padding: 0; }
+
+.finding {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.6rem 0.6rem;
+  margin: 0 -0.6rem;
+  border-radius: 6px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.finding:hover, .finding:focus-visible { background: #f1f7f4; outline: none; }
+.finding.selected { background: #e4efe9; border-color: transparent; }
+
+.finding .name { font-weight: 600; }
+.finding .where { color: var(--muted); font-size: 0.9rem; }
+.finding .meta { display: flex; gap: 0.6rem; align-items: baseline; font-size: 0.8rem; color: var(--muted); }
+.finding .drills { margin-left: auto; color: var(--accent); }
+
+.drills-panel { margin-top: 0.5rem; cursor: default; }
+.drills-panel .exercise { margin: 0.6rem 0; padding: 0.75rem 0.85rem; }
+.drills-panel .notation { max-width: 100%; }
+
+/* A highlighted note in the solo. OSMD draws noteheads and stems as paths. */
+.solo g.hit path { fill: var(--accent); stroke: var(--accent); }
 
 .badge {
   font-size: 0.75rem;

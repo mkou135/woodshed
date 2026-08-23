@@ -1,6 +1,8 @@
 import { OpenSheetMusicDisplay } from 'opensheetmusicdisplay'
-import { run, exerciseToMusicXml, UnsupportedScoreError } from '../src/index.ts'
-import type { Adjustment, Exercise, Instrument, PipelineResult } from '../src/index.ts'
+import { run, readScoreXml, exerciseToMusicXml, UnsupportedScoreError } from '../src/index.ts'
+import type {
+  Adjustment, Exercise, Finding, FindingView, Instrument, PipelineResult,
+} from '../src/index.ts'
 
 const dropZone = document.getElementById('drop') as HTMLDivElement
 const fileInput = document.getElementById('file') as HTMLInputElement
@@ -113,30 +115,6 @@ function adjustmentSections(adjustments: Adjustment[]): HTMLElement[] {
   return out
 }
 
-function findingsSection(result: PipelineResult): HTMLElement {
-  const section = el('section')
-  section.appendChild(el('h2', undefined, `Vocabulary (${result.findingViews.length})`))
-
-  if (result.findingViews.length === 0) {
-    section.appendChild(el('p', 'empty', 'Nothing recognised in this solo.'))
-    return section
-  }
-
-  const list = el('ul', 'findings')
-  for (const view of result.findingViews) {
-    const item = el('li')
-    item.append(
-      el('span', 'name', view.name),
-      el('span', 'where', view.location),
-      el('span', `badge ${view.confidenceLabel}`, view.confidenceLabel),
-      el('span', 'by', `found by ${view.detectedBy.join(' + ')}`),
-    )
-    list.appendChild(item)
-  }
-  section.appendChild(list)
-  return section
-}
-
 /** OSMD needs a container that is already in the document and has a width. */
 async function renderNotation(container: HTMLElement, xml: string): Promise<void> {
   try {
@@ -177,32 +155,182 @@ function exerciseCard(exercise: Exercise, instrument: Instrument): {
   return { card, notation, xml }
 }
 
-async function renderResult(result: PipelineResult): Promise<void> {
+// ---------------------------------------------------------------------------
+// The annotated solo
+//
+// The transcription is the product. Findings are highlighted in it and listed
+// beside it as a menu; an exercise is an action on an item in that menu.
+// ---------------------------------------------------------------------------
+
+/** `bar:beat` for a note, the key both the engine and OSMD can produce. */
+const noteKey = (bar: number, beat: number): string => `${bar}:${beat.toFixed(3)}`
+
+/**
+ * Render the whole solo and return the notehead SVG elements by `bar:beat`.
+ * OSMD's MeasureNumber is the MusicXML `number` attribute, the same thing
+ * the engine stores as `Note.bar`; its in-measure timestamp is in whole
+ * notes, where the engine's beat is in quarters.
+ */
+async function renderSolo(
+  container: HTMLElement,
+  xml: string,
+): Promise<Map<string, SVGGElement[]>> {
+  const osmd = new OpenSheetMusicDisplay(container, {
+    autoResize: true,
+    drawTitle: false,
+    drawPartNames: false,
+  })
+  await osmd.load(xml)
+  osmd.render()
+
+  const byKey = new Map<string, SVGGElement[]>()
+  for (const row of osmd.GraphicSheet.MeasureList) {
+    for (const measure of row) {
+      if (!measure) continue
+      for (const entry of measure.staffEntries) {
+        const beat = entry.relInMeasureTimestamp.RealValue * 4
+        for (const voiceEntry of entry.graphicalVoiceEntries) {
+          for (const note of voiceEntry.notes) {
+            if (note.sourceNote.isRest()) continue
+            const svg = (note as unknown as { getSVGGElement(): SVGGElement }).getSVGGElement()
+            if (!svg) continue
+            const key = noteKey(measure.MeasureNumber, beat)
+            byKey.set(key, [...(byKey.get(key) ?? []), svg])
+          }
+        }
+      }
+    }
+  }
+  return byKey
+}
+
+function findingElements(
+  finding: Finding,
+  result: PipelineResult,
+  byKey: Map<string, SVGGElement[]>,
+): SVGGElement[] {
+  const out: SVGGElement[] = []
+  for (const span of finding.spans) {
+    for (let i = span.startIndex; i <= span.endIndex; i++) {
+      const note = result.analysis.contexts[i]?.note
+      if (!note) continue
+      out.push(...(byKey.get(noteKey(note.bar, note.beat)) ?? []))
+    }
+  }
+  return out
+}
+
+function findingItem(view: FindingView, drillCount: number): HTMLLIElement {
+  const item = el('li', 'finding')
+  item.tabIndex = 0
+  item.dataset.id = view.id
+  item.append(
+    el('span', 'name', view.name),
+    el('span', 'where', view.location),
+  )
+  const meta = el('span', 'meta')
+  meta.append(
+    el('span', `badge ${view.confidenceLabel}`, view.confidenceLabel),
+    el('span', 'by', `${view.detectedBy.join(' + ')}`),
+  )
+  if (drillCount > 0) meta.appendChild(el('span', 'drills', `${drillCount} drills`))
+  item.appendChild(meta)
+  return item
+}
+
+async function annotatedSolo(result: PipelineResult, xml: string): Promise<HTMLElement> {
+  const section = el('section', 'workspace')
+  const aside = el('aside', 'menu')
+  const scoreBox = el('div', 'solo')
+  const drills = el('div', 'drills-panel')
+  section.append(aside, scoreBox)
+
+  aside.appendChild(el('h2', undefined, `Vocabulary (${result.findingViews.length})`))
+  if (result.findingViews.length === 0) {
+    aside.appendChild(el('p', 'empty', 'Nothing recognised in this solo.'))
+  }
+
+  const list = el('ul', 'findings')
+  const exercisesFor = (id: string): Exercise[] =>
+    result.exercises.filter((e) => e.findingId === id)
+  for (const view of result.findingViews) {
+    list.appendChild(findingItem(view, exercisesFor(view.id).length))
+  }
+  aside.appendChild(list)
+
+  // Attached first, rendered second: OSMD measures its container.
+  resultBox.appendChild(section)
+  let byKey = new Map<string, SVGGElement[]>()
+  try {
+    byKey = await renderSolo(scoreBox, xml)
+  } catch (error) {
+    scoreBox.appendChild(el('p', 'empty', `Could not render the solo: ${(error as Error).message}`))
+  }
+
+  let highlighted: SVGGElement[] = []
+
+  const select = async (id: string, scroll: boolean): Promise<void> => {
+    const finding = result.analysis.findings.find((f) => f.id === id)
+    if (!finding) return
+
+    for (const item of list.querySelectorAll<HTMLLIElement>('li')) {
+      const selected = item.dataset.id === id
+      item.classList.toggle('selected', selected)
+      // The drills live under the item they belong to, so choosing an
+      // item and seeing what to practise is one glance, not a scroll.
+      if (selected) item.appendChild(drills)
+    }
+    for (const node of highlighted) node.classList.remove('hit')
+    highlighted = findingElements(finding, result, byKey)
+    for (const node of highlighted) node.classList.add('hit')
+    if (scroll && highlighted[0]) {
+      highlighted[0].scrollIntoView({ block: 'center', behavior: 'smooth' })
+    }
+
+    drills.replaceChildren()
+    const exercises = exercisesFor(id)
+    if (exercises.length === 0) {
+      drills.appendChild(el('p', 'empty',
+        finding.kind === 'device'
+          ? 'Devices are reported but not yet drilled.'
+          : 'No drill survived the validity gate for this one.'))
+      return
+    }
+    const pending: { notation: HTMLElement; xml: string }[] = []
+    for (const exercise of exercises) {
+      const { card, notation, xml: exerciseXml } = exerciseCard(exercise, result.score.instrument)
+      drills.appendChild(card)
+      pending.push({ notation, xml: exerciseXml })
+    }
+    for (const item of pending) await renderNotation(item.notation, item.xml)
+  }
+
+  list.addEventListener('click', (event) => {
+    const item = (event.target as HTMLElement).closest<HTMLLIElement>('li.finding')
+    if (item?.dataset.id) void select(item.dataset.id, true)
+  })
+  list.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return
+    const item = (event.target as HTMLElement).closest<HTMLLIElement>('li.finding')
+    if (item?.dataset.id) {
+      event.preventDefault()
+      void select(item.dataset.id, true)
+    }
+  })
+
+  const first = result.findingViews[0]
+  if (first) await select(first.id, true)
+
+  return section
+}
+
+async function renderResult(result: PipelineResult, xml: string): Promise<void> {
   resultBox.replaceChildren()
   resultBox.hidden = false
 
   resultBox.appendChild(summarySection(result))
   for (const node of adjustmentSections(result.report.adjustments)) resultBox.appendChild(node)
-  resultBox.appendChild(findingsSection(result))
-
-  const section = el('section')
-  section.appendChild(el('h2', undefined, `Exercises (${result.exercises.length})`))
-  resultBox.appendChild(section)
-
-  if (result.exercises.length === 0) {
-    section.appendChild(el('p', 'empty', 'No exercise survived the validity gate for this solo.'))
-    return
-  }
-
-  const pending: { notation: HTMLElement; xml: string }[] = []
-  for (const exercise of result.exercises) {
-    const { card, notation, xml } = exerciseCard(exercise, result.score.instrument)
-    section.appendChild(card)
-    pending.push({ notation, xml })
-  }
-
-  // Attached first, rendered second: OSMD measures its container.
-  for (const item of pending) await renderNotation(item.notation, item.xml)
+  await annotatedSolo(result, xml)
 }
 
 async function handleFile(file: File): Promise<void> {
@@ -214,7 +342,7 @@ async function handleFile(file: File): Promise<void> {
     const bytes = new Uint8Array(await file.arrayBuffer())
     const result = run(bytes)
     setStatus(`${file.name} — analysed.`)
-    await renderResult(result)
+    await renderResult(result, readScoreXml(bytes))
   } catch (error) {
     setStatus(null)
     if (error instanceof UnsupportedScoreError) {
