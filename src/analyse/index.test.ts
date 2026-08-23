@@ -50,3 +50,61 @@ describe('analyse', () => {
     }
   })
 })
+
+describe('finding merge rules', () => {
+  it('merges the same cell occurring in different bars into one finding', () => {
+    // Regression: the first merge rule required identity AND overlapping spans,
+    // so the same vocabulary in two bars stayed separate and produced two
+    // identical exercises.
+    const a = analysed(BLAKE)
+    const byName = new Map<string, number>()
+    for (const f of a.findings) byName.set(f.name, (byName.get(f.name) ?? 0) + 1)
+    for (const [name, count] of byName) {
+      expect(count, `"${name}" appears as ${count} separate findings`).toBe(1)
+    }
+  })
+
+  it('converges detectors on the strongest finding', () => {
+    // The Blake solo contains a maj7 arpeggio off the b3 at bars 73 and 77.
+    // Three independent detectors should land on it.
+    const a = analysed(BLAKE)
+    const top = a.findings[0]
+    expect(top.detectedBy.length).toBeGreaterThan(1)
+    expect(top.confidence).toBeGreaterThan(0.9)
+  })
+
+  it('never grafts a foreign interval vector onto a cell with degrees', () => {
+    // Regression: absorbing a recurring cell's intervals into a shape finding
+    // gave a 6-interval vector for a 4-degree cell, so every generated
+    // exercise failed the validity gate and silently vanished.
+    const a = analysed(BLAKE)
+    for (const f of a.findings) {
+      if (f.degrees && f.intervals) {
+        expect(f.intervals).toHaveLength(f.degrees.length - 1)
+      }
+    }
+  })
+
+  it('finds the maj7-arpeggio-off-the-b3 figure that was derived by hand', () => {
+    const a = analysed(BLAKE)
+    const cell = a.findings.find((f) => f.degrees?.join('') === '3572')
+    expect(cell).toBeDefined()
+    const bars = new Set(cell!.spans.map((s) => s.bar))
+    expect(bars.has(73)).toBe(true)
+    expect(bars.has(77)).toBe(true)
+    // Regression: convergence used to absorb spans, so a finding snowballed —
+    // a wider span overlapped more findings, widening it further, until one
+    // finding claimed 36 bars of the solo.
+    expect(bars.size).toBeLessThanOrEqual(4)
+  })
+
+  it('keeps every finding local rather than claiming the whole solo', () => {
+    const a = analysed(BLAKE)
+    const soloBars = new Set(a.contexts.map((c) => c.note.bar)).size
+    for (const f of a.findings) {
+      const bars = new Set(f.spans.map((s) => s.bar)).size
+      expect(bars, `"${f.name}" claims ${bars} of ${soloBars} bars`)
+        .toBeLessThan(soloBars / 3)
+    }
+  })
+})

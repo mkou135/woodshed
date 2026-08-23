@@ -1,3 +1,4 @@
+import { qualityFamily } from '../../core/pitch.ts'
 import type { Quality } from '../../core/types.ts'
 import type { NoteContext } from '../context.ts'
 
@@ -10,15 +11,6 @@ export interface ShapeHit {
 }
 
 type Family = 'major' | 'minor'
-
-const MINOR_QUALITIES: ReadonlySet<Quality> = new Set<Quality>([
-  'minor', 'minor-seventh', 'minor-major', 'half-diminished',
-  'diminished', 'diminished-seventh',
-])
-
-function familyOf(quality: Quality): Family {
-  return MINOR_QUALITIES.has(quality) ? 'minor' : 'major'
-}
 
 /**
  * Vocabulary keyed by degree string AND chord family: the same shape over a
@@ -62,7 +54,7 @@ export function matchShapes(ctx: NoteContext[]): ShapeHit[] {
     if (cell.some((c) => c.degree === null)) continue
 
     const degrees = cell.map((c) => c.degree as string)
-    const name = DICTIONARY[familyOf(chord.quality)][degrees.join('')]
+    const name = DICTIONARY[qualityFamily(chord.quality)][degrees.join('')]
     if (!name) continue
 
     hits.push({

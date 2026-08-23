@@ -59,11 +59,19 @@ export function findRecurring(
   const kept: RecurringHit[] = []
   for (const hit of hits) {
     const key = hit.intervals.join(',')
-    const swallowed = kept.some(
-      (longer) =>
-        longer.intervals.length > hit.intervals.length &&
-        longer.intervals.join(',').includes(key),
-    )
+    const swallowed = kept.some((longer) => {
+      // A shorter cell that only ever appears inside a longer one.
+      if (longer.intervals.length > hit.intervals.length &&
+          longer.intervals.join(',').includes(key)) return true
+      // Sliding windows over the same figure: [3,-3,1,4,3,4], [-6,1,3,-3,1,4],
+      // [1,3,-3,1,4,3] are one cell reported six times. If this hit's notes
+      // overlap a cell already kept, it is the same musical event.
+      return longer.occurrences.some((a) =>
+        hit.occurrences.some(
+          (b) => a <= b + hit.intervals.length && b <= a + longer.intervals.length,
+        ),
+      )
+    })
     if (!swallowed) kept.push(hit)
   }
   return kept

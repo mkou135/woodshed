@@ -1,4 +1,4 @@
-import { semitonesOfDegree } from '../core/pitch.ts'
+import { semitonesOfDegree, qualityFamily } from '../core/pitch.ts'
 import type { Chord, Instrument, Quality } from '../core/types.ts'
 import type { Finding } from '../analyse/index.ts'
 
@@ -18,14 +18,6 @@ export interface Exercise {
   sourceBar: number
   rationale: string
 }
-
-const MINOR_QUALITIES: ReadonlySet<Quality> = new Set<Quality>([
-  'minor', 'minor-seventh', 'minor-major', 'half-diminished',
-  'diminished', 'diminished-seventh',
-])
-
-const familyOf = (q: Quality): 'major' | 'minor' =>
-  MINOR_QUALITIES.has(q) ? 'minor' : 'major'
 
 /** Shift the whole cell by octaves so it fits the horn without changing shape. */
 function clampOctave(midis: number[], instrument: Instrument): number[] {
@@ -110,12 +102,12 @@ export function overChanges(
   const intervals = intervalsFor(finding)
   if (!intervals) return null
 
-  const family = familyOf(quality)
+  const family = qualityFamily(quality)
   const seen = new Set<string>()
   const bars: ExerciseBar[] = []
 
   for (const chord of chords) {
-    if (familyOf(chord.quality) !== family) continue
+    if (qualityFamily(chord.quality) !== family) continue
     const key = `${chord.rootPc}:${chord.quality}`
     if (seen.has(key)) continue
     seen.add(key)

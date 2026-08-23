@@ -7,6 +7,7 @@ import type { NoteContext } from './context.ts'
 import { matchShapes } from './detectors/shapes.ts'
 import { detectTargets } from './detectors/targets.ts'
 import { findRecurring } from './detectors/recurring.ts'
+import { qualityFamily } from '../core/pitch.ts'
 
 export interface FindingSpan {
   startIndex: number
@@ -33,10 +34,12 @@ export interface Analysis {
   findings: Finding[]
 }
 
-const MAX_DETECTOR_CREDIT = 0.8
-const CREDIT_PER_DETECTOR = 0.35
-const REPEAT_BONUS = 0.2
-const CHORD_WEIGHT = 0.2
+const MAX_DETECTOR_CREDIT = 0.6
+const CREDIT_PER_DETECTOR = 0.3
+/** A finding we can name from the dictionary is worth more than an unnamed one. */
+const NAMED_BONUS = 0.25
+const REPEAT_BONUS = 0.15
+const CHORD_WEIGHT = 0.15
 
 export function analyse(score: Score, report: CleanupReport): Analysis {
   const region =
@@ -108,29 +111,11 @@ export function analyse(score: Score, report: CleanupReport): Analysis {
     })
   }
 
-  // Merge findings whose spans overlap and which describe the same thing.
-  const merged: Finding[] = []
-  for (const finding of raw) {
-    const match = merged.find(
-      (m) =>
-        (m.name === finding.name ||
-          (m.intervals && finding.intervals &&
-            m.intervals.join(',') === finding.intervals.join(','))) &&
-        m.spans.some((a) =>
-          finding.spans.some((b) => a.startIndex <= b.endIndex && b.startIndex <= a.endIndex),
-        ),
-    )
-    if (match) {
-      for (const source of finding.detectedBy) {
-        if (!match.detectedBy.includes(source)) match.detectedBy.push(source)
-      }
-      for (const span of finding.spans) {
-        if (!match.spans.some((s) => s.startIndex === span.startIndex)) match.spans.push(span)
-      }
-    } else {
-      merged.push({ ...finding, spans: [...finding.spans] })
-    }
-  }
+  // Two independent reasons to merge, applied as separate passes. Requiring
+  // both at once (the first version of this) breaks each: the same cell in two
+  // different bars never merges, and two detectors seeing one event never
+  // merge either, which is exactly the convergence signal we score on.
+  const merged = mergeByOverlap(mergeByIdentity(raw))
 
   const chordConfidence = chordTrack?.confidence ?? 0
 
@@ -141,6 +126,7 @@ export function analyse(score: Score, report: CleanupReport): Analysis {
       confidence: Math.min(
         1,
         Math.min(MAX_DETECTOR_CREDIT, f.detectedBy.length * CREDIT_PER_DETECTOR) +
+          (f.degrees ? NAMED_BONUS : 0) +
           (f.spans.length > 1 ? REPEAT_BONUS : 0) +
           chordConfidence * CHORD_WEIGHT,
       ),
@@ -148,4 +134,86 @@ export function analyse(score: Score, report: CleanupReport): Analysis {
     .sort((a, b) => b.confidence - a.confidence)
 
   return { phrases, contexts, findings }
+}
+
+/**
+ * Do two findings describe the same vocabulary, wherever it occurs?
+ *
+ * Order matters. A *device* is identified by its procedure and target — an
+ * "enclosure into the 5 from above" is the same device however its notes fall,
+ * which is the whole reason the device abstraction exists. Comparing interval
+ * vectors first would split one device into as many findings as it has shapes.
+ * Literal intervals only identify an unnamed recurring cell.
+ */
+function sameIdentity(a: Finding, b: Finding): boolean {
+  if (a.degrees && b.degrees) {
+    // Compare the numbering family, not the exact quality: the same cell over
+    // an Fm triad and a Cm7 is the same piece of vocabulary.
+    return a.degrees.join(',') === b.degrees.join(',') &&
+      qualityFamily(a.quality ?? 'unknown') === qualityFamily(b.quality ?? 'unknown')
+  }
+  if (a.name === b.name) return true
+  if (a.intervals && b.intervals) return a.intervals.join(',') === b.intervals.join(',')
+  return false
+}
+
+function overlaps(a: Finding, b: Finding): boolean {
+  return a.spans.some((x) =>
+    b.spans.some((y) => x.startIndex <= y.endIndex && y.startIndex <= x.endIndex),
+  )
+}
+
+function absorb(into: Finding, from: Finding, takeSpans = true): void {
+  for (const source of from.detectedBy) {
+    if (!into.detectedBy.includes(source)) into.detectedBy.push(source)
+  }
+  if (takeSpans) {
+    for (const span of from.spans) {
+      if (!into.spans.some((s) => s.startIndex === span.startIndex)) into.spans.push(span)
+    }
+    into.spans.sort((x, y) => x.startIndex - y.startIndex)
+  }
+  // Keep whichever description is more informative.
+  if (!into.degrees && from.degrees) {
+    into.degrees = from.degrees
+    into.quality = from.quality
+    into.name = from.name
+    into.kind = from.kind
+  }
+  // Never graft another detector's interval vector onto a cell that already
+  // has degrees: the vectors have different lengths, and the generators would
+  // build a figure that no longer spells the cell.
+  if (!into.intervals && !into.degrees && from.intervals) into.intervals = from.intervals
+}
+
+/** Pass 1: the same vocabulary recurring, regardless of where. */
+function mergeByIdentity(raw: Finding[]): Finding[] {
+  const out: Finding[] = []
+  for (const finding of raw) {
+    const match = out.find((m) => sameIdentity(m, finding))
+    if (match) absorb(match, finding)
+    else out.push({ ...finding, spans: [...finding.spans], detectedBy: [...finding.detectedBy] })
+  }
+  return out
+}
+
+/**
+ * Pass 2: different detectors landing on the same span. This is convergence,
+ * and it adds *evidence*, not locations.
+ *
+ * Absorbing spans here makes findings snowball: a wider span overlaps more
+ * findings, which widens it further, until one finding claims the whole solo.
+ * Where the vocabulary occurs is settled by pass 1; pass 2 only records who
+ * else saw it.
+ */
+function mergeByOverlap(findings: Finding[]): Finding[] {
+  const out: Finding[] = []
+  for (const finding of findings) {
+    const match = out.find(
+      (m) => overlaps(m, finding) && m.detectedBy.some((d) => !finding.detectedBy.includes(d)),
+    )
+    if (match) absorb(match, finding, false)
+    else out.push(finding)
+  }
+  return out
 }

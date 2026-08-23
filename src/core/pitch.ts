@@ -67,3 +67,8 @@ export function semitonesOfDegree(degree: string, quality: Quality): number | nu
   }
   return null
 }
+
+/** Which degree-numbering family a chord quality belongs to. */
+export function qualityFamily(quality: Quality): 'major' | 'minor' {
+  return MINOR_QUALITIES.has(quality) ? 'minor' : 'major'
+}

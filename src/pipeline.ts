@@ -30,7 +30,7 @@ const MODERATE = 0.45
 
 /** Pure, so the page's list can be tested without a DOM. */
 export function describeFinding(finding: Finding): FindingView {
-  const bars = finding.spans.map((s) => s.bar)
+  const bars = [...new Set(finding.spans.map((s) => s.bar))].sort((a, b) => a - b)
   const location =
     bars.length === 1
       // Beats are 0-based internally and 1-based for a reader.
