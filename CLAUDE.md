@@ -3,8 +3,25 @@
 Analyses a transcribed jazz solo and generates exercises that drill the
 vocabulary it contains.
 
-**Read `docs/HANDOFF.md` first.** It carries the project state, the decisions
-and their evidence, the traps that already cost time, and what to do next.
+## Session protocol — do this before anything else
+
+Four continuously maintained files carry state between sessions:
+
+- `docs/ENGINE_SPEC.md` — every rule, parameter and formula in force.
+  **Never quote a parameter from memory; re-read it.** Update it in the
+  same commit as any accepted change.
+- `docs/DECISIONS.md` — append-only: date, question, decision, evidence
+  class, who decided, what would reverse it.
+- `docs/OPEN_QUESTIONS.md` — everything unresolved, with what would
+  resolve it.
+- `docs/LEDGER.md` — running task log. Update it *before* starting the
+  next task, not in a batch at the end.
+
+At session start: read `ENGINE_SPEC.md` and the last ~20 lines of
+`LEDGER.md` before doing anything else. If you catch yourself reasoning
+about something that should be in the spec but is not, stop and write it
+down. `docs/HANDOFF.md` is narrative history — useful background, no
+longer authoritative.
 
 ## Commands
 

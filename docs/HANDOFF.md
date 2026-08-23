@@ -1,4 +1,8 @@
-# woodshed — handoff
+# woodshed — handoff (narrative history)
+
+**Superseded as the live state on 2026-08-24** by the four continuous
+files: `ENGINE_SPEC.md`, `DECISIONS.md`, `OPEN_QUESTIONS.md`, `LEDGER.md`.
+Read those first; this file is background and is no longer kept current.
 
 **Written 2026-08-23, revised the same day after a second review.** Read this
 first, then `docs/superpowers/specs/2026-08-23-woodshed-design.md`.

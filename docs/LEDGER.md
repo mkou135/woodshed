@@ -1,0 +1,37 @@
+# LEDGER — running task log
+
+Append an entry when a task is issued, update its outcome when it ends.
+Newest at the bottom. Update *before* starting the next task.
+
+---
+
+2026-08-23 · session 1 (Opus) · Build pipeline end-to-end; corpus survey;
+research (patterns, exercise generation); HANDOFF.md + CLAUDE.md ·
+delivered 35 commits, 161 tests.
+
+2026-08-23 · session 2 · Second-eyes engine review · found: drills lost
+contour, maj7-over-dominant, target score discarded, scale-walk noise,
+chord identity bug · fixed in 1863606; golden test + `npm run solo`.
+2026-08-23 · session 2 · Conceptual review vs research (fork) · thesis
+reframed: menu not verdict; annotated solo is the product · in HANDOFF.
+2026-08-23 · session 2 · Annotated solo page (OSMD highlight, drills under
+finding) · 0737bc8.
+2026-08-23 · session 2 · SoloProfile (density/silence/register/chromaticism,
+phrase-edge asymmetry) · 568e3e0 · found form-phase bug, logged.
+2026-08-23 · session 2 · Phrase research + LBDM segmenter; owner corrected
+three boundaries by ear; two-level phrases/ideas; ticks on the page ·
+d870673, 5bba9be, af2a9f0.
+2026-08-23 · session 2 · Deep research: phrases vs ideas (agent downloaded
+WJD, computed cue stats); practice methodology · docs/research/
+phrases-and-ideas.md, practice-methodology.md.
+2026-08-23 · session 2 · `npm run eval:wjd` harness; tuned segmenter on
+456 solos (phrases F1 83.8 at human ceiling, ideas 76.3) · cc88715.
+2026-08-23 · session 2 · GitHub Pages hosting as mkou135/woodshed (replaced
+broken manual upload, force-pushed history, Actions deploy) · live at
+https://mkou135.github.io/woodshed/.
+2026-08-23 · session 2 · Practice units (spec → build): idea as unit,
+loop/through/displace/write steps, iReal parser (1458/1460 forum charts),
+renderer rhythm support, page rebuilt as Ideas menu · 17c0f97 · 211 tests.
+2026-08-24 · session 2 · Adopted four-file context system; backfilled
+ENGINE_SPEC, DECISIONS, OPEN_QUESTIONS, LEDGER; CLAUDE.md rewired · closes
+session 2.
