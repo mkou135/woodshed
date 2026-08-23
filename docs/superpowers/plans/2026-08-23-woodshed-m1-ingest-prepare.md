@@ -10,6 +10,21 @@
 
 **Spec:** `docs/superpowers/specs/2026-08-23-woodshed-design.md`
 
+## Spec coverage, and what M1 deliberately leaves out
+
+This plan implements spec sections 4 (ingest) and 5 (prepare). Two of the spec's
+eight cleanup checks are **not** in M1 because both require the model, which
+arrives in M4:
+
+- **Region selection** (spec 5.2) — which bars are the solo. `detectSoloists` and
+  `detectForm` produce the engine-side inputs it will consume; the proposal and
+  the user confirmation land with the agent layer.
+- **Structure-annotation interpretation** (spec 5.4) — deciding whether a file's
+  rehearsal marks are chorus numbers or section letters. `Score.marks` carries
+  them verbatim so nothing is lost.
+
+Everything else in spec sections 4 and 5 is covered by a task below.
+
 ## Global Constraints
 
 - **TypeScript strict mode.** `strict: true`, `noUnusedLocals: true`, `noUnusedParameters: true`.
@@ -327,7 +342,7 @@ export function isChordTone(midi: number, chord: Chord): boolean {
 - [ ] **Step 9: Run the test to verify it passes**
 
 Run: `npx vitest run src/core/pitch.test.ts`
-Expected: PASS, 11 tests.
+Expected: PASS, 10 tests.
 
 - [ ] **Step 10: Run the typecheck**
 
@@ -1397,9 +1412,10 @@ describe('ingest', () => {
     expect(score.chordTracks[0].chords[0]).toMatchObject({ rootPc: 2, quality: 'minor' })
   })
 
-  it('yields no chord track when a score has neither harmony nor chord text', () => {
+  it('reads a single harmony chord track from a minimal score', () => {
     const score = ingest(load('altissimo-tenor.musicxml'))
-    expect(score.chordTracks.length).toBeLessThanOrEqual(1)
+    expect(score.chordTracks).toHaveLength(1)
+    expect(score.chordTracks[0].chords[0]).toMatchObject({ quality: 'minor-seventh' })
   })
 
   it('preserves marks that are not chords', () => {
