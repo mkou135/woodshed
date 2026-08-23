@@ -225,7 +225,8 @@ button:hover { background: #17493c; }
 
 .menu .hint { margin: -0.4rem 0 0.75rem; color: var(--muted); font-size: 0.85rem; }
 
-.phrase-tick rect { fill: #b8862b; }
-.phrase-tick text { fill: #b8862b; font: 600 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-.phrase-tick.weak rect, .phrase-tick.weak text { opacity: 0.45; }
-.idea-tick rect { fill: #b8862b; opacity: 0.5; }
+.phrase-tick rect { fill: #c4641d; }
+.phrase-tick text { fill: #c4641d; font: 700 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+.phrase-tick.weak rect, .phrase-tick.weak text { opacity: 0.5; }
+.idea-tick rect { fill: #2b6cb0; }
+.idea-tick text { fill: #2b6cb0; font: 600 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }

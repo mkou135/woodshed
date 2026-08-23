@@ -217,9 +217,16 @@ const noteKey = (bar: number, beat: number): string => `${bar}:${beat.toFixed(3)
  * the engine stores as `Note.bar`; its in-measure timestamp is in whole
  * notes, where the engine's beat is in quarters.
  */
+interface StaffSpan {
+  top: number
+  bottom: number
+}
+
 interface SoloMap {
   notes: Map<string, SVGGElement[]>
   rests: Map<string, SVGGElement>
+  /** Staff line extent per bar, so markers can span the staff, not the note. */
+  staves: Map<number, StaffSpan>
 }
 
 async function renderSolo(container: HTMLElement, xml: string): Promise<SoloMap> {
@@ -233,9 +240,14 @@ async function renderSolo(container: HTMLElement, xml: string): Promise<SoloMap>
 
   const notes = new Map<string, SVGGElement[]>()
   const rests = new Map<string, SVGGElement>()
+  const staves = new Map<number, StaffSpan>()
   for (const row of osmd.GraphicSheet.MeasureList) {
     for (const measure of row) {
       if (!measure) continue
+      const stave = (measure as unknown as {
+        getVFStave(): { getYForLine(line: number): number }
+      }).getVFStave()
+      staves.set(measure.MeasureNumber, { top: stave.getYForLine(0), bottom: stave.getYForLine(4) })
       for (const entry of measure.staffEntries) {
         const beat = entry.relInMeasureTimestamp.RealValue * 4
         for (const voiceEntry of entry.graphicalVoiceEntries) {
@@ -250,26 +262,35 @@ async function renderSolo(container: HTMLElement, xml: string): Promise<SoloMap>
       }
     }
   }
-  return { notes, rests }
+  return { notes, rests, staves }
 }
 
-function tick(svg: SVGSVGElement, box: DOMRect, className: string, label?: string): void {
+/** A vertical marker before a note, spanning the staff, labelled beneath it. */
+function tick(
+  anchor: SVGGElement,
+  staff: StaffSpan,
+  className: string,
+  label: string,
+): void {
+  const svg = anchor.ownerSVGElement
+  if (!svg) return
+  const x = anchor.getBBox().x - 10
+  const phrase = className.startsWith('phrase')
+  const pad = phrase ? 14 : 8
   const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
   g.setAttribute('class', className)
   const line = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-  const pad = label ? 14 : 4
-  line.setAttribute('x', String(box.x - 9))
-  line.setAttribute('y', String(box.y - pad))
-  line.setAttribute('width', label ? '2.5' : '1.5')
-  line.setAttribute('height', String(box.height + pad * 2))
-  g.appendChild(line)
-  if (label) {
-    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-    text.setAttribute('x', String(box.x - 9))
-    text.setAttribute('y', String(box.y - 18))
-    text.textContent = label
-    g.appendChild(text)
-  }
+  line.setAttribute('x', String(x))
+  line.setAttribute('y', String(staff.top - pad))
+  line.setAttribute('width', phrase ? '3.5' : '2.5')
+  line.setAttribute('height', String(staff.bottom - staff.top + pad * 2))
+  line.setAttribute('rx', '1')
+  const text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+  // Below the staff: above it the label fights chord symbols and bar numbers.
+  text.setAttribute('x', String(x))
+  text.setAttribute('y', String(staff.bottom + pad + 13))
+  text.textContent = label
+  g.append(line, text)
   svg.appendChild(g)
 }
 
@@ -288,15 +309,19 @@ function markPhrases(result: PipelineResult, map: SoloMap): void {
       anchor = map.rests.get(noteKey(first.bar, beat))
     }
     anchor ??= map.notes.get(noteKey(first.bar, first.beat))?.[0]
-    if (!anchor?.ownerSVGElement) return
-    tick(anchor.ownerSVGElement, anchor.getBBox(),
-      `phrase-tick${phrase.confidence < 0.6 ? ' weak' : ''}`, String(i + 1))
+    const staff = map.staves.get(first.bar)
+    if (!anchor || !staff) return
+    tick(anchor, staff, `phrase-tick${phrase.confidence < 0.6 ? ' weak' : ''}`, String(i + 1))
 
-    for (const idea of phrase.ideas.slice(1)) {
+    // Ideas are numbered within their phrase: 2.1 opens with the phrase, so
+    // only 2.2 onwards get a tick of their own.
+    phrase.ideas.forEach((idea, j) => {
+      if (j === 0) return
       const note = idea.notes[0]
       const target = map.notes.get(noteKey(note.bar, note.beat))?.[0]
-      if (target?.ownerSVGElement) tick(target.ownerSVGElement, target.getBBox(), 'idea-tick')
-    }
+      const ideaStaff = map.staves.get(note.bar)
+      if (target && ideaStaff) tick(target, ideaStaff, 'idea-tick', `${i + 1}.${j + 1}`)
+    })
   })
 }
 
@@ -343,8 +368,8 @@ async function annotatedSolo(result: PipelineResult, xml: string): Promise<HTMLE
 
   aside.appendChild(el('h2', undefined, `Vocabulary (${result.findingViews.length})`))
   aside.appendChild(el('p', 'hint',
-    `${result.analysis.phrases.length} phrases, numbered in the score; ` +
-    'small ticks mark ideas within a phrase. A lighter tick is a boundary the engine is less sure of.'))
+    `${result.analysis.phrases.length} phrases, marked in the score in amber and numbered; ` +
+    'ideas within a phrase are in blue, numbered 2.2, 2.3… A lighter tick is a boundary the engine is less sure of.'))
   if (result.findingViews.length === 0) {
     aside.appendChild(el('p', 'empty', 'Nothing recognised in this solo.'))
   }
