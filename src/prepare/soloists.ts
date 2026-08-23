@@ -23,10 +23,16 @@ function looksLikeName(text: string): boolean {
   if (t.length === 0 || t.length > 24) return false
   if (DIRECTIONS.has(t.toLowerCase())) return false
   if (parseChordSymbol(t)) return false
-  // A name starts with a capital and contains no digits.
   if (!/^[A-Z]/.test(t)) return false
   if (/\d/.test(t)) return false
-  return true
+
+  // Real corpus text contains capitalised multi-word performance directions
+  // ("On Downbeat", "Up Down") that are indistinguishable from names by
+  // capitalisation alone. Accept a multi-word phrase only when it says so —
+  // "Cannonball Solo", "Solo Seamus Blake" — and otherwise require a single
+  // word, which is how attribution is actually written ("Trane", "Sonny").
+  if (/\bsolo\b/i.test(t)) return true
+  return !/\s/.test(t)
 }
 
 /**

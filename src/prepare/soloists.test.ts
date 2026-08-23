@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { ingest } from '../ingest/index.ts'
 import { detectSoloists, soloistAdjustments } from './soloists.ts'
+import { instrumentFromTranspose } from '../core/instrument.ts'
+import type { Score } from '../core/types.ts'
 
 const load = (name: string) => ingest(new Uint8Array(readFileSync(`fixtures/${name}`)))
 
@@ -37,5 +39,40 @@ describe('soloistAdjustments', () => {
 
   it('raises nothing for a single soloist', () => {
     expect(soloistAdjustments([{ name: 'unknown', startBar: 1, endBar: 8 }])).toEqual([])
+  })
+})
+
+describe('detectSoloists — capitalised performance directions', () => {
+  const scoreWith = (texts: [number, string][]): Score => ({
+    notes: [],
+    chordTracks: [],
+    instrument: instrumentFromTranspose(-9, 0),
+    timeSig: [4, 4],
+    marks: texts.map(([bar, text]) => ({ bar, kind: 'words' as const, text })),
+    barCount: 64,
+  })
+
+  it('does not treat a capitalised multi-word direction as a soloist', () => {
+    // Verbatim from a real Autumn Leaves transcription, which previously
+    // reported four soloists and blocked a single-soloist file.
+    const score = scoreWith([
+      [1, 'Miles'],
+      [2, 'Cannonball Solo'],
+      [14, 'Lay Back'],
+      [34, 'On Downbeat'],
+      [35, 'Up Down'],
+    ])
+    expect(detectSoloists(score).map((r) => r.name)).toEqual(['Miles', 'Cannonball Solo'])
+  })
+
+  it('accepts a multi-word phrase that names itself as a solo', () => {
+    const score = scoreWith([[63, 'Solo Seamus Blake']])
+    const named = detectSoloists(score).filter((r) => r.name !== 'unknown')
+    expect(named.map((r) => r.name)).toEqual(['Solo Seamus Blake'])
+  })
+
+  it('still accepts single-word attributions', () => {
+    const score = scoreWith([[1, 'Trane'], [85, 'Sonny']])
+    expect(detectSoloists(score).map((r) => r.name)).toEqual(['Trane', 'Sonny'])
   })
 })
