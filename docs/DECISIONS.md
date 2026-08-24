@@ -295,3 +295,17 @@ choruses. Not split into two regions: `chooseSoloist` would then drop the
 second stretch, and it is the same player · engine · reverse if a score
 arrives where the returning bars are a different soloist (then a name
 mark should exist anyway).
+
+2026-08-24 · **Stock discount, corpus version** · `corpusShare`: share of
+WJD solos containing each 4-note interval pattern (document frequency,
+table committed as aggregate numbers), a unit's share being the mean over
+its notes of the best covering pattern; unit `stock` = max(run rule,
+corpus share). Notes inside a named cell of ≥ 4 degrees are exempt from
+both — the maj7 contour '4,3,4' is in 38% of WJD solos and without the
+exemption Blake u1 (the maj7-from-the-b3 line) sank to u2, the case the
+earlier stock entry named as the reversal trigger. Bare triads stay
+counted (stock by definition). Result: Blake u1 holds (7.96 vs 7.91), St
+Thomas top 3 unchanged, WJD medians unchanged — the corpus mostly agrees
+with the run rule on these solos · engine, owner asked · reverse by
+dropping `corpusShare` from the max; the owner's page read is the real
+test (OPEN_QUESTIONS).

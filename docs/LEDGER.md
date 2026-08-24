@@ -135,3 +135,7 @@ Bopland 69.3/16.4/14.3, Blake 13/top unchanged, WJD median 13. 276 tests.
 bounded to played bars; `empty-stretch` info adjustment (≥ 1 chorus of
 empty bars between played bars, 8 without a form); run.ts prints
 adjustments. 280 tests.
+2026-08-24 · session 5 · Corpus-frequency stock discount: `corpus:freq`
+writes src/data/corpusFrequency.ts (1,260 patterns ≥ 5%); `corpusShare`
+in unit stock, named 4-note cells exempt. Blake u1 holds, St Thomas top 3
+unchanged, WJD medians unchanged. 285 tests.

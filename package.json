@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "solo": "node --experimental-strip-types --no-warnings scripts/run.ts",
     "eval:wjd": "node --experimental-strip-types --no-warnings scripts/eval-wjd.ts",
+    "corpus:freq": "node --experimental-strip-types --no-warnings scripts/corpus-freq.ts",
     "corpus:wjd": "node --experimental-strip-types --no-warnings scripts/corpus-wjd.ts",
     "diag:wjd": "node --experimental-strip-types scripts/diag-wjd.ts",
     "bench:bopland": "node --experimental-strip-types --no-warnings scripts/bench-bopland.ts"

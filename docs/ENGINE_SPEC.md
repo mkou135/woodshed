@@ -153,11 +153,17 @@ vector); pass 2 by overlap adds detectedBy/weights only, never spans.
   joins the previous part).
 - Rank = 4·max(confidence) + Σ confidence (distinct names) +
   0.25·Σ occurrences + 0.5 if arrival is a chord tone + 2 if any finding
-  has degrees − `STOCK_PENALTY` 2 × `stockShare`.
-- `stockShare(notes)` (`PracticeUnit.stock`): share of the part's notes
-  inside a run of ≥ `STOCK_RUN` 4 notes whose intervals are all steps (1–2
-  semitones) in one direction, or all thirds/fourths (3–5) in one direction.
-  Applies to every note, including those of a named finding.
+  has degrees − `STOCK_PENALTY` 2 × `stock`.
+- `stock` (`PracticeUnit.stock`) = max(`stockShare`, `corpusShare`), both
+  over the part's notes with notes inside a named cell of ≥ 4 degrees
+  **exempt** (a bare triad's notes are not exempt).
+  - `stockShare(notes)`: share of notes inside a run of ≥ `STOCK_RUN` 4
+    notes whose intervals are all steps (1–2 semitones) in one direction,
+    or all thirds/fourths (3–5) in one direction.
+  - `corpusShare(notes)` (`practice/corpus.ts`): each note takes the largest
+    `CORPUS_FREQUENCY` share of any 4-note window covering it (0 if none is
+    in the table); mean over notes. A bebop scale fragment ≈ 0.7, a bare
+    maj7 arpeggio contour ≈ 0.4, an unseen figure 0.
 - Steps: loop (always), through + write (only with a degree-cell), displace
   (always; placements beat 1, and-of-1, beat 2, pickup; smallest shift
   modulo bar; dropped if a chord-tone arrival stops being one).
@@ -239,6 +245,14 @@ draws no ticks for a second pass. Segno / coda remain
 - Corpus, 2026-08-24: 453 solos run, 3 rejected (mixed meter), 0 unparsed
   chords, form found in 305, findings median 13 (max 132), units median
   35.
+
+## Corpus frequency table (`src/data/corpusFrequency.ts`, `npm run corpus:freq`)
+
+Aggregate statistic derived from the WJD (attribution in the file header;
+no note data). Key = three semitone intervals as played, each clipped to
+±12 (`patternKey`); value = share of the 452 solos containing the pattern
+at least once (document frequency, not count). Patterns below 0.05 are
+omitted (6,482 of 7,742). Regenerate after any ingest change.
 
 ## Verification targets
 

@@ -29,6 +29,7 @@ longer authoritative.
 npm run dev        # Vite dev server; drop a .mxl on the page
 npm run solo -- <file.mxl>   # print findings and exercises for a real solo
 npm run eval:wjd   # score phrase/idea boundaries against the Weimar Jazz Database
+npm run corpus:freq # regenerate src/data/corpusFrequency.ts (aggregate WJD pattern shares)
 npm run test:run   # NEVER bare `npm test` — watch mode, hangs tool calls
 npm run typecheck
 npm run build

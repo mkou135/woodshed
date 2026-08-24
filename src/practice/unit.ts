@@ -1,3 +1,4 @@
+import { corpusShare } from './corpus.ts'
 import { barRange } from '../core/bars.ts'
 import type { Chord, Note, Score } from '../core/types.ts'
 import type { Analysis, Finding } from '../analyse/index.ts'
@@ -117,7 +118,7 @@ const STOCK_PENALTY = 2
  * frequency table. The share of a unit inside such runs discounts its
  * rank, so a signature idea outranks a bar of bebop scale.
  */
-export function stockShare(notes: Note[]): number {
+export function stockShare(notes: Note[], exempt: ReadonlySet<number> = new Set()): number {
   if (notes.length === 0) return 0
   const kind = (iv: number): 'step' | 'third' | null => {
     const a = Math.abs(iv)
@@ -134,7 +135,7 @@ export function stockShare(notes: Note[]): number {
     if (continues) continue
     const noteCount = i - runStart + 1
     if (kind(ivs[runStart]) !== null && noteCount >= STOCK_RUN) {
-      for (let k = runStart; k <= i; k++) stock[k] = true
+      for (let k = runStart; k <= i; k++) if (!exempt.has(k)) stock[k] = true
     }
     runStart = i
   }
@@ -165,7 +166,18 @@ export function buildUnits(analysis: Analysis, score: Score, options: BuildOptio
       const last = slice[slice.length - 1]
       const arrival = last.degree ? { degree: last.degree, chordTone: last.chordTone } : null
 
-      const stock = stockShare(partNotes)
+      // Two views of "stock": the run rule and the corpus; take the larger.
+      // Notes inside a named four-note cell are exempt: that is the vocabulary
+      // (a bare triad is not; it is stock by definition).
+      const exempt = new Set<number>()
+      for (const f of inside) {
+        if (!f.degrees || f.degrees.length < 4) continue
+        for (const sp of f.spans) {
+          if (sp.startIndex < startIndex || sp.endIndex > endIndex) continue
+          for (let k = sp.startIndex; k <= sp.endIndex; k++) exempt.add(k - startIndex)
+        }
+      }
+      const stock = Math.max(stockShare(partNotes, exempt), corpusShare(partNotes, exempt))
       const partial = {
         phrase: p,
         idea: i,
