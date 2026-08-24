@@ -10,6 +10,7 @@ import {
   rangeCheck,
   transcriberNoteCheck,
   chordPersistenceCheck,
+  repeatCheck,
 } from './checks.ts'
 
 export interface CleanupReport {
@@ -36,6 +37,7 @@ export function prepare(score: Score): CleanupReport {
     ...pickupCheck(score),
     ...rangeCheck(score),
     ...transcriberNoteCheck(score),
+    ...repeatCheck(score),
     ...chordPersistenceCheck(score, form),
   ]
 

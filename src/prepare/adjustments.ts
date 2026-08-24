@@ -6,6 +6,7 @@ export type AdjustmentKind =
   | 'unmarked-pickup'
   | 'range-outlier'
   | 'transcriber-note'
+  | 'repeat-unrolled'
 
 export type Severity = 'info' | 'warn' | 'blocking'
 

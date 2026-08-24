@@ -181,6 +181,18 @@ jazz standards parse.
 - Corpus (9 files): 6 identified from the title alone, every correct match
   confident (79–100%), no wrong match confident (≤ 29%).
 
+## Repeats (`ingest/parseScore.ts` `playedMeasures`)
+
+Written order → played order before either parser walks the measures. A
+forward repeat (else the start of the piece / the bar after the last
+backward repeat) opens a section; a backward repeat plays it again. With
+endings, pass two stops before ending 1 and continues after it; ending 2
+plays once. Two passes only (`times` ignored). Played bar = written bar +
+bars inserted before it, so a score without repeats keeps its own numbers.
+`Score.repeats` lists the sections by written bar; `prepare` emits an
+info `repeat-unrolled` adjustment. Segno / coda remain
+`UnsupportedScoreError`.
+
 ## Weimar Jazz Database ingest (`ingest/wjd.ts`, `npm run corpus:wjd`)
 
 - Rows in (`melody`, `beats`, `solo_info`), Score out; `src/` never

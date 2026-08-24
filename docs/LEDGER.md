@@ -92,3 +92,7 @@ left in OPEN_QUESTIONS.
 2026-08-24 · session 4 · Owner's two boxes on Blake 70/71 → `pickupHeld` 3
 in segment.ts (held note, and-of-4 pickup, downbeat). Blake 23 ideas, WJD
 ideas 77.3 (−0.3), phrases 83.8. 253 tests.
+2026-08-24 · session 4 · Repeats unrolled (`playedMeasures`, fixture
+repeat-endings, `Score.repeats`, `repeat-unrolled` info adjustment). St
+Thomas (Rollins) from ~/Downloads now runs: 273 bars, 16-bar form ×17, 31
+findings; copied to ~/dev/woodshed-data/peers. 256 tests.

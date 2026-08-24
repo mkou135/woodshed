@@ -1,6 +1,7 @@
 import { XMLParser } from 'fast-xml-parser'
 import { TICKS_PER_QUARTER } from '../core/types.ts'
 import type { Chord, ChordTrack, Quality } from '../core/types.ts'
+import { playedMeasures } from './parseScore.ts'
 
 const STEP_SEMITONES: Record<string, number> = {
   C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11,
@@ -87,15 +88,14 @@ export function parseHarmonyTrack(xml: string): ChordTrack | null {
   const part = findDeep({ root }, 'part')
   if (!part) return null
 
-  const measures = childrenOf(part).filter((m) => tagOf(m) === 'measure')
+  const { measures } = playedMeasures(part)
   const chords: Chord[] = []
 
   let divisions = 1
   let timeSigTicks = 4 * TICKS_PER_QUARTER
   let scoreTicks = 0
 
-  for (const measure of measures) {
-    const bar = Number((measure[':@'] as Node | undefined)?.['@_number'] ?? 0)
+  for (const { node: measure, bar } of measures) {
     const measureStart = scoreTicks
     let cursor = 0
 

@@ -120,3 +120,15 @@ export function chordPersistenceCheck(
   }
   return out
 }
+
+/** Repeats were unrolled at ingest: say so, since bar numbers no longer match the page. */
+export function repeatCheck(score: Score): Adjustment[] {
+  return (score.repeats ?? []).map(({ from, to }) => ({
+    kind: 'repeat-unrolled',
+    severity: 'info',
+    target: { range: [from, to] },
+    reason: `Written bars ${from}–${to} repeat; played twice, so bars after ${to} are numbered ${to - from + 1} higher than in the score`,
+    decidedBy: 'engine',
+    confidence: 1,
+  }))
+}

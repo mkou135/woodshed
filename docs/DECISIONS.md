@@ -213,3 +213,11 @@ Owner drew two boxes on Blake bars 70 and 71 (cues there were 0.11 and
 precision): ideas F1 77.6 → 77.3, phrases unchanged; Blake 21 → 23 ideas ·
 owner's ear over annotators, as with the bar-67 held G · reverse if it
 splits things the owner hears as one on other solos.
+
+2026-08-24 · **Repeats unrolled at ingest** · Was: any <repeat>/<ending>
+rejected ("flatten before importing"). Now `playedMeasures` unrolls simple
+repeats and first/second endings for both the note and harmony parsers;
+segno/coda still rejected · owner hit it on St Thomas (Rollins, head
+written 17–32 with a repeat; 257 → 273 played bars, head = choruses 1–2) ·
+owner asked, engine · reverse if a score with nested or `times` > 2
+repeats needs more than two passes (then extend, not reject).

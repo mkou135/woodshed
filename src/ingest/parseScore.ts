@@ -68,7 +68,58 @@ function numberOf(node: Node | undefined, tag: string, fallback: number): number
   return Number.isFinite(value) ? value : fallback
 }
 
-const FORBIDDEN = ['repeat', 'ending', 'segno', 'coda']
+const FORBIDDEN = ['segno', 'coda']
+
+export interface PlayedMeasure {
+  node: Node
+  /** Bar number in played order: the written number plus the bars inserted before it. */
+  bar: number
+}
+
+/**
+ * Written order → played order. A forward repeat (or the start of the piece)
+ * opens a section; a backward repeat plays it again. With first and second
+ * endings, the second pass stops before ending 1 and continues after it.
+ * Two passes only: `times` is ignored. Segno and coda stay unsupported.
+ * Transcriptions write the head once with a repeat and the solo straight
+ * through; the engine needs the head's bars to line up with the changes.
+ */
+export function playedMeasures(part: Node): { measures: PlayedMeasure[]; repeats: { from: number; to: number }[] } {
+  const written = childrenOf(part).filter((m) => tagOf(m) === 'measure')
+  const numberOfMeasure = (m: Node): number => Number((m[':@'] as Node | undefined)?.['@_number'] ?? 0)
+  const barlines = (m: Node) => childrenOf(m).filter((el) => tagOf(el) === 'barline')
+  const repeatDirection = (m: Node): string[] =>
+    barlines(m).flatMap((b) => findAllDeep(b, 'repeat')).map((r) => String((r[':@'] as Node | undefined)?.['@_direction'] ?? ''))
+  const endingStart = (m: Node): string | null => {
+    const e = barlines(m).flatMap((b) => findAllDeep(b, 'ending'))
+      .find((e) => (e[':@'] as Node | undefined)?.['@_type'] === 'start')
+    return e ? String((e[':@'] as Node | undefined)?.['@_number'] ?? '') : null
+  }
+
+  const measures: PlayedMeasure[] = []
+  const repeats: { from: number; to: number }[] = []
+  let inserted = 0
+  let sectionStart = 0
+  let ending1Start: number | null = null
+  for (let i = 0; i < written.length; i++) {
+    const m = written[i]
+    const directions = repeatDirection(m)
+    if (directions.includes('forward')) { sectionStart = i; ending1Start = null }
+    if (endingStart(m) === '1') ending1Start = i
+    measures.push({ node: m, bar: numberOfMeasure(m) + inserted })
+    if (directions.includes('backward')) {
+      const end = ending1Start ?? i + 1
+      for (let k = sectionStart; k < end; k++) {
+        inserted++
+        measures.push({ node: written[k], bar: numberOfMeasure(written[i]) + inserted })
+      }
+      repeats.push({ from: numberOfMeasure(written[sectionStart]), to: numberOfMeasure(written[i]) })
+      sectionStart = i + 1
+      ending1Start = null
+    }
+  }
+  return { measures, repeats }
+}
 
 export function parseScore(xml: string): Score {
   const root = parser.parse(xml) as Node[]
@@ -86,7 +137,7 @@ export function parseScore(xml: string): Score {
     }
   }
 
-  const measures = childrenOf(part).filter((m) => tagOf(m) === 'measure')
+  const { measures, repeats } = playedMeasures(part)
 
   const titleNode = findDeep(doc, 'work-title') ?? findDeep(doc, 'movement-title')
   const title = titleNode ? textOf(titleNode).trim() || undefined : undefined
@@ -100,8 +151,7 @@ export function parseScore(xml: string): Score {
   const marks: Mark[] = []
   let scoreTicks = 0
 
-  for (const measure of measures) {
-    const barNumber = Number((measure[':@'] as Node | undefined)?.['@_number'] ?? 0)
+  for (const { node: measure, bar: barNumber } of measures) {
     const measureStart = scoreTicks
     let cursor = 0
 
@@ -141,7 +191,7 @@ export function parseScore(xml: string): Score {
         const style = findChild(el, 'bar-style')
         // A double bar closes a section; the mark goes on the bar that opens
         // the next one. On the last measure it closes the piece: no mark.
-        if (style && textOf(style).trim() === 'light-light' && measure !== measures[measures.length - 1]) {
+        if (style && textOf(style).trim() === 'light-light' && measure !== measures[measures.length - 1].node) {
           marks.push({ bar: barNumber + 1, kind: 'double-bar', text: '' })
         }
         continue
@@ -208,5 +258,6 @@ export function parseScore(xml: string): Score {
     timeSig,
     marks,
     barCount: measures.length,
+    ...(repeats.length ? { repeats } : {}),
   }
 }

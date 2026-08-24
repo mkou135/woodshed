@@ -40,3 +40,10 @@ describe('parseHarmonyTrack', () => {
     expect(parseHarmonyTrack(load('minimal-tenor.musicxml'))!.confidence).toBe(1)
   })
 })
+
+describe('parseHarmonyTrack with repeats', () => {
+  it('unrolls the chords in the same played order as the notes', () => {
+    const track = parseHarmonyTrack(readFileSync('fixtures/repeat-endings.musicxml', 'utf8'))!
+    expect(track.chords.map((c) => [c.bar, c.rootPc])).toEqual([[1, 0], [2, 2], [3, 0], [4, 4], [5, 5]])
+  })
+})

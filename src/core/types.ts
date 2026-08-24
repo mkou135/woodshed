@@ -75,4 +75,6 @@ export interface Score {
   timeSig: [number, number]
   marks: Mark[]
   barCount: number
+  /** Repeat sections unrolled at ingest, by written bar number; bars are numbered in played order. */
+  repeats?: { from: number; to: number }[]
 }

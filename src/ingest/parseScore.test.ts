@@ -65,9 +65,26 @@ describe('parseScore', () => {
     ])
   })
 
-  it('refuses a score containing repeats rather than guessing the played order', () => {
-    expect(() => parseScore(load('has-repeats.musicxml')))
-      .toThrow(UnsupportedScoreError)
+  it('unrolls a simple repeat: the section plays twice, bars renumbered in played order', () => {
+    const s = parseScore(load('has-repeats.musicxml'))
+    expect(s.barCount).toBe(4)
+    expect(s.notes.map((n) => n.bar)).toEqual([1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4])
+    expect(s.notes[8]).toMatchObject({ midi: 60, bar: 3, beat: 0, onset: 8 * TICKS_PER_QUARTER })
+    expect(s.repeats).toEqual([{ from: 1, to: 2 }])
+  })
+
+  it('unrolls first and second endings: pass one takes ending 1, pass two skips to ending 2', () => {
+    // Written 1 | 2(ending 1) :| 3(ending 2) | 4  →  played C D C E F
+    const s = parseScore(load('repeat-endings.musicxml'))
+    expect(s.barCount).toBe(5)
+    expect(s.notes.map((n) => n.midi)).toEqual([60, 62, 60, 64, 65])
+    expect(s.notes.map((n) => n.bar)).toEqual([1, 2, 3, 4, 5])
+    expect(s.repeats).toEqual([{ from: 1, to: 2 }])
+  })
+
+  it('still refuses segno and coda', () => {
+    const xml = load('minimal-tenor.musicxml').replace('<measure number="1">', '<measure number="1"><direction><sound coda="c"/><direction-type><coda/></direction-type></direction>')
+    expect(() => parseScore(xml)).toThrow(UnsupportedScoreError)
   })
 
   it('leaves chordTracks empty — chords are a later stage', () => {
