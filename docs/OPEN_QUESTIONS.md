@@ -70,13 +70,13 @@ moving its resolution into DECISIONS.md.
 - **displace step and 3/4+ time**: placements assume 4/4 feel (beat 2,
   and-of-1). Check against a 3/4 solo when one arrives.
 
-- **Mintzer rhythm changes phrase markers** (2026-08-24, owner: "not sure
-  about quite a few"). 56 phrases in 130 bars at ♩=220; segmentation was
-  tuned on Blake, St Thomas and the WJD, none this fast. Suspects: rest
-  thresholds in beats are short in seconds at 220; the file has an
-  unmarked pickup (warn), which shifts every beat position. Resolve: owner
-  draws brackets on one chorus (as for St Thomas printed 57–76), then
-  `diag:wjd`-style comparison. File: ~/dev/woodshed-data/peers.
+- **Owner brackets as a regression set.** St Thomas printed 57–76 and
+  Mintzer written 3–34 (phrase starts at written bar.beat: 3.1 4.4½ 6.4
+  7.4½ 10.1 13.4½ 17.4½ 22.1 24.1½ 25.4 29.4 32.4½ 34.4½ — Claude's reading
+  of the owner's screenshot, ±½ beat) are only checked by hand-run scratch
+  scripts. Worth a `npm run brackets` that scores every peers file against
+  a committed list. Also: the unmarked-pickup warn on Mintzer still shifts
+  beat positions; check whether that matters once the brackets are tooled.
 
 ## Segmentation cues (2026-08-24, from a ChatGPT comparison)
 

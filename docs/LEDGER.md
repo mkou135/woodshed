@@ -156,3 +156,8 @@ woodshed-data/peers): bar 13's quarter-note triplet was beamed (duration
 < quarter) and OSMD refused the exercise → beam by notated type. Sweep of
 every exercise on Blake/St Thomas/Mintzer: 0 illegal beams. Owner unsure of
 "quite a few" phrase markers on Mintzer — logged, needs brackets. 289 tests.
+2026-08-24 · session 5 · Articulation rest (`articulationSpan`): owner's
+Mintzer brackets bars 3–34 go 12/13 + 4 false → 12/13 + 0 false; WJD
+phrases 82.5 (+0.1), ideas 77.6 (−0.2). Mintzer brackets hand-coded in
+the session's scratch diag only; worth adding to diag:wjd-style tooling
+next time (OPEN_QUESTIONS). 291 tests.

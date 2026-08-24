@@ -309,3 +309,15 @@ Thomas top 3 unchanged, WJD medians unchanged — the corpus mostly agrees
 with the run rule on these solos · engine, owner asked · reverse by
 dropping `corpusShare` from the max; the owner's page read is the real
 test (OPEN_QUESTIONS).
+
+2026-08-24 · **Articulation rest** · A gap no longer than the note before
+it, the two together within a beat (`articulationSpan` 960), is
+articulation, rest cue 0. Owner's diagnosis on the Mintzer rhythm changes:
+transcribers write a staccato quarter as eighth + eighth rest, and with a
+leap that scored 0.49–0.52 and split bars 27–31 into three phrases. Owner
+bracketed written bars 3–34 (13 phrases, "95% confident, none were
+ideas"): engine 12 matched / 4 false → 12 matched / 0 false (the one
+"miss" at 22.1 vs engine 22.2½ is Claude's reading of the bracket). WJD
+phrases 82.4 → 82.5, ideas 77.8 → 77.6; Blake 16 phrases unchanged, St
+Thomas 55 → 54 · owner's ear, corpus agrees · reverse by articulationSpan
+0.

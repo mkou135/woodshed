@@ -27,6 +27,7 @@ Boundary strength per gap = min(1, wRest·rest + wLength·length + wLeap·leap):
 | wLeap | 0.25 | leap cue weight |
 | threshold | 0.45 | boundary when total ≥ this |
 | minRest | 240 ticks (16th) | below: articulation, rest = 0 |
+| articulationSpan | 960 ticks (a beat) | a gap ≤ the note before it, the two together ≤ this: articulation, rest = 0 (an eighth + eighth rest is a staccato quarter; owner's Mintzer brackets) |
 | fullRest | 960 ticks (quarter) | rest = 1 at/above this |
 | lengthFrom | 2 × median duration | held-note cue starts |
 | lengthFull | 6 × median duration | held-note cue = 1 (≈3 beats among 8ths) |
@@ -47,8 +48,8 @@ or a local peak, or the pickup gesture, ends an **idea** within the
 phrase. `segment()` takes beats per bar (from `timeSig`) for the pickup test. A phrase whose
 first note is off the eighth grid starts on its quarter-note beat
 (`Phrase.onset`). Scores vs Weimar Jazz Database (456 solos,
-`npm run eval:wjd`): phrases P 80.9 / R 84.0 / F1 **82.4** (83.8 with riffMaxGap 0) (human ceiling
-.83); ideas 82.7 / 73.4 / **77.8**. Excluding gaps that are
+`npm run eval:wjd`): phrases P 81.4 / R 83.6 / F1 **82.5** (human ceiling
+.83); ideas 83.3 / 72.6 / **77.6**. Excluding gaps that are
 also phrase boundaries, only ~25% of WJD idea boundaries are found; the
 rest carry no surface cue (see DECISIONS 2026-08-24).
 

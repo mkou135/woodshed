@@ -50,6 +50,22 @@ describe('segment', () => {
     expect(segment(notes)).toHaveLength(1)
   })
 
+  it('reads an eighth plus an eighth rest as a staccato quarter, even before a leap', () => {
+    // Mintzer rhythm changes bars 30-31: C [eighth rest] leap up — three
+    // phrases split there that the owner hears as one. Eighth rest + leap of
+    // an octave scored 0.52 before the articulation rule.
+    const e = (m: number, gap = 0): [number, number, number] => [m, 0.5, gap]
+    const notes = notesFrom([e(60), e(62), e(64, 0.5), e(76), e(74), e(72), e(71), e(69)])
+    expect(segment(notes)).toHaveLength(1)
+  })
+
+  it('still splits when the rest outlasts the note before it', () => {
+    // A sixteenth then a dotted-eighth rest is a real gap, not articulation.
+    const e = (m: number, gap = 0): [number, number, number] => [m, 0.5, gap]
+    const notes = notesFrom([e(60), e(62), [64, 0.25, 0.75], e(76), e(74), e(72), e(71), e(69)])
+    expect(segment(notes).length).toBeGreaterThan(1)
+  })
+
   it('does not split on a gap shorter than a sixteenth', () => {
     const notes = notesFrom([[60, 1, 0], [62, 1, 0.2], [64, 1, 0], [65, 1, 0]])
     expect(segment(notes)).toHaveLength(1)

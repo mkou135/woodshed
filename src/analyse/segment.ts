@@ -44,6 +44,13 @@ export interface SegmentOptions {
   fullRest: number
   /** Below this (ticks), a gap is articulation, not a rest. */
   minRest: number
+  /**
+   * A rest no longer than the note before it, the two together no longer
+   * than this (ticks), is articulation too: transcribers write a staccato
+   * quarter as an eighth plus an eighth rest, and the Mintzer rhythm changes
+   * split three phrases on exactly that. Set to 0 to disable.
+   */
+  articulationSpan: number
   wRest: number
   wLength: number
   wLeap: number
@@ -106,6 +113,7 @@ export interface SegmentOptions {
 export const DEFAULTS: SegmentOptions = {
   fullRest: TICKS_PER_QUARTER,
   minRest: TICKS_PER_QUARTER / 4,
+  articulationSpan: TICKS_PER_QUARTER,
   // Tuned against the Weimar Jazz Database (scripts/eval-wjd.ts): phrase
   // boundaries F1 83.8, idea boundaries F1 76.3 on 456 solos, within 0.6
   // of the best setting found while keeping a long-held note (6x the
@@ -184,7 +192,8 @@ export function boundaryCue(
   if (!next) return { rest: 1, length: 0, leap: 0, rhythm: 0, gap: 0, total: 1, idea: 0 }
 
   const gap = Math.max(0, next.onset - (here.onset + here.duration))
-  const rest = gap < o.minRest ? 0 : Math.min(1, gap / o.fullRest)
+  const articulated = gap <= here.duration && here.duration + gap <= o.articulationSpan
+  const rest = gap < o.minRest || articulated ? 0 : Math.min(1, gap / o.fullRest)
 
   // Measured against the median so the rule means the same at any tempo.
   const length = medianDuration > 0
