@@ -70,6 +70,14 @@ moving its resolution into DECISIONS.md.
 - **displace step and 3/4+ time**: placements assume 4/4 feel (beat 2,
   and-of-1). Check against a 3/4 solo when one arrives.
 
+- **Mintzer rhythm changes phrase markers** (2026-08-24, owner: "not sure
+  about quite a few"). 56 phrases in 130 bars at ♩=220; segmentation was
+  tuned on Blake, St Thomas and the WJD, none this fast. Suspects: rest
+  thresholds in beats are short in seconds at 220; the file has an
+  unmarked pickup (warn), which shifts every beat position. Resolve: owner
+  draws brackets on one chorus (as for St Thomas printed 57–76), then
+  `diag:wjd`-style comparison. File: ~/dev/woodshed-data/peers.
+
 ## Segmentation cues (2026-08-24, from a ChatGPT comparison)
 
 Tested against WJD the same day (DECISIONS 2026-08-24): separate idea

@@ -320,7 +320,7 @@ features — are the methodology the owner asked for.
 
 ## Session 5 handoff (2026-08-24)
 
-State: main at the commit after 0dbf756, 288 tests, live via git push.
+State: main at the commit after 8404dd8, 289 tests, live via git push.
 Dictionary now names 69% of Bopland licks (triads + dominant b9 cells);
 corpus-frequency stock discount in unit rank; `empty-stretch` adjustment;
 exercises beamed, in the solo's key, at written pitch on the page; the
@@ -341,3 +341,7 @@ numbers shown are printed ones (`core/bars.ts`); OSMD renders both the
 solo and the exercises; no framework in `app/` today (plain DOM in
 `app/main.ts`, 700 lines — a redesign may reasonably introduce one, the
 owner's call).
+
+Also open before the design pass, if the owner prefers engine work first:
+Mintzer rhythm changes phrase markers (OPEN_QUESTIONS) — needs the
+owner's brackets on one chorus, then a threshold review for fast tempos.

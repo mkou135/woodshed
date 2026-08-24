@@ -83,6 +83,18 @@ describe('exerciseToMusicXml', () => {
     expect(exerciseToMusicXml(exercise, tenor, { keyFifths: 2 })).toContain('<transpose>')
   })
 
+  it('never beams a quarter-note triplet (Mintzer bar 13 failed to render)', () => {
+    const Q = 960
+    const triplet: Exercise = {
+      ...exercise,
+      bars: [{ rootPc: 2, quality: 'minor-seventh', midis: [],
+        events: [{ midi: 65, duration: Q * 2 / 3 }, { midi: 62, duration: Q * 2 / 3 }, { midi: 59, duration: Q * 2 / 3 }, { midi: null, duration: 2 * Q }] }],
+    }
+    const xml = exerciseToMusicXml(triplet, tenor)
+    expect(xml).not.toContain('<beam')
+    expect(xml).toContain('<type>quarter</type><time-modification>')
+  })
+
   it('includes the title so the file is identifiable in MuseScore', () => {
     expect(exerciseToMusicXml(exercise, tenor)).toContain('digital pattern 1235')
   })

@@ -151,3 +151,8 @@ tone below the chords (OSMD applied <transpose>) → `Score.keyFifths`,
 removed: single column, "Idea n of N ‹ ›" chooser, "All ideas" toggles the
 list + tune control. Verified on St Thomas in Chrome. 288 tests. Session
 closed; handoff in HANDOFF.md "Session 5".
+2026-08-24 · session 5 · Mintzer rhythm changes (from ~/Downloads, copied to
+woodshed-data/peers): bar 13's quarter-note triplet was beamed (duration
+< quarter) and OSMD refused the exercise → beam by notated type. Sweep of
+every exercise on Blake/St Thomas/Mintzer: 0 illegal beams. Owner unsure of
+"quite a few" phrase markers on Mintzer — logged, needs brackets. 289 tests.

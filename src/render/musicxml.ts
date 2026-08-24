@@ -99,28 +99,38 @@ function harmonyXml(chord: { rootPc: number; quality: Quality }): string {
  * triplet values are exact; anything else takes the nearest plain type,
  * which keeps the bar's arithmetic right even if the glyph is approximate.
  */
-function typeXml(ticks: number): string {
-  const q = TICKS_PER_QUARTER
-  const plain: [number, string][] = [
-    [4 * q, 'whole'], [2 * q, 'half'], [q, 'quarter'], [q / 2, 'eighth'],
-    [q / 4, '16th'], [q / 8, '32nd'],
-  ]
-  for (const [t, type] of plain) {
-    if (ticks === t) return `<type>${type}</type>`
-    if (ticks === t * 1.5) return `<type>${type}</type><dot/>`
-    if (ticks * 3 === t * 2) {
-      return `<type>${type}</type><time-modification><actual-notes>3</actual-notes>` +
-        '<normal-notes>2</normal-notes></time-modification>'
-    }
+const PLAIN_TYPES: [number, string][] = [
+  [4 * TICKS_PER_QUARTER, 'whole'], [2 * TICKS_PER_QUARTER, 'half'], [TICKS_PER_QUARTER, 'quarter'],
+  [TICKS_PER_QUARTER / 2, 'eighth'], [TICKS_PER_QUARTER / 4, '16th'], [TICKS_PER_QUARTER / 8, '32nd'],
+]
+
+/** The notated type of a duration: plain, dotted or triplet, else nearest plain. */
+function notatedType(ticks: number): { type: string; dotted: boolean; triplet: boolean } {
+  for (const [t, type] of PLAIN_TYPES) {
+    if (ticks === t) return { type, dotted: false, triplet: false }
+    if (ticks === t * 1.5) return { type, dotted: true, triplet: false }
+    if (ticks * 3 === t * 2) return { type, dotted: false, triplet: true }
   }
-  const nearest = plain.reduce((best, cur) =>
+  const nearest = PLAIN_TYPES.reduce((best, cur) =>
     Math.abs(cur[0] - ticks) < Math.abs(best[0] - ticks) ? cur : best)
-  return `<type>${nearest[1]}</type>`
+  return { type: nearest[1], dotted: false, triplet: false }
+}
+
+const FLAGGED = new Set(['eighth', '16th', '32nd'])
+
+function typeXml(ticks: number): string {
+  const { type, dotted, triplet } = notatedType(ticks)
+  if (dotted) return `<type>${type}</type><dot/>`
+  if (triplet) {
+    return `<type>${type}</type><time-modification><actual-notes>3</actual-notes>` +
+      '<normal-notes>2</normal-notes></time-modification>'
+  }
+  return `<type>${type}</type>`
 }
 
 /**
- * Beam marks for a bar's events, one entry per event ('' for none). Notes
- * shorter than a quarter beam within a beat; a rest, a longer note or the
+ * Beam marks for a bar's events, one entry per event ('' for none). Flagged
+ * notes (eighth or shorter by type) beam within a beat; a rest, a longer note or the
  * beat line ends the group. Adjacent 16ths inside a group share a second
  * beam. Without these every eighth gets its own flag, which is unreadable.
  */
@@ -129,7 +139,9 @@ function beamMarks(events: ExerciseEvent[]): string[] {
   const positions: number[] = []
   let position = 0
   for (const e of events) { positions.push(position); position += e.duration }
-  const beamable = (i: number): boolean => events[i].midi !== null && events[i].duration < TICKS_PER_QUARTER
+  // By notated type, not duration: a quarter-note triplet is shorter than a
+  // quarter but has no flag, and OSMD refuses to beam it.
+  const beamable = (i: number): boolean => events[i].midi !== null && FLAGGED.has(notatedType(events[i].duration).type)
   const beat = (i: number): number => Math.floor(positions[i] / TICKS_PER_QUARTER)
 
   const runs: [number, number][] = []
@@ -151,7 +163,7 @@ function beamMarks(events: ExerciseEvent[]): string[] {
     mark(1, from, to)
     let s = -1
     for (let k = from; k <= to + 1; k++) {
-      const fine = k <= to && events[k].duration <= TICKS_PER_QUARTER / 4
+      const fine = k <= to && ['16th', '32nd'].includes(notatedType(events[k].duration).type)
       if (fine) { if (s < 0) s = k; continue }
       if (s >= 0 && k - s >= 2) mark(2, s, k - 1)
       s = -1
