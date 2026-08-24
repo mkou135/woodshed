@@ -87,12 +87,10 @@ also rejected, 3% precision — idea recall is at its ceiling. Still open:
 - **Contour closure cue.** Line reaches an extreme then settles. Peak
   (up-then-down) was 23% at missed boundaries vs 20% elsewhere — likely
   nothing; only if headroom remains.
-- **Stock-vocabulary discount in unit ranking** (owner's idea). A bar of
-  bebop scale or a plain arpeggio is everyone's vocabulary; it should not
-  outrank a signature idea. Two deterministic options: (a) corpus frequency
-  — count each interval/degree pattern across the 453 WJD + 50 Omnibook
-  solos, rank this solo's ideas by rarity-in-corpus × repetition-in-solo
-  (TF-IDF over licks); (b) generic-shape filter — all steps or all thirds
-  in one direction = stock. Belongs in `practice/unit.ts` rank, not the
-  segmenter. Resolve: (b) first on Blake; (a) needs a pattern-count table
-  built by `corpus:wjd`.
+- **Stock-vocabulary discount, corpus version.** The generic-shape filter
+  is in (DECISIONS 2026-08-24). Still open: (a) corpus frequency — a
+  pattern-count table over the 453 WJD + 50 Omnibook solos written by
+  `corpus:wjd`, rank by rarity-in-corpus × repetition-in-solo; (b) whether
+  notes inside a named finding (e.g. the maj7 arpeggio from the b3) should
+  be exempt from the discount — today they are not, and u1 lost 0.67 for it
+  while keeping its place. Resolve: watch a few solos' unit order on the page.

@@ -85,3 +85,7 @@ unchanged; corpus:wjd median 13 → 13 · 244 tests.
 gains fam* rules: family start 3% precision → similarity cue rejected, idea
 recall ceiling recorded in DECISIONS. Next: stock-vocabulary discount in
 unit rank (OPEN_QUESTIONS).
+2026-08-24 · session 4 · `stockShare` + STOCK_PENALTY 2 in `practice/unit.ts`
+(`PracticeUnit.stock`, shown by `npm run solo`). Blake u1 holds, run-heavy
+units sink. 250 tests. Corpus-frequency version and named-finding exemption
+left in OPEN_QUESTIONS.

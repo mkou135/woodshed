@@ -133,7 +133,11 @@ vector); pass 2 by overlap adds detectedBy/weights only, never spans.
   joins the previous part).
 - Rank = 4·max(confidence) + Σ confidence (distinct names) +
   0.25·Σ occurrences + 0.5 if arrival is a chord tone + 2 if any finding
-  has degrees.
+  has degrees − `STOCK_PENALTY` 2 × `stockShare`.
+- `stockShare(notes)` (`PracticeUnit.stock`): share of the part's notes
+  inside a run of ≥ `STOCK_RUN` 4 notes whose intervals are all steps (1–2
+  semitones) in one direction, or all thirds/fourths (3–5) in one direction.
+  Applies to every note, including those of a named finding.
 - Steps: loop (always), through + write (only with a degree-cell), displace
   (always; placements beat 1, and-of-1, beat 2, pickup; smallest shift
   modulo bar; dropped if a chord-tone arrival stops being one).

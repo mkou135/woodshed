@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { run } from '../pipeline.ts'
-import { partition } from './unit.ts'
+import { partition, stockShare } from './unit.ts'
 import { TICKS_PER_QUARTER as Q } from '../core/types.ts'
 import type { Note } from '../core/types.ts'
 
@@ -64,5 +64,40 @@ describe('buildUnits on the Blake solo', () => {
       expect(through, u.header).toBeDefined()
       if (through?.kind === 'through') expect(through.exercises[0].bars.length).toBeGreaterThan(0)
     }
+  })
+})
+
+describe('stockShare', () => {
+  // A scale run or a plain arpeggio is everyone's vocabulary; the share of
+  // a unit's notes sitting inside one discounts its rank.
+  const midis = (ms: number[]): Note[] => ms.map((midi, i) => ({
+    midi, onset: i * (Q / 2), duration: Q / 2, bar: 1, beat: (i % 8) / 2,
+  }))
+
+  it('is 1 for a scale run', () => {
+    expect(stockShare(midis([60, 62, 64, 65, 67, 69, 71, 72]))).toBe(1)
+  })
+
+  it('is 1 for a descending chromatic run', () => {
+    expect(stockShare(midis([72, 71, 70, 69, 68]))).toBe(1)
+  })
+
+  it('is 1 for a plain arpeggio', () => {
+    expect(stockShare(midis([60, 64, 67, 71, 74]))).toBe(1)
+  })
+
+  it('is 0 for a figure that changes direction every few notes', () => {
+    // Blake's b3 figure: Ab C Eb G, then down
+    expect(stockShare(midis([68, 72, 75, 74, 73, 75, 72]))).toBe(0)
+  })
+
+  it('counts only the notes inside a run of at least four', () => {
+    // a three-note step fragment does not count; the five-note run does
+    expect(stockShare(midis([60, 62, 64, 60, 62, 64, 65, 67]))).toBe(0.625)
+  })
+
+  it('does not mix steps and thirds in one run', () => {
+    // 1-2-3-5-7: steps then thirds; neither run reaches four notes
+    expect(stockShare(midis([60, 62, 64, 67, 71]))).toBe(0)
   })
 })

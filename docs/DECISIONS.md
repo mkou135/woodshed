@@ -197,3 +197,10 @@ cues all tested, the ~75% of intra-phrase WJD idea boundaries we miss are
 not recoverable from features the engine has; ideas F1 77.6 stands as the
 working ceiling · `npm run diag:wjd` (fam* rules) · engine · reverses only
 with a new class of evidence (e.g. annotator-style listening tests).
+
+2026-08-24 · **Stock-vocabulary discount in unit rank** · Rank loses 2 ×
+the share of notes inside a ≥4-note scale run or plain arpeggio (option b
+of the owner's idea; corpus frequency deferred) · Blake: u1 holds; the
+run-heavy bars 74–76 and 81–82 fall from u2/u3 to u5/u6, the enclosure
+line at 70–71 rises to u2 · owner asked, engine chose the form · reverse or
+exempt named-finding notes if a named arpeggio unit is seen to sink.

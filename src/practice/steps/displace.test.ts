@@ -20,7 +20,8 @@ const notes: Note[] = [68, 72, 75, 79].map((midi, i) => ({
 const unit: Omit<PracticeUnit, 'steps'> = {
   id: 'u1', phrase: 0, idea: 0, notes, startIndex: 0, endIndex: 3, harmony: [chord],
   degrees: ['3', '5', '7', '2'], findings: [], arrival: { degree: '2', chordTone: false },
-  rank: 0, header: '',
+  stock: 0,
+    rank: 0, header: '',
 }
 
 describe('excerpt', () => {

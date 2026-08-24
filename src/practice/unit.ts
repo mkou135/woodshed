@@ -33,6 +33,8 @@ export interface PracticeUnit {
   degrees: (string | null)[]
   findings: Finding[]
   arrival: { degree: string; chordTone: boolean } | null
+  /** Share of the notes inside a scale run or plain arpeggio, 0-1. */
+  stock: number
   rank: number
   /** One line a teacher would write above the excerpt. */
   header: string
@@ -102,6 +104,42 @@ export function partition(notes: Note[]): Note[][] {
   return parts
 }
 
+/** Fewer than this many notes in one direction is a turn, not a run. */
+const STOCK_RUN = 4
+/** Rank lost by a unit that is entirely stock (Blake's strongest unit ranks ~11). */
+const STOCK_PENALTY = 2
+
+/**
+ * A scale run (every interval a step, one direction) or a plain arpeggio
+ * (every interval a third or fourth, one direction) is the language, not
+ * the player: Frieler's Omnibook mine put exactly these at the top of the
+ * frequency table. The share of a unit inside such runs discounts its
+ * rank, so a signature idea outranks a bar of bebop scale.
+ */
+export function stockShare(notes: Note[]): number {
+  if (notes.length === 0) return 0
+  const kind = (iv: number): 'step' | 'third' | null => {
+    const a = Math.abs(iv)
+    return a >= 1 && a <= 2 ? 'step' : a >= 3 && a <= 5 ? 'third' : null
+  }
+  const stock = new Array<boolean>(notes.length).fill(false)
+  const ivs = notes.slice(1).map((n, i) => n.midi - notes[i].midi)
+  // A run is a maximal chain of intervals of one kind in one direction; it
+  // covers one more note than it has intervals.
+  let runStart = 0
+  for (let i = 1; i <= ivs.length; i++) {
+    const continues = i < ivs.length && kind(ivs[i]) !== null &&
+      kind(ivs[i]) === kind(ivs[i - 1]) && Math.sign(ivs[i]) === Math.sign(ivs[i - 1])
+    if (continues) continue
+    const noteCount = i - runStart + 1
+    if (kind(ivs[runStart]) !== null && noteCount >= STOCK_RUN) {
+      for (let k = runStart; k <= i; k++) stock[k] = true
+    }
+    runStart = i
+  }
+  return stock.filter(Boolean).length / notes.length
+}
+
 export function buildUnits(analysis: Analysis, score: Score, options: BuildOptions): PracticeUnit[] {
   const { contexts, phrases, findings } = analysis
   const occurrences = new Map(findings.map((f) => [f.id, f.spans.length]))
@@ -126,6 +164,7 @@ export function buildUnits(analysis: Analysis, score: Score, options: BuildOptio
       const last = slice[slice.length - 1]
       const arrival = last.degree ? { degree: last.degree, chordTone: last.chordTone } : null
 
+      const stock = stockShare(partNotes)
       const partial = {
         phrase: p,
         idea: i,
@@ -137,6 +176,7 @@ export function buildUnits(analysis: Analysis, score: Score, options: BuildOptio
         degrees: slice.map((c) => c.degree),
         findings: inside,
         arrival,
+        stock,
       }
       // Strongest finding first, then breadth, recurrence, a clean landing,
       // and a bonus for having something that can be taken through a tune:
@@ -147,7 +187,8 @@ export function buildUnits(analysis: Analysis, score: Score, options: BuildOptio
         byName.reduce((sum, f) => sum + f.confidence, 0) +
         0.25 * byName.reduce((sum, f) => sum + (occurrences.get(f.id) ?? 0), 0) +
         (arrival?.chordTone ? 0.5 : 0) +
-        (byName.some((f) => f.degrees) ? 2 : 0)
+        (byName.some((f) => f.degrees) ? 2 : 0) -
+        STOCK_PENALTY * stock
 
       const unit: Omit<PracticeUnit, 'id'> = {
         ...partial,
