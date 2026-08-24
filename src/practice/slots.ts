@@ -60,9 +60,12 @@ export function progressionSlot(chords: Chord[]): ProgressionSlot | null {
 }
 
 export interface SlotMatch {
-  bar: number
+  /** Every bar the progression starts on in this key, in tune order. */
+  bars: number[]
+  /** Last bar of the first occurrence, for naming its span. */
   toBar: number
   shift: number
+  /** The first occurrence's chords — the one the line is written onto. */
   chords: Chord[]
 }
 
@@ -76,23 +79,68 @@ export function tuneChords(tune: Tune): Chord[] {
   }))))
 }
 
-/** Every occurrence of the same chord classes and root motion, in tune order. */
-export function findProgressionSlots(slot: ProgressionSlot, tune: Tune, limit = 8): SlotMatch[] {
+/**
+ * The bar the chord sounding at this bar started on. A chord written again
+ * in the next bar is one chord here (`tuneChords` merges the carry), so an
+ * idea under the second copy belongs to the run that began earlier.
+ */
+export function chordRunStart(tune: Tune, bar: number): number {
+  let start = bar
+  for (const chord of tuneChords(tune)) {
+    if (chord.bar > bar) break
+    start = chord.bar
+  }
+  return start
+}
+
+export interface FindSlotsOptions {
+  /**
+   * The bar the idea itself sits on, in the tune's numbering. A form
+   * repeats, so the line's own spot matches like any other; offering it
+   * back as somewhere to "take the line" is noise. Matched against the run
+   * a chord holds, not its first bar.
+   */
+  homeBar?: number
+  /** Most transpositions to return. */
+  limit?: number
+}
+
+/**
+ * Every occurrence of the same chord classes and root motion, **grouped by
+ * transposition**: one entry per key listing every bar that shares it, in
+ * tune order. A 56-bar form hits the same ii-V in the same key three times;
+ * that is one exercise played in three places, not three exercises.
+ */
+export function findProgressionSlots(
+  slot: ProgressionSlot,
+  tune: Tune,
+  options: FindSlotsOptions = {},
+): SlotMatch[] {
+  const { homeBar, limit = 8 } = options
   const chords = tuneChords(tune)
-  const matches: SlotMatch[] = []
+  const byShift = new Map<number, SlotMatch>()
   for (let i = 0; i + slot.classes.length <= chords.length; i++) {
     const candidate = chords.slice(i, i + slot.classes.length)
     if (candidate.some((chord, k) => chordClass(chord.quality) !== slot.classes[k])) continue
     if (candidate.slice(1).some((chord, k) => interval(candidate[k].rootPc, chord.rootPc) !== slot.intervals[k])) continue
-    matches.push({
-      bar: candidate[0].bar,
+    const shift = interval(slot.rootPc, candidate[0].rootPc)
+    // This chord holds from its bar until the next distinct one starts.
+    const until = chords[i + 1]?.bar ?? Infinity
+    if (shift === 0 && homeBar !== undefined && candidate[0].bar <= homeBar && homeBar < until) continue
+    const found = byShift.get(shift)
+    if (found) {
+      if (found.bars[found.bars.length - 1] !== candidate[0].bar) found.bars.push(candidate[0].bar)
+      continue
+    }
+    if (byShift.size === limit) continue
+    byShift.set(shift, {
+      bars: [candidate[0].bar],
       toBar: candidate[candidate.length - 1].bar,
-      shift: interval(slot.rootPc, candidate[0].rootPc),
+      shift,
       chords: candidate,
     })
-    if (matches.length === limit) break
   }
-  return matches
+  return [...byShift.values()]
 }
 
 /** Transpose by chord-root shift, choosing the nearest octave that fits the horn. */

@@ -353,3 +353,36 @@ real-solo goldens on Blake and St Thomas. **Who.** Owner approved shipping the
 complete researched plan. **Reverses it.** A player test showing the full-line
 exercise is unreadable or that a different harmonic adaptation produces more
 usable practice material.
+
+## 2026-08-25 — Slot matches group by key, and exclude the line's own bar
+
+**Question.** `findProgressionSlots` returned every occurrence in tune
+order. On "Hey Lock!" u1's progression (G7 Cm7 F7 E7) comes round at bars
+12, 28 and 52 — all in the same key — so the exercise was the identical
+line printed three times; and bar 12 is where u1 is written, so the step
+offered the line its own spot as somewhere to take it.
+**Decision.** Group occurrences by transposition: one entry per key listing
+every bar that shares it, the cap counting keys rather than bars. Drop the
+idea's own bar, and any group it empties; name it in the prompt instead.
+Home is matched against the run a chord holds, not its first bar.
+**Evidence.** Blake u1: 9 bars of notation (three copies, home included) →
+3 bars, "bars 28 and 52", "The line is written at bar 12". Blake writes Fm
+at score bars 73 and 74, which `tuneChords` merges to one chord at tune bar
+9, so u2 computed home 10 by arithmetic and offered bar 9 — its own spot;
+the run rule fixes it. Omnibook 12 files, 477 units: 373 have a match, 123
+include a transposed key, 120 correctly fall back to the cell drills
+because their only place was home. 313 tests.
+**Who.** Claude, from the pre-grouping match dump.
+**Would reverse it.** A form so repetitive that a group's bar list becomes
+unreadable — cap the list rather than the group.
+
+## 2026-08-25 — A one-chord slot is a slot
+
+**Question.** An idea sitting over a single chord with no resolution inside
+a bar makes a one-chord slot, which matches every bar of that quality in
+the tune — close to the Bergonzi cell drill with the rhythm kept.
+**Decision.** Keep it. Baker's static bar is a real practice item, and the
+rhythm and shape are what the cell drill throws away.
+**Evidence.** Owner, asked directly.
+**Who.** Owner. **Would reverse it.** The owner finding at the horn that
+these read as filler next to the multi-chord slots.

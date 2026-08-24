@@ -188,3 +188,13 @@ the line. Blake/St Thomas goldens and focused regression coverage added.
 Browser-checked both steps on Blake; review fixes preserve shifted chord
 offsets, print resolution bars and reject changes under held final notes.
 Full build, brackets and 299 tests green.
+2026-08-25 · session 9 · Through step: slot matches grouped by
+transposition (one exercise per key, every bar listed) and the idea's own
+bar excluded, matched by the chord's run rather than its first bar
+(`chordRunStart`). `Tune.startBar` carries which chorus the changes came
+from, so a chart from elsewhere keeps every occurrence. New slots.test.ts;
+Blake golden updated (u1 9 bars → 3, bar 12 named not offered) · 313 tests,
+build clean · Omnibook 50 files 0 crashes. One-chord slots confirmed by the
+owner. Reached here twice: worktree-datasets-research had rebuilt the same
+feature in parallel against a stale main; that branch keeps the datasets
+survey, its implementation is superseded.

@@ -6,7 +6,7 @@ the code. Each section names the file that implements it — if this file and
 the code disagree, that is a bug to fix immediately, in whichever direction
 the DECISIONS log supports.
 
-Last updated: 2026-08-24 (session 8).
+Last updated: 2026-08-25 (session 9).
 
 ## Units
 
@@ -171,10 +171,22 @@ vector); pass 2 by overlap adds detectedBy/weights only, never spans.
   is its distinct chord classes + root intervals, followed by the first new
   chord after the final note ends when it arrives within one bar. The whole line
   (pitches and exact rhythm) is transposed to every matching occurrence in
-  the tune, in tune order, capped at 8; the nearest octave fitting the normal
+  the tune; the nearest octave fitting the normal
   written range is used; a rest bar prints a cross-bar resolution. A named
   cell on each compatible chord remains as a separate Bergonzi drill,
   followed by the twelve-key cycle.
+  - Matches are **grouped by transposition**, in tune order, capped at 8
+    *keys*: one entry per key listing every bar that shares it, written onto
+    the first occurrence's chords. The same progression in the same key at
+    three bars is one exercise played in three places.
+  - The idea's own bar is dropped from its group, and a group with no bars
+    left is dropped — a form repeats, so the line's own spot matches like
+    any other. Home is matched against the **run** a chord holds (its bar
+    until the next distinct chord), because `tuneChords` merges a chord
+    written again in the next bar, and named by that run's first bar
+    (`chordRunStart`). Only when `Tune.startBar` is set — `tuneFromScore`
+    sets it to the chorus it took the changes from; a chart from elsewhere
+    leaves it undefined and every occurrence stands.
 - Vary (`practice/steps/displace.ts`): placements beat 1, and-of-1, beat 2,
   pickup; smallest shift modulo the bar. Notes and chord changes move by the
   same offset, preserving harmonic function while changing metric feel.

@@ -11,6 +11,12 @@ export interface Tune {
   timeSig: [number, number]
   /** Unrolled, one entry per bar played; chords in the player's written pitch. */
   bars: TuneBar[]
+  /**
+   * The score bar this tune's bar 1 came from, when the tune is the solo's
+   * own changes. Undefined for a chart from elsewhere, whose bars have
+   * nothing to do with the solo's.
+   */
+  startBar?: number
 }
 
 export function barTicks(timeSig: [number, number]): number {
@@ -46,7 +52,7 @@ export function tuneFromScore(score: Score, chorusStarts: number[] = []): Tune {
     if (here.length > 0) carried = here[here.length - 1]
     bars.push({ chords: here })
   }
-  return { title: 'this solo', timeSig: score.timeSig, bars }
+  return { title: 'this solo', timeSig: score.timeSig, bars, startBar: from }
 }
 
 /** Every bar whose chords all belong to the given quality set. */

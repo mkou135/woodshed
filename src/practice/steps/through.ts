@@ -6,7 +6,7 @@ import type { Exercise, ExerciseBar } from '../../generate/index.ts'
 import type { PracticeUnit, Step } from '../unit.ts'
 import type { Tune } from '../tune.ts'
 import { qualityFamily } from '../../core/pitch.ts'
-import { findProgressionSlots, progressionSlot, transposeLine } from '../slots.ts'
+import { chordRunStart, findProgressionSlots, progressionSlot, transposeLine } from '../slots.ts'
 import { barTicks } from '../tune.ts'
 import { excerpt } from './loop.ts'
 import { chordName } from '../unit.ts'
@@ -32,6 +32,14 @@ export function resolutionChord(unit: Pick<PracticeUnit, 'notes' | 'harmony'>, s
  * The whole line goes wherever its progression recurs (Baker/Galper). The
  * named cell on each compatible chord remains available as Bergonzi's drill.
  */
+/** "bars 12, 28 and 52", or the span when the progression sits in one place. */
+function placeBars(match: { bars: number[]; toBar: number }): string {
+  if (match.bars.length > 1) {
+    return `bars ${match.bars.slice(0, -1).join(', ')} and ${match.bars[match.bars.length - 1]}`
+  }
+  return match.bars[0] === match.toBar ? `bar ${match.bars[0]}` : `bars ${match.bars[0]}–${match.toBar}`
+}
+
 export function throughStep(
   unit: Omit<PracticeUnit, 'steps'>,
   tune: Tune,
@@ -47,7 +55,11 @@ export function throughStep(
   const resolution = resolutionChord(unit, score)
   const sourceHarmony = resolution ? [...unit.harmony, resolution] : unit.harmony
   const slot = progressionSlot(sourceHarmony)
-  const matches = slot ? findProgressionSlots(slot, tune) : []
+  // Where the line already sits, in the tune's own bar numbers.
+  const homeBar = tune.startBar !== undefined && sourceHarmony.length > 0 && tune.bars.length > 0
+    ? chordRunStart(tune, ((sourceHarmony[0].bar - tune.startBar) % tune.bars.length + tune.bars.length) % tune.bars.length + 1)
+    : undefined
+  const matches = slot ? findProgressionSlots(slot, tune, { homeBar }) : []
   const sourceStart = unit.harmony[0]?.onset ?? unit.notes[0]?.onset ?? 0
   const ticks = barTicks(tune.timeSig)
   const lineBars: ExerciseBar[] = []
@@ -62,8 +74,7 @@ export function throughStep(
     })
     const harmony: Chord[] = match.chords.map((chord) => ({ ...chord }))
     lineBars.push(...excerpt(notes, harmony, tune.timeSig, notes[0].onset % ticks))
-    const bars = match.bar === match.toBar ? `bar ${match.bar}` : `bars ${match.bar}–${match.toBar}`
-    places.push(`${bars} (${match.chords.map(chordName).join(' → ')})`)
+    places.push(`${placeBars(match)} (${match.chords.map(chordName).join(' → ')})`)
   }
   if (lineBars.length > 0) {
     exercises.push({
@@ -77,7 +88,11 @@ export function throughStep(
       rationale: `Same line and rhythm, transposed wherever the progression recurs: ${places.join('; ')}.`,
       timeSig: tune.timeSig,
     })
-    lines.push(`The progression occurs ${places.length === 1 ? 'once' : `${places.length} times`} in ${tuneName}: ${places.join('; ')}.`)
+    const times = matches.reduce((n, m) => n + m.bars.length, 0)
+    lines.push(`The progression occurs ${times === 1 ? 'once' : `${times} times`} in ${tuneName}: ${places.join('; ')}.`)
+    if (homeBar !== undefined) {
+      lines.push(`The line is written at bar ${homeBar}; ${times === 1 ? 'this is the other place' : 'these are the others'}.`)
+    }
   }
 
   const nowhere: string[] = []

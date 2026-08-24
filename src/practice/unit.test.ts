@@ -78,15 +78,23 @@ describe('buildUnits on the Blake solo', () => {
     }
   })
 
-  it('takes the top line through its three progression slots, including the resolution', () => {
+  it('takes the top line through its progression slot, including the resolution', () => {
     const through = result.units[0].steps.find((step) => step.kind === 'through')
     const line = through?.kind === 'through'
       ? through.exercises.find((exercise) => exercise.transformation === 'through-tune')
       : undefined
-    expect(line?.bars).toHaveLength(9)
-    expect(line?.rationale).toContain('bars 12–14 (G7 → Cm7 → F7 → E7)')
-    expect(line?.rationale).toContain('bars 28–30 (G7 → Cm7 → F7 → E7)')
-    expect(line?.rationale).toContain('bars 52–54 (G7 → Cm7 → F7 → E7)')
+    // G7 Cm7 F7 E7 comes round at bars 12, 28 and 52, all in the same key:
+    // one exercise, played in three places — and bar 12 is where u1 is
+    // already written, so it is named, not offered.
+    expect(line?.bars).toHaveLength(3)
+    expect(line?.rationale).toContain('bars 28 and 52 (G7 → Cm7 → F7 → E7)')
+    expect(line?.rationale).not.toContain('bar 12')
+  })
+
+  it('names the bar the top line is written on rather than offering it', () => {
+    const through = result.units[0].steps.find((step) => step.kind === 'through')
+    expect(through?.kind === 'through' && through.prompt)
+      .toContain('The line is written at bar 12; these are the others.')
   })
 })
 
