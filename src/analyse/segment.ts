@@ -204,12 +204,19 @@ interface Boundary {
   /** Index of the first note of the new group. */
   at: number
   strength: number
+  /** The rest cue at this gap, 0-1; 1 is a full quarter or more. */
+  rest?: number
   /** A rest (or structural) boundary ends a phrase; an arrival ends an idea. */
   kind: 'rest' | 'structural' | 'arrival'
 }
 
 /** GPR 1: dissolve the weaker edge of any group below the minimum size. */
-function enforceMinimum(boundaries: Boundary[], count: number, minGroup: number): Boundary[] {
+function enforceMinimum(
+  boundaries: Boundary[],
+  count: number,
+  minGroup: number,
+  isGesture: (start: number, end: number) => boolean = () => false,
+): Boundary[] {
   const out = [...boundaries]
   let changed = true
   while (changed) {
@@ -221,10 +228,13 @@ function enforceMinimum(boundaries: Boundary[], count: number, minGroup: number)
       const left = b > 0 ? out[b - 1] : null
       const right = b < out.length ? out[b] : null
       if (!left && !right) return out
+      // A tiny group with a full rest on both sides (or a score edge) and a
+      // held note in it is a gesture the ear hears as its own phrase: "F#. B"
+      // between two half rests (St Thomas 69). Two bare eighths are not.
+      const fullRest = (edge: Boundary | null): boolean => !edge || (edge.rest ?? 0) >= 1
+      if (fullRest(left) && fullRest(right) && isGesture(start, end)) continue
       const weaker =
         !left ? right! : !right ? left : left.strength <= right.strength ? left : right
-      // A full rest on both sides is a real, if tiny, group: leave it.
-      if (weaker.strength >= 1) continue
       out.splice(out.indexOf(weaker), 1)
       changed = true
       break
@@ -292,22 +302,33 @@ export function segment(
       landing !== undefined && landing.bar === here.bar + 1 && landing.beat === 0
   }
 
+  // A phrase that opened with a pickup into the chorus is not cut at the
+  // bar line: the last rest boundary lies within the last two beats before it.
+  const pickupInto = (at: number): boolean => {
+    const last = all[all.length - 1]
+    if (!last || last.kind !== 'rest' || at - last.at > 3) return false
+    const first = notes[last.at]
+    return first.bar === notes[at - 1].bar && first.beat >= beatsPerBar - 2
+  }
+
   for (let i = 0; i < notes.length - 1; i++) {
     const next = notes[i + 1]
     const cue = cues[i]
     if (cue.total >= o.threshold && cue.rest > 0) {
-      all.push({ at: i + 1, strength: cue.total, kind: 'rest' })
+      all.push({ at: i + 1, strength: cue.total, kind: 'rest', rest: cue.rest })
     } else if (cue.idea >= o.ideaThreshold || isPeak(i) || isPickup(i)) {
       all.push({ at: i + 1, strength: cue.idea, kind: 'arrival' })
-    } else if (forced.has(next.bar) && notes[i].bar !== next.bar) {
+    } else if (forced.has(next.bar) && notes[i].bar !== next.bar && !pickupInto(i + 1)) {
       all.push({ at: i + 1, strength: STRUCTURAL_CONFIDENCE, kind: 'structural' })
     } else if (cue.gap >= o.ideaRest) {
       all.push({ at: i + 1, strength: cue.total, kind: 'arrival' })
     }
   }
 
-  const phraseBoundaries = enforceMinimum(all.filter((b) => b.kind !== 'arrival'), notes.length, o.minGroup)
-  const ideaBoundaries = enforceMinimum(all, notes.length, o.minGroup)
+  const isGesture = (start: number, end: number): boolean =>
+    notes.slice(start, end).some((n) => n.duration >= o.lengthFrom * medianDuration)
+  const phraseBoundaries = enforceMinimum(all.filter((b) => b.kind !== 'arrival'), notes.length, o.minGroup, isGesture)
+  const ideaBoundaries = enforceMinimum(all, notes.length, o.minGroup, isGesture)
 
   const ideaStarts = new Map(ideaBoundaries.map((b) => [b.at, b.strength]))
 

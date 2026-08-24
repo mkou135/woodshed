@@ -238,3 +238,12 @@ nothing to compare. Now the first chorus with symbols under ≥ half its
 bars. Book match St. Thomas 88% (the two differing bars: a tritone-sub
 first chord in bar 11, a D before the A7 in bar 15); 6/9 chords are
 irrelevant to the vote, which compares roots only · owner's report, engine.
+
+2026-08-24 · **Two segmentation bugs from the owner's St Thomas brackets** ·
+(1) The GPR 1 exemption for a tiny rest-bounded group tested total
+strength ≥ 1, which a rest boundary (0.6) never reaches; now: full rest
+both sides and a held note in the group. (2) A forced chorus-start boundary
+cut a phrase that began as a pickup into the chorus; now skipped when the
+last rest boundary opened ≤ 3 notes in the last two beats before. Owner's 8
+brackets on printed 57–76 all match after the fix (6 before); WJD phrases
+83.8 → 83.8, ideas 77.3 → 77.8 · owner's ear + eval · engine.

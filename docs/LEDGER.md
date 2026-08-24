@@ -106,3 +106,7 @@ page ticks were 16 bars late on St Thomas after the unroll — the owner's
 "weird placements". Verified in Chrome. MuseScore CLI renders any score to
 PNG for reading: `"/Applications/MuseScore 4.app/Contents/MacOS/mscore" -o
 out.png file.mxl` (unsandboxed). 262 tests.
+2026-08-24 · session 4 · Owner's 8 phrase brackets on St Thomas printed
+57–76 (old-build ticks were the 16-bar offset). Fixed rest-bounded tiny
+group exemption and pickup-into-chorus forced cut; 8/8 match, WJD ideas
+77.8. 266 tests.

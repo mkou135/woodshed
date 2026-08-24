@@ -166,3 +166,38 @@ describe('pickup gesture', () => {
     expect(segment(notesFrom(eighths(12)))[0].ideas).toHaveLength(1)
   })
 })
+
+describe('tiny groups', () => {
+  const e = (m: number): [number, number, number] => [m, 0.5, 0]
+
+  it('keeps a two-note gesture that sits between full rests as its own phrase', () => {
+    // St Thomas printed 68-69: held A, half rest, F#. B, rest. The owner hears
+    // "F#. B" as a phrase of its own; GPR 1 must not dissolve it.
+    const notes = notesFrom([e(60), e(62), e(64), [65, 1, 2], [66, 1.5, 0], [67, 0.5, 2.5], e(60), e(62), e(64)])
+    expect(segment(notes).map((p) => p.notes.length)).toEqual([4, 2, 3])
+  })
+
+  it('still dissolves a tiny group that is not rest-bounded', () => {
+    // two notes after a leap, no rest either side
+    const notes = notesFrom([e(60), e(62), e(64), e(65), [80, 0.5, 0], [81, 0.5, 0], e(60), e(62), e(64), e(65)])
+    expect(segment(notes)).toHaveLength(1)
+  })
+})
+
+describe('chorus start after a pickup', () => {
+  const e = (m: number): [number, number, number] => [m, 0.5, 0]
+
+  it('does not cut a phrase that began as a pickup into the chorus', () => {
+    // bar 1: 4 eighths, quarter rest, then a 2-note pickup on beats 3 and 3.5; bar 2 = chorus start
+    const notes = notesFrom([e(60), e(62), e(64), [65, 0.5, 1], e(69), e(70), e(72), e(74), e(76), e(77), e(79), e(81), e(83)])
+    const phrases = segment(notes, [2])
+    expect(phrases).toHaveLength(2)
+    expect(phrases[1].notes[0].midi).toBe(69)
+    expect(phrases[1].notes).toHaveLength(9)
+  })
+
+  it('still cuts at the chorus start when the line runs straight through', () => {
+    const notes = notesFrom(Array.from({ length: 16 }, (_, i) => e(60 + (i % 5))))
+    expect(segment(notes, [2])).toHaveLength(2)
+  })
+})
