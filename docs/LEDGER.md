@@ -67,3 +67,11 @@ model (ideas → phrases, separate weight vectors, harmonic/metric cues,
 variant clustering). Already in place: weighted profile, two levels, graded
 rest, held-note, leap, minGroup, identity clustering, WJD eval. Seven new
 cues logged in OPEN_QUESTIONS under "Segmentation cues to trial". No code.
+2026-08-24 · session 4 · Cue trials on WJD. Baseline reproduced (phrases
+83.8 / ideas 76.3; eval script default data path fixed to
+~/dev/woodshed-data). Diagnostic over 187k unmarked gaps: intra-phrase idea
+recall is 25%; no surface/harmonic/metric cue > 18% precision → idea-profile
+rest, rhythm-change, harmonic arrival, metric cues rejected (params kept at
+0). Local peak picking (0.35 / 2.5 / 4) accepted for ideas: 77.6, phrases
+unchanged, Blake unchanged, 238 tests. Diagnostic script:
+$CLAUDE_JOB_DIR/tmp/diag.ts (job 947da956; not in repo).

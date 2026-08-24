@@ -121,3 +121,22 @@ describe('segment', () => {
     expect(phrase.endBar).toBe(2)
   })
 })
+
+describe('local peak', () => {
+  // Eighths with one note held 5.2x the median: the held-note cue alone is
+  // 0.45 * 0.8 = 0.36, under the threshold, but it towers over silent
+  // neighbours, so it opens an idea (WJD ideas F1 76.3 -> 77.6).
+  const eighths = (n: number, from = 60): [number, number, number][] =>
+    Array.from({ length: n }, (_, i) => [from + (i % 3), 0.5, 0])
+  const notes = notesFrom([...eighths(4), [64, 2.6, 0], ...eighths(4)])
+
+  it('opens an idea at a sub-threshold cue that stands out locally', () => {
+    const phrases = segment(notes)
+    expect(phrases).toHaveLength(1)
+    expect(phrases[0].ideas.map((i) => i.notes.length)).toEqual([5, 4])
+  })
+
+  it('is off when peakMin is 0', () => {
+    expect(segment(notes, [], { peakMin: 0 })[0].ideas).toHaveLength(1)
+  })
+})

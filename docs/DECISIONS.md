@@ -162,3 +162,21 @@ fix (was 233 beats).
 **Who.** Owner asked for more data; Claude picked WJD as the largest
 curated source already on disk.
 **Would reverse it.** Nothing — it is additive. Fixtures stay MusicXML.
+
+2026-08-24 · **Idea cues from the ChatGPT comparison rejected on evidence** ·
+Over the 187k WJD gaps not already marked, no surface cue reaches 20%
+precision for an idea boundary (base rate 2%): short rest 7%, rest+held
+16%, rest+leap 14%, held+leap 15%, rhythm-vocabulary change (steady→steady,
+window 3–6) lowers F1 at every weight, chord-tone 1/3/5 arrival 2–7%,
+1/3/5 on a strong beat 3%, chord change 4%, downbeat/on-beat ≈ base rate.
+Same at phrase level (harmonic arrival 1–5%). The missed idea boundaries
+are motivic/perceptual, not surface events · scripts kept in the job tmp
+only; numbers in LEDGER · engine · reverses if a similarity-based
+(repetition/transformation) cue is shown to add recall at ≥ 50% precision.
+
+2026-08-24 · **Local peak picking for ideas** · A gap ≥ 0.35 that is the
+strongest within ±4 gaps and ≥ 2.5× their mean opens an idea even below
+the 0.45 threshold. Ideas F1 76.3 → 77.6 (±1: 78.0 → 79.5); applied to
+phrases it costs 0.5 F1, so ideas only. Blake output unchanged · WJD sweep
+(peakMin .25–.4, ratio 2–3, window 3–8 all plateau at 77.6) · engine ·
+re-sweep before changing.

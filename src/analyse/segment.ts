@@ -64,6 +64,30 @@ export interface SegmentOptions {
    * rest is the single strongest idea cue (58% of idea boundaries).
    */
   ideaRest: number
+  /**
+   * Idea profile: a change of rhythmic vocabulary across the gap (the
+   * typical duration of the notes before vs after, log-ratio, full at a
+   * doubling) opens an idea with no rest or held note at all.
+   */
+  wRhythm: number
+  /**
+   * Rest weight in the idea profile. A rest too short to end a phrase
+   * still opens an idea when it comes with a held note or a leap; at WJD
+   * idea boundaries inside a phrase a short rest is 4x as common as elsewhere.
+   */
+  wIdeaRest: number
+  /** Notes compared on each side of the gap for the rhythm cue. */
+  rhythmWindow: number
+  /** An idea opens when the idea profile reaches this. */
+  ideaThreshold: number
+  /**
+   * Local peak picking: a gap below the threshold still counts when it is
+   * at least `peakMin`, the strongest within `peakWindow` gaps either side,
+   * and `peakRatio` times the mean strength there. 0 = off.
+   */
+  peakMin: number
+  peakRatio: number
+  peakWindow: number
 }
 
 export const DEFAULTS: SegmentOptions = {
@@ -82,6 +106,13 @@ export const DEFAULTS: SegmentOptions = {
   lengthFull: 6,
   minGroup: 3,
   ideaRest: Infinity,
+  wRhythm: 0,
+  wIdeaRest: 0,
+  rhythmWindow: 4,
+  ideaThreshold: 0.45,
+  peakMin: 0.35,
+  peakRatio: 2.5,
+  peakWindow: 4,
 }
 
 const STRUCTURAL_CONFIDENCE = 0.6
@@ -97,9 +128,33 @@ export interface Cue {
   rest: number
   length: number
   leap: number
+  rhythm: number
   /** The silence after the note, in ticks. */
   gap: number
+  /** Phrase profile. */
   total: number
+  /** Idea profile: no rest term. */
+  idea: number
+}
+
+/** Typical duration of a run of notes: the median. */
+function typicalDuration(notes: Note[]): number {
+  return median(notes.map((n) => n.duration))
+}
+
+/** 0 when the notes either side share a typical duration, 1 at a doubling or halving. */
+function rhythmChange(notes: Note[], i: number, window: number): number {
+  const before = notes.slice(Math.max(0, i + 1 - window), i + 1)
+  const after = notes.slice(i + 1, i + 1 + window)
+  if (before.length < 2 || after.length < 2) return 0
+  const a = typicalDuration(before)
+  const b = typicalDuration(after)
+  if (a <= 0 || b <= 0) return 0
+  // Only a change between two *steady* vocabularies counts; a lone long
+  // note inside a run of eighths is the held-note cue's business.
+  const steady = (run: Note[], typical: number): number =>
+    run.filter((n) => Math.abs(Math.log2(n.duration / typical)) < 0.3).length / run.length
+  return Math.min(1, Math.abs(Math.log2(b / a))) * steady(before, a) * steady(after, b)
 }
 
 /** How strongly the gap after note i reads as a boundary, by cue. */
@@ -111,7 +166,7 @@ export function boundaryCue(
 ): Cue {
   const here = notes[i]
   const next = notes[i + 1]
-  if (!next) return { rest: 1, length: 0, leap: 0, gap: 0, total: 1 }
+  if (!next) return { rest: 1, length: 0, leap: 0, rhythm: 0, gap: 0, total: 1, idea: 0 }
 
   const gap = Math.max(0, next.onset - (here.onset + here.duration))
   const rest = gap < o.minRest ? 0 : Math.min(1, gap / o.fullRest)
@@ -124,9 +179,12 @@ export function boundaryCue(
 
   const leap = Math.min(1, Math.max(0, (Math.abs(next.midi - here.midi) - 4) / 8))
 
+  const rhythm = o.wRhythm > 0 ? rhythmChange(notes, i, o.rhythmWindow) : 0
+
   return {
-    rest, length, leap, gap,
+    rest, length, leap, rhythm, gap,
     total: Math.min(1, o.wRest * rest + o.wLength * length + o.wLeap * leap),
+    idea: Math.min(1, o.wIdeaRest * rest + o.wLength * length + o.wLeap * leap + o.wRhythm * rhythm),
   }
 }
 
@@ -201,11 +259,27 @@ export function segment(
   const forced = new Set(forcedBoundaryBars)
   const all: Boundary[] = []
 
+  const cues: Cue[] = []
+  for (let i = 0; i < notes.length - 1; i++) cues.push(boundaryCue(notes, i, medianDuration, o))
+  const isPeak = (i: number): boolean => {
+    if (o.peakMin <= 0 || cues[i].total < o.peakMin) return false
+    let sum = 0
+    let n = 0
+    for (let k = Math.max(0, i - o.peakWindow); k <= Math.min(cues.length - 1, i + o.peakWindow); k++) {
+      if (k !== i && cues[k].total >= cues[i].total) return false
+      sum += cues[k].total
+      n++
+    }
+    return cues[i].total >= o.peakRatio * (sum / n)
+  }
+
   for (let i = 0; i < notes.length - 1; i++) {
     const next = notes[i + 1]
-    const cue = boundaryCue(notes, i, medianDuration, o)
-    if (cue.total >= o.threshold) {
-      all.push({ at: i + 1, strength: cue.total, kind: cue.rest > 0 ? 'rest' : 'arrival' })
+    const cue = cues[i]
+    if (cue.total >= o.threshold && cue.rest > 0) {
+      all.push({ at: i + 1, strength: cue.total, kind: 'rest' })
+    } else if (cue.idea >= o.ideaThreshold || isPeak(i)) {
+      all.push({ at: i + 1, strength: cue.idea, kind: 'arrival' })
     } else if (forced.has(next.bar) && notes[i].bar !== next.bar) {
       all.push({ at: i + 1, strength: STRUCTURAL_CONFIDENCE, kind: 'structural' })
     } else if (cue.gap >= o.ideaRest) {

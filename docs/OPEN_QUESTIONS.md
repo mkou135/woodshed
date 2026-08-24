@@ -70,29 +70,32 @@ moving its resolution into DECISIONS.md.
 - **displace step and 3/4+ time**: placements assume 4/4 feel (beat 2,
   and-of-1). Check against a 3/4 solo when one arrives.
 
-## Segmentation cues to trial (2026-08-24, from a ChatGPT comparison; see LEDGER)
+## Segmentation cues (2026-08-24, from a ChatGPT comparison)
 
-All resolve the same way: add as a `SegmentOptions` parameter, sweep with
-`npm run eval:wjd`, accept only if IDEA or PHRASE F1 rises; record in
-DECISIONS. Ordered by expected payoff.
+Tested against WJD the same day (DECISIONS 2026-08-24): separate idea
+profile with rest/rhythm-change terms, harmonic arrival, metric position —
+all rejected, no surface cue reaches 20% precision on the unmarked gaps.
+Local peak picking accepted (ideas F1 77.6). Still open:
 
-- **Separate idea profile.** One strength profile serves both levels today;
-  ideas differ from phrases only by rest = 0. Trial a second profile for
-  ideas with rhythm-change and contour-change terms (extends "Idea recall
-  is 68%" above).
-- **Rhythm-change cue.** No term fires when the duration vocabulary changes
-  between adjacent groups (8ths → triplets, 8ths → quarter figure).
-- **Harmonic arrival cue.** `boundaryStrength` never consults the chord;
-  trial wArrival × (chord tone 1/3/5, strong beat). Also tests Weimar
-  hypothesis 8 (phrase ends at a target with no rest) and the 8 Blake
-  non-chord-tone endings.
-- **Metric position cue.** Rest × beat position — the "smarter form" the
-  rejected short-rest idea cue was deferred to.
 - **Variant clustering.** Finding merge is exact identity (degrees / name /
   interval vector). Recognise A′ as a variant of A: same contour with one
   interval changed, same pitches rhythmically displaced, sequence,
-  inversion. Feeds Σ occurrences in the unit rank.
-- **Local peak-picking threshold.** Global 0.45 vs "stronger than most
-  gaps inside the span"; may help across densities (Parker vs ballad).
-- **Contour closure cue.** Line reaches an extreme then settles. Lowest
-  expected payoff; only if headroom remains.
+  inversion. Feeds Σ occurrences in the unit rank. Not scored by eval:wjd;
+  judge on Blake / Autumn Leaves output.
+- **Similarity as an idea cue.** The ~75% of intra-phrase WJD idea
+  boundaries we miss have no surface cue; the only remaining candidate is
+  "the next few notes repeat/transform an earlier group" (a crude 2-interval
+  repeat test showed no lift, 22% vs 21%). Resolve: once variant clustering
+  exists, score its starts against WJD IDEA sections.
+- **Contour closure cue.** Line reaches an extreme then settles. Peak
+  (up-then-down) was 23% at missed boundaries vs 20% elsewhere — likely
+  nothing; only if headroom remains.
+- **Stock-vocabulary discount in unit ranking** (owner's idea). A bar of
+  bebop scale or a plain arpeggio is everyone's vocabulary; it should not
+  outrank a signature idea. Two deterministic options: (a) corpus frequency
+  — count each interval/degree pattern across the 453 WJD + 50 Omnibook
+  solos, rank this solo's ideas by rarity-in-corpus × repetition-in-solo
+  (TF-IDF over licks); (b) generic-shape filter — all steps or all thirds
+  in one direction = stock. Belongs in `practice/unit.ts` rank, not the
+  segmenter. Resolve: (b) first on Blake; (a) needs a pattern-count table
+  built by `corpus:wjd`.

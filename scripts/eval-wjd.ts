@@ -18,7 +18,7 @@ import { segment } from '../src/analyse/segment.ts'
 import type { SegmentOptions } from '../src/analyse/segment.ts'
 import type { Note } from '../src/core/types.ts'
 
-const dbPath = process.env.WJD ?? `${process.env.HOME}/dev/personal/woodshed-data/wjazzd.db`
+const dbPath = process.env.WJD ?? `${process.env.HOME}/dev/woodshed-data/wjazzd.db`
 const limitArg = process.argv.indexOf('--limit')
 const limit = limitArg > -1 ? Number(process.argv[limitArg + 1]) : Infinity
 const verbose = process.argv.includes('--verbose')

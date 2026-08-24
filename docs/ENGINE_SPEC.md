@@ -33,13 +33,20 @@ Boundary strength per gap = min(1, wRest·rest + wLength·length + wLeap·leap):
 | leap | (semitones − 4) / 8, clamped 0–1 | from a 5th, full at a 12th |
 | minGroup | 3 notes | GPR 1: smaller groups dissolve weaker edge |
 | ideaRest | ∞ (off) | short-rest idea cue over-fires; see DECISIONS |
+| wIdeaRest / wRhythm | 0 (off) | idea-profile rest and rhythm-change terms; tested, no gain (DECISIONS 2026-08-24) |
+| rhythmWindow | 4 | notes each side for the rhythm-change cue |
+| ideaThreshold | 0.45 | idea profile (wIdeaRest·rest + wLength·length + wLeap·leap + wRhythm·rhythm) ≥ this opens an idea |
+| peakMin / peakRatio / peakWindow | 0.35 / 2.5 / 4 | local peak: a gap ≥ peakMin that is the strongest within ±peakWindow gaps and ≥ peakRatio × their mean opens an **idea** (never a phrase) |
 
-Two levels: boundary with rest > 0 (or structural, confidence 0.6) ends a
-**phrase**; with rest = 0 ends an **idea** within the phrase. A phrase whose
+Two levels: phrase-profile total ≥ threshold with rest > 0 (or structural,
+confidence 0.6) ends a **phrase**; otherwise idea profile ≥ ideaThreshold,
+or a local peak, ends an **idea** within the phrase. A phrase whose
 first note is off the eighth grid starts on its quarter-note beat
 (`Phrase.onset`). Scores vs Weimar Jazz Database (456 solos,
 `npm run eval:wjd`): phrases P 82.3 / R 85.4 / F1 **83.8** (human ceiling
-.83); ideas 87.0 / 67.9 / **76.3**.
+.83); ideas 84.7 / 71.7 / **77.6** (±1 note: 79.5). Excluding gaps that are
+also phrase boundaries, only ~25% of WJD idea boundaries are found; the
+rest carry no surface cue (see DECISIONS 2026-08-24).
 
 ## Form (`prepare/form.ts`)
 
