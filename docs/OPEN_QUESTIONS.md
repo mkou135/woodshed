@@ -176,6 +176,27 @@ All of these are proposals; none is implemented.
   beats notating), edit (omit notes for rhythmic variety), permutation, and
   connect-by-step into the next chord. Resolve: owner tries them; visualise
   is nearly free since it renders no exercise.
+- **A pentatonic run may escape the stock penalty.** `stockShare` matches
+  a run of ≥ 4 notes moving one way by steps of 1–2 semitones *or* by
+  3–5 semitones. A major (1-2-3-5-6) or minor (1-b3-4-5-b7) pentatonic run
+  mixes 2s and 3s, so it matches neither bucket — while being exactly the
+  stock material the penalty exists to demote. Resolve: check whether such
+  runs occur in the corpus and currently score as non-stock; if so, add a
+  "stays inside one pentatonic collection" predicate.
+- **Ligon's three melodic outlines are two-thirds already in the
+  dictionary, without their resolutions.** Outline 2 opens with our `1357`
+  and outline 3 with our `5321`; both are defined by the 7th that follows
+  falling to the 3rd of the next chord. Resolve: with the 7-3 detector
+  (above), decide whether an outline is a finding in its own right or a
+  property attached to an existing cell finding — the latter would let a
+  finding say what it is *for*, which is what the summariser needs.
+- **We have no concept of a break** — the 2, 4 or 8 unaccompanied bars that
+  often open a solo (Levine's glossary). It sits exactly where our pickup
+  and intro handling already gets delicate. Resolve: check whether any
+  corpus solo starts with one and how `prepare/form.ts` currently treats it.
+- **"head" is used in the profile without saying which sense.** Levine
+  gives three. Resolve: pick one (probably "the first pass through the
+  melody") and use it consistently on the page and in the CLI.
 - **The app can be used without ever listening.** The faculty surveyed are
   split on transcription software, and the dissenting view is that students
   who lean on it do worst. Resolve: make "play it with the record" a

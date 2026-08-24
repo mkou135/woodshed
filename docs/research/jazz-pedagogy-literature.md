@@ -5,9 +5,10 @@ Books`. Fake books in that folder were skipped as instructed.
 
 **Licensing.** Every source here is a copyrighted book, several of them
 scans from piracy sites. They are *not* in the repo and must not be. This
-file records **derived statements only** — a device is described by its
-degree string or contour class, never by reproducing an author's musical
-example, and no lick is transcribed. Same rule as the WJD/Bopland corpora
+file records **derived statements only** — short attributed prose
+excerpts for commentary, but no musical examples and no licks. A device is
+described by its degree string or contour class, never by reproducing an
+author's notated example. Same rule as the WJD/Bopland corpora
 (CLAUDE.md non-negotiables, DECISIONS 2026-08-24 "Corpus licensing"). Any
 fixture that comes out of this work gets hand-written.
 
@@ -25,10 +26,14 @@ and the owner's call before it lands.
 | B | David Baker, *How to Play Bebop*, vol. 1 | OCR | Explicit rule system for the bebop scales, enclosure, endings |
 | C | Jerry Coker, *Elements of the Jazz Language for the Developing Improviser* | scan | An enumerated list of the devices that constitute the jazz language |
 | G | Jerry Bergonzi, *Inside Improvisation vol. 1 — Melodic Structures* | scan | Four-note cell system and its permutations |
-| L | Bert Ligon, *Jazz Theory Resources* I & II | scan | University theory text; motivic-development taxonomy, analysis method |
+| L | Bert Ligon, *Jazz Theory Resources* I & II | scan | University theory text; melodic outlines, motivic-development taxonomy |
+| P | Jerry Bergonzi, *Inside Improvisation vol. 3 — Pentatonics* | scan | Pentatonic cell system keyed to chord qualities |
+| M | Mark Levine, *The Jazz Theory Book* | scan | Reference text; glossary of the working vocabulary |
 
-Levine's *Jazz Theory Book* and Bergonzi *Pentatonics* were triaged and
-deferred — see "Not read" at the end.
+All eight pedagogy sources in the folder were opened. The two largest
+(Levine 518 pp., Ligon 505 pp.) and *Pentatonics* were read
+contents-first and then only where a chapter named something our
+detectors do not cover — see §2.13, §2.14 and §2.15.
 
 Page numbers are the **printed** page, not the PDF page.
 
@@ -50,7 +55,7 @@ more important). The result (T pp. 60–61):
 | style | 47 |
 | ear training | 48 |
 | vocabulary / patterns | 73 |
-| understanding chords and jazz theory | ~93 |
+| understanding chords and jazz theory | illegible in the scan; ranked 4th |
 | historical perspective | 114 |
 
 Theory ranks **fourth of five**. Our output is currently almost entirely
@@ -456,6 +461,142 @@ material we already have if we ever hold the head melody.
 
 ---
 
+## 2.13 Ligon's three melodic outlines — this upgrades proposal 1
+
+Ligon ch. 10 (pp. 224–229) is the chapter I nearly missed, and it is the
+most directly applicable material in the folder. He reports that when
+students brought in short transcribed examples, "all of the examples seem
+to fit into three categories or shapes based on the same three basic
+skeletal frameworks", across instruments and style periods. He calls them
+**outlines**, and defines all three in degrees:
+
+- **Outline 1** — begins on the **3rd**, moves *up* the scale to the
+  **7th**; the 7th resolves down to the **3rd of the next chord**.
+- **Outline 2** — begins with the **1-3-5** arpeggio, then adds the
+  dissonant **7th**, which resolves to the 3rd of the next chord.
+- **Outline 3** — begins with the descending **5-3-1** arpeggio, then adds
+  the **7th**, resolving likewise. Often followed by outline 1, or by a
+  3-5-7-9 arpeggio.
+
+They work over any chord pair whose roots move down a fifth — he prints
+them over ii7–V7, iiø7–V7 in minor, V–I, I–IV, IV–viiø7, iii7–vi7,
+vi7–ii7 and iii7–V7/ii. Outline 1 "can be sequenced through a progression
+whose chord roots continue to move down in fifths". He adds that "there
+are entire solos by Clifford Brown based on nothing but outline no. 1".
+
+**Why this matters more than a new dictionary entry.** Look at the heads:
+
+| outline | its opening | in our dictionary? |
+|---|---|---|
+| 2 | 1-3-5 … 7 | yes — `1357`, "major-seventh arpeggio" |
+| 3 | 5-3-1 … 7 | yes — `5321` |
+| 1 | 3 up the scale to 7 | no |
+
+So two of the three outlines are cells we already detect — **and what we
+are missing is not the shape but its tail**: the 7th falling to the 3rd of
+the *next* chord, which is the whole point of the framework and the thing
+that makes it linear harmony rather than an arpeggio. We find the skeleton
+and discard the joint.
+
+This reframes §2.2. A 7-3 resolution detector is not only a new device; it
+would let existing findings say what they are *for*. "Major-seventh
+arpeggio at bar 73" becomes "outline 2 into the 3rd of the next chord" —
+which is a teacher's sentence, and it is the shape of the sentence §1.2
+says we cannot currently produce.
+
+Ligon's stated reasons for teaching outlines are worth keeping for the
+summariser's voice: students "learn melodic patterns, not just scales and
+arpeggios"; they "learn the connections between the chords"; they "learn
+to think about where the lines are going rather than just where their
+lines are". He also names outlines as the natural point of departure for
+embellishment — "rhythmic displacement, adding notes, neighbor tones,
+passing tones, arpeggiated tones, octave displacement, chromatic
+approaches, sequencing, augmentation, diminution, fragmentation" — the
+same taxonomy as §2.9, which suggests outline + elaboration is the right
+two-layer model for both detection and explanation.
+
+Two further chapters of his are relevant and unread: ch. 4 gives a closed
+list of **elaboration devices** (passing tones, neighbour tones, neighbour
+tone combinations, arpeggiated tones, chromatic approaches, octave
+displacement and leaps, pedal point and pivot tones) — the vocabulary for
+naming what a non-chord tone is doing, which §2.7 wants; and ch. 9 has
+"Step Progression" (p. 203), likely the formal treatment of the structural
+line Owens gropes at in §2.8.
+
+## 2.14 Pentatonics — a real hole in `stockShare`
+
+`stockShare` calls a run stock when ≥ 4 consecutive notes move in one
+direction by **either** steps of 1–2 semitones **or** thirds/fourths of
+3–5 semitones. Bergonzi's pentatonic book (P ch. 1, p. 9) shows why that
+disjunction leaks.
+
+The major pentatonic is degrees **1-2-3-5-6**; the minor pentatonic
+**1-b3-4-5-b7**. Running up either one produces a mix of 2-semitone and
+3-semitone moves in a single direction. Checked against the code
+(`practice/unit.ts` `stockShare`): a run continues only while
+`kind(ivs[i]) === kind(ivs[i-1])`, so every alternation between a 2 and a
+3 **terminates the run**. A pentatonic ascent therefore yields a chain of
+two-note runs, none reaching `STOCK_RUN` 4, and **scores as entirely
+non-stock** — even though pentatonic running is exactly the kind of stock
+material the penalty exists to demote. Bergonzi even
+redefines the terms to make the point: within a pentatonic he calls moving
+to the next scale note a "step" although it may be a minor 3rd, and moving
+by two a "skip".
+
+This is a concrete, checkable defect in a parameter we already have, and
+it costs one predicate to test: does the run stay inside one pentatonic
+collection?
+
+There is a pleasing unification here too. Bergonzi derives his vol. 1
+cells by stacking fifths (G p. 8), which is why 1-2-3-5 and 1-3-4-5 are
+simply the **first four notes of the major and minor pentatonics**. Our
+two core dictionary entries are pentatonic subsets.
+
+His pentatonic inventory is keyed to chord quality much as our dictionary
+is — minor 7th, minor 6th, minor 7b5, minor b6, major b5, dominant 7th,
+dominant altered, dominant 7b9#13, whole tone, and "poly-pentatonics"
+(two at once). If pentatonic material starts showing up unrecognised in
+uploads, that list is the extension.
+
+## 2.15 Levine — a controlled vocabulary, not new devices
+
+Levine's book is organised in five parts (Theory/Chords & Scales;
+Improvisation/Playin' the Changes; Reharmonization; The Tunes; The Rest of
+It). Only part II bears on our detectors, and its device material is
+Coker's and Ligon's territory. **The assumption that he adds no devices we
+lack held up** — but he contributes two things neither of them does.
+
+**A glossary of the working vocabulary** (M pp. xi–xii), which is the
+register §1.1 says the summariser should write in — plain definitions of
+the words a teacher actually uses. It also disambiguates terms our own
+code and page already use:
+
+- *chorus*: "once through a tune" — matches `chorusStarts`.
+- *head*: three senses — the composed melody and changes; a tune written
+  on a standard's changes; the first pass through the melody. Our profile
+  says "head" without saying which; sense 3 is what we mean.
+- *break*: "typically at the beginning of a solo … usually for 2, 4, or 8
+  bars", soloist alone while the band lays out. This is a structural event
+  at exactly the position we already handle specially (pickups and intros
+  before the first chorus, the open question about Blake's bar 63–64), and
+  we have no concept for it.
+- *avoid note*: the 4th of a major chord, the 11th of a dominant. Ligon
+  titles his section "Avoid Notes?" with a question mark. If we ever
+  suggest a note is wrong, these are the only two the literature will
+  support — and see §1.8.
+
+**A terminology note on chord symbols** (M p. ix) that is directly useful
+to `practice/ireal.ts`: "G7alt" and G7(b9)(#9)(#11)(b13) "mean the same
+thing"; the 4th and 11th are the same note, as are the 6th and 13th. We
+currently drop `alt` on WJD ingest and strip tensions from iReal
+suffixes — defensible, and now documented as the standard reading rather
+than a shortcut.
+
+One product idea worth noting: his *Table of Intervals* names every
+interval by a standard whose melody opens with it, as an ear-training
+crutch. If the AI layer ever names an interval, naming a tune that starts
+with it is a teacher's move.
+
 # Part 3 — Practice steps
 
 Our steps are loop, through, write, displace. The sources supply four more,
@@ -526,8 +667,11 @@ after, as a pre/post comparison.
 
 Everything here is a proposal. Ordered by value ÷ effort.
 
-1. **7-3 resolution detector** (§2.2). Fully specified, uses only data we
-   have, adds the cross-chord dimension we entirely lack.
+1. **7-3 resolution detector** (§2.2, §2.13). Fully specified, uses only
+   data we have, adds the cross-chord dimension we entirely lack — and it
+   is the missing tail of two cells we already detect, so it upgrades
+   existing findings as well as adding new ones. Ligon's outlines 2 and 3
+   open with our `1357` and `5321`.
 2. **Summariser prompt rules** (§1.1, 1.4, 1.5, 1.8): lead with style and
    ear; talk in cells and goal notes, never note-by-note degrees; always
    point back at the recording; never assert a wrong note. Costs nothing
@@ -546,23 +690,48 @@ Everything here is a proposal. Ordered by value ÷ effort.
    Would resolve the Blake non-chord-tone phrase-ending question.
 8. **New practice steps: visualise, edit, permutation, connect** (§3.1).
    Visualise is nearly free and answers the memorisation finding.
-9. **Fill more of Coker's list** (§2.1) — change running, harmonic
-   generalization, CESH, quotes, bar-line shifts, side-slipping.
+9. **Test whether a pentatonic run escapes `stockShare`** (§2.14). A
+   one-predicate check on a parameter already in force; if it leaks, the
+   stock penalty is silently not firing on stock material.
+10. **Fill more of Coker's list** (§2.1) — change running, harmonic
+    generalization, CESH, quotes, bar-line shifts, side-slipping.
+11. **Adopt Levine's glossary as the summariser's register** (§2.15), and
+    settle which sense of "head" our profile means.
 
 ---
 
-# Not read
+# Coverage of the folder
 
-- **Levine, *The Jazz Theory Book*** (518 pp., image-only). Deferred: it is
-  a reference text and the material bearing on our engine is covered by
-  Ligon and Coker. Worth a targeted read only against a specific question.
-- **Bergonzi, *Pentatonics*** (124 pp., image-only). Pentatonic cells are
-  absent from our shape dictionary; medium value, revisit if pentatonic
-  material starts showing up unrecognised in uploads.
-- **Ligon** was read only at the introduction and appendices. Chapter 18,
-  "Analysis: the Big Picture", analyses five well-known solos end to end
-  and is the closest published model for what our overview paragraph is
-  trying to be. Worth a targeted read when the summariser is built.
-- No OCR tooling is installed (`tesseract`/`ocrmypdf` absent), so the
-  image-only books were read by vision, table-of-contents first.
-  `pdftotext` handled Owens, the transcription PhD and Baker.
+All eight pedagogy PDFs were opened; the three fake books were skipped as
+instructed. `pdftotext` handled Owens, the transcription PhD and Baker
+(real text layers). The other five are image-only scans and no OCR tooling
+is installed (`tesseract` / `ocrmypdf` absent), so they were read by
+vision, contents first, then only the chapters that named something absent
+from the coverage table in §2.1.
+
+Read but not exhausted, with what is left and why it might be worth
+returning to:
+
+- **Ligon ch. 4** — the closed list of elaboration devices (passing,
+  neighbour, neighbour combinations, arpeggiated tones, chromatic
+  approaches, octave displacement, pedal point and pivot tones). This is
+  the naming vocabulary §2.7 needs to say what a non-chord tone is doing.
+- **Ligon ch. 9** — guide tones, guide-tone lines applied to melodic
+  lines, and "Step Progression" (p. 203), which is probably the formal
+  version of Owens' structural descent (§2.8).
+- **Ligon ch. 18, "Analysis: the Big Picture"** — five well-known solos
+  analysed end to end. The closest published model for what our overview
+  paragraph is trying to be; read it when the summariser is built.
+- **Coker chs. 5–7, 10–13** — the bebop scale and bebop lick, harmonic
+  generalization, CESH, quotes, and the two named licks. Each is a
+  detector-shaped chapter; §2.1 says which we lack, but the definitions
+  still need reading before any of them is built.
+- **Bergonzi *Pentatonics*** — the per-quality pentatonic inventory
+  (§2.14). Worth mining only if we decide to extend the dictionary.
+- **Levine** — confirmed as a reference text: no devices Coker and Ligon
+  do not cover (§2.15). Its glossary has been mined; the rest is
+  background.
+- **Owens vol. II** is not in the folder. It holds the notated motive
+  table itself, which we would not be able to use anyway under the
+  licensing rule — vol. I's prose descriptions are what we need and what
+  this review is built on.

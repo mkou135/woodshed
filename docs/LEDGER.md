@@ -181,9 +181,13 @@ Session closed at 292 tests.
 ~/Downloads "Jazz Books"; real books skipped). Eight sources read —
 Owens' Parker dissertation, the aural-imitative transcription PhD, David
 Baker *How to Play Bebop 1*, Coker *Elements of the Jazz Language*,
-Bergonzi *Melodic Structures*, Ligon *Jazz Theory Resources*; Levine and
-Bergonzi *Pentatonics* triaged and deferred. Findings written to
+Bergonzi *Melodic Structures* and *Pentatonics*, Ligon *Jazz Theory
+Resources*, Levine *Jazz Theory Book* — image-only scans read by vision,
+contents first. Findings written to
 docs/research/jazz-pedagogy-literature.md (derived statements only — the
-scans are copyrighted and stay out of the repo). Nine new entries in
-OPEN_QUESTIONS. No engine change: every proposal needs eval:wjd /
-brackets evidence and the owner's call first.
+scans are copyrighted and stay out of the repo). Fourteen new entries in
+OPEN_QUESTIONS. Headline: Coker's book is an enumeration of the jazz
+language and we detect about a third of it; the 7-3 resolution is the
+missing tail of two cells we already find (Ligon's outlines). No engine
+change: every proposal needs eval:wjd / brackets evidence and the owner's
+call first.
