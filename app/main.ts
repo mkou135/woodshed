@@ -182,12 +182,15 @@ async function renderNotation(container: HTMLElement, xml: string): Promise<void
   }
 }
 
-function exerciseCard(exercise: Exercise, instrument: Instrument, withRationale = true): {
+function exerciseCard(exercise: Exercise, score: Score, withRationale = true): {
   card: HTMLElement
   notation: HTMLElement
   xml: string
 } {
-  const xml = exerciseToMusicXml(exercise, instrument)
+  const { instrument, keyFifths } = score
+  // The page shows written pitch; the file keeps <transpose> for MuseScore.
+  const xml = exerciseToMusicXml(exercise, instrument, { keyFifths, forDisplay: true })
+  const fileXml = exerciseToMusicXml(exercise, instrument, { keyFifths })
   const card = el('article', 'exercise')
   card.appendChild(el('h3', undefined, exercise.title))
   if (withRationale) card.appendChild(el('p', 'rationale', exercise.rationale))
@@ -197,7 +200,7 @@ function exerciseCard(exercise: Exercise, instrument: Instrument, withRationale 
 
   const button = el('button', undefined, 'Download MusicXML')
   button.type = 'button'
-  button.addEventListener('click', () => download(fileNameOf(exercise), xml))
+  button.addEventListener('click', () => download(fileNameOf(exercise), fileXml))
   card.appendChild(button)
 
   return { card, notation, xml }
@@ -428,7 +431,7 @@ async function stepPanels(unit: PracticeUnit, result: PipelineResult, host: HTML
     const pending: { notation: HTMLElement; xml: string }[] = []
     for (const exercise of exercises) {
       // The loop step's one exercise says what the header already said.
-      const { card, notation, xml } = exerciseCard(exercise, result.score.instrument, step.kind !== 'loop')
+      const { card, notation, xml } = exerciseCard(exercise, result.score, step.kind !== 'loop')
       pane.appendChild(card)
       pending.push({ notation, xml })
     }
@@ -581,11 +584,20 @@ function tuneControl(
 async function annotatedSolo(result: PipelineResult, xml: string, filename: string): Promise<HTMLElement> {
   const section = el('section', 'workspace')
   const aside = el('aside', 'menu')
+  aside.hidden = true
   const scoreBox = el('div', 'solo')
   const panels = el('div', 'practice')
-  const main = el('div', 'main')
-  main.append(scoreBox, panels)
-  section.append(aside, main)
+  // Chooser: which idea, and a button that opens the full list.
+  const chooser = el('div', 'chooser')
+  const prevIdea = el('button', 'quiet', '‹')
+  const nextIdea = el('button', 'quiet', '›')
+  const position = el('span', 'position')
+  const browse = el('button', 'quiet', 'All ideas')
+  for (const b of [prevIdea, nextIdea, browse]) b.type = 'button'
+  prevIdea.setAttribute('aria-label', 'Previous idea')
+  nextIdea.setAttribute('aria-label', 'Next idea')
+  chooser.append(prevIdea, position, nextIdea, browse)
+  section.append(scoreBox, chooser, aside, panels)
 
   let units = result.units
   let selected: string | null = null
@@ -610,10 +622,14 @@ async function annotatedSolo(result: PipelineResult, xml: string, filename: stri
     const unit = units.find((u) => u.id === id)
     if (!unit) return
     selected = id
+    const at = units.indexOf(unit)
+    position.textContent = `Idea ${at + 1} of ${units.length}`
+    prevIdea.disabled = at === 0
+    nextIdea.disabled = at === units.length - 1
     for (const item of list.querySelectorAll<HTMLLIElement>('li.unit')) {
       const on = item.dataset.id === id
       item.classList.toggle('selected', on)
-      if (on && scroll) item.scrollIntoView({ block: 'nearest' })
+      if (on && scroll && !aside.hidden) item.scrollIntoView({ block: 'nearest' })
     }
     for (const node of highlighted) node.classList.remove('hit')
     highlighted = unitElements(unit, result, byKey)
@@ -629,6 +645,17 @@ async function annotatedSolo(result: PipelineResult, xml: string, filename: stri
     if (selected) void select(selected, false)
   })
   aside.append(heading, hint, control, list)
+  browse.addEventListener('click', () => {
+    aside.hidden = !aside.hidden
+    browse.textContent = aside.hidden ? 'All ideas' : 'Hide ideas'
+  })
+  const step = (by: number): void => {
+    const at = units.findIndex((u) => u.id === selected)
+    const next = units[at + by]
+    if (next) void select(next.id, true)
+  }
+  prevIdea.addEventListener('click', () => step(-1))
+  nextIdea.addEventListener('click', () => step(1))
 
   try {
     const map = await renderSolo(scoreBox, xml)

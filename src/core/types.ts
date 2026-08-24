@@ -73,6 +73,8 @@ export interface Score {
   chordTracks: ChordTrack[]
   instrument: Instrument
   timeSig: [number, number]
+  /** Written key signature as MusicXML <fifths>, from the first <key>; 0 if none. */
+  keyFifths?: number
   marks: Mark[]
   barCount: number
   /** Repeat sections unrolled at ingest, by written bar number; bars are numbered in played order. */

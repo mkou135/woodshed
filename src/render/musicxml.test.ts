@@ -75,6 +75,14 @@ describe('exerciseToMusicXml', () => {
     ])
   })
 
+  it('writes the solo\'s key signature and drops <transpose> for display only', () => {
+    const shown = exerciseToMusicXml(exercise, tenor, { keyFifths: 2, forDisplay: true })
+    expect(shown).toContain('<fifths>2</fifths>')
+    expect(exerciseToMusicXml({ ...exercise, bars: [{ rootPc: 2, quality: 'major-seventh', midis: [66] }] }, tenor, { keyFifths: 2 })).toContain('<step>F</step><alter>1</alter>')
+    expect(shown).not.toContain('<transpose>')
+    expect(exerciseToMusicXml(exercise, tenor, { keyFifths: 2 })).toContain('<transpose>')
+  })
+
   it('includes the title so the file is identifiable in MuseScore', () => {
     expect(exerciseToMusicXml(exercise, tenor)).toContain('digital pattern 1235')
   })

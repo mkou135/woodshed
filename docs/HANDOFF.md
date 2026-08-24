@@ -317,3 +317,27 @@ features — are the methodology the owner asked for.
   on its own?
 - Should the head (bars 9-62 in the Blake file) be analysed too, to detect the
   soloist quoting or developing the tune?
+
+## Session 5 handoff (2026-08-24)
+
+State: main at the commit after 0dbf756, 288 tests, live via git push.
+Dictionary now names 69% of Bopland licks (triads + dominant b9 cells);
+corpus-frequency stock discount in unit rank; `empty-stretch` adjustment;
+exercises beamed, in the solo's key, at written pitch on the page; the
+left rail is gone — score, then "Idea n of N" chooser, then a stepper of
+the four practice steps; "All ideas" opens the list and tune control.
+
+Next: a real UI/UX design pass for a working jazz musician. What the
+owner has said about usability so far: the left rail was unreadable at
+24rem; notation must be full width; "hide all that data behind some kind
+of button". Known rough edges to fold in: the tune guess from the file
+name is sometimes wrong ("strode rode" for St Thomas — the tune search
+box should be obvious and correctable); the summary/adjustments/profile
+blocks above the score are engine diagnostics, not player-facing; the
+unit header repeats the note names the score already shows; the write
+step's file check is buried; nothing says what to do first. Constraints
+that do not move: `src/` is DOM-free, only `app/` touches the DOM; bar
+numbers shown are printed ones (`core/bars.ts`); OSMD renders both the
+solo and the exercises; no framework in `app/` today (plain DOM in
+`app/main.ts`, 700 lines — a redesign may reasonably introduce one, the
+owner's call).

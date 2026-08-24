@@ -33,14 +33,19 @@ function escapeXml(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
-function spell(midi: number): { step: string; alter: number; octave: number } {
+const SHARP_SPELLING: Record<number, [string, number]> = {
+  1: ['C', 1], 3: ['D', 1], 6: ['F', 1], 8: ['G', 1], 10: ['A', 1],
+}
+
+/** Black keys spell as flats, or as sharps in a sharp key (F# in D, not Gb). */
+function spell(midi: number, sharps = false): { step: string; alter: number; octave: number } {
   const pc = ((midi % 12) + 12) % 12
-  const [step, alter] = SPELLING[pc]
+  const [step, alter] = (sharps && SHARP_SPELLING[pc]) || SPELLING[pc]
   return { step, alter, octave: Math.floor(midi / 12) - 1 }
 }
 
-function pitchXml(midi: number): string {
-  const { step, alter, octave } = spell(midi)
+function pitchXml(midi: number, sharps: boolean): string {
+  const { step, alter, octave } = spell(midi, sharps)
   const alterXml = alter === 0 ? '' : `<alter>${alter}</alter>`
   return `<pitch><step>${step}</step>${alterXml}<octave>${octave}</octave></pitch>`
 }
@@ -54,17 +59,29 @@ function transposeXml(instrument: Instrument): string {
   return `<transpose><diatonic>${diatonic}</diatonic><chromatic>${chromatic}</chromatic>${octaveXml}</transpose>`
 }
 
+export interface RenderOptions {
+  /** Written key signature (MusicXML fifths); the exercise is in the solo's key. */
+  keyFifths?: number
+  /**
+   * Leave out the <transpose> element. OSMD applies it and draws the part
+   * at concert pitch, so a tenor line came out a tone below its chord
+   * symbols on the page; MuseScore needs it, so the download keeps it.
+   */
+  forDisplay?: boolean
+}
+
 function attributesXml(
   instrument: Instrument,
   divisions: number,
   timeSig: [number, number],
+  options: RenderOptions,
 ): string {
   return (
     `<attributes><divisions>${divisions}</divisions>` +
-    '<key><fifths>0</fifths></key>' +
+    `<key><fifths>${options.keyFifths ?? 0}</fifths></key>` +
     `<time><beats>${timeSig[0]}</beats><beat-type>${timeSig[1]}</beat-type></time>` +
     '<clef><sign>G</sign><line>2</line></clef>' +
-    `${transposeXml(instrument)}</attributes>`
+    `${options.forDisplay ? '' : transposeXml(instrument)}</attributes>`
   )
 }
 
@@ -143,9 +160,9 @@ function beamMarks(events: ExerciseEvent[]): string[] {
   return marks
 }
 
-function eventXml(event: ExerciseEvent, beam = ''): string {
+function eventXml(event: ExerciseEvent, beam: string, sharps: boolean): string {
   const divisions = Math.max(1, Math.round(event.duration / TICKS_PER_DIVISION))
-  const body = event.midi === null ? '<rest/>' : pitchXml(event.midi)
+  const body = event.midi === null ? '<rest/>' : pitchXml(event.midi, sharps)
   const cue = event.cue ? '<cue/>' : ''
   return `<note>${cue}${body}<duration>${divisions}</duration>${typeXml(event.duration)}${beam}</note>`
 }
@@ -156,10 +173,11 @@ function rhythmicMeasureXml(
   number: number,
   instrument: Instrument,
   timeSig: [number, number],
+  options: RenderOptions,
 ): string {
   const events = bar.events ?? []
   const chords: BarChord[] = bar.chords ?? [{ onset: 0, rootPc: bar.rootPc, quality: bar.quality }]
-  const head = number === 1 ? attributesXml(instrument, FINE_DIVISIONS, timeSig) : ''
+  const head = number === 1 ? attributesXml(instrument, FINE_DIVISIONS, timeSig, options) : ''
   let out = `<measure number="${number}">${head}`
   const beams = beamMarks(events)
   let position = 0
@@ -169,7 +187,7 @@ function rhythmicMeasureXml(
       out += harmonyXml(chords[chordIndex])
       chordIndex++
     }
-    out += eventXml(event, beams[i])
+    out += eventXml(event, beams[i], (options.keyFifths ?? 0) > 0)
     position += event.duration
   })
   while (chordIndex < chords.length) out += harmonyXml(chords[chordIndex++])
@@ -190,13 +208,13 @@ function restsXml(eighths: number): string {
   return out
 }
 
-function measureXml(bar: ExerciseBar, number: number, instrument: Instrument): string {
+function measureXml(bar: ExerciseBar, number: number, instrument: Instrument, options: RenderOptions): string {
   const midis = bar.midis.slice(0, EIGHTHS_PER_BAR)
   const beams = beamMarks(midis.map((midi) => ({ midi, duration: TICKS_PER_QUARTER / 2 })))
   const notes = midis
-    .map((midi, i) => `<note>${pitchXml(midi)}<duration>1</duration><type>eighth</type>${beams[i]}</note>`)
+    .map((midi, i) => `<note>${pitchXml(midi, (options.keyFifths ?? 0) > 0)}<duration>1</duration><type>eighth</type>${beams[i]}</note>`)
     .join('')
-  const head = number === 1 ? attributesXml(instrument, DIVISIONS, [4, 4]) : ''
+  const head = number === 1 ? attributesXml(instrument, DIVISIONS, [4, 4], options) : ''
   return (
     `<measure number="${number}">${head}${harmonyXml(bar)}${notes}` +
     `${restsXml(EIGHTHS_PER_BAR - midis.length)}</measure>`
@@ -211,13 +229,13 @@ function measureXml(bar: ExerciseBar, number: number, instrument: Instrument): s
  * it guarantees we never reproduce a rhythm that may be a transcription
  * artefact rather than something the player meant.
  */
-export function exerciseToMusicXml(exercise: Exercise, instrument: Instrument): string {
+export function exerciseToMusicXml(exercise: Exercise, instrument: Instrument, options: RenderOptions = {}): string {
   const rhythmic = exercise.bars.some((b) => b.events)
   const timeSig = exercise.timeSig ?? [4, 4]
   const measures = exercise.bars
     .map((bar, index) => rhythmic
-      ? rhythmicMeasureXml(bar, index + 1, instrument, timeSig)
-      : measureXml(bar, index + 1, instrument))
+      ? rhythmicMeasureXml(bar, index + 1, instrument, timeSig, options)
+      : measureXml(bar, index + 1, instrument, options))
     .join('\n      ')
 
   return `<?xml version="1.0" encoding="UTF-8"?>

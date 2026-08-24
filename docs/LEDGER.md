@@ -145,3 +145,9 @@ within the beat, rest/quarter/beat line break it, adjacent 16ths share
 beam 2). Steps moved out of the 24rem rail into a stepper under the score
 (app/main.ts `stepPanels`, `.practice`); notation now full width. Owner
 read idea boundary St Thomas 10.2 as probably right — no change. 287 tests.
+2026-08-24 · session 5 · Owner: exercises had no key signature and sat a
+tone below the chords (OSMD applied <transpose>) → `Score.keyFifths`,
+`RenderOptions { keyFifths, forDisplay }`, sharps in sharp keys. Rail
+removed: single column, "Idea n of N ‹ ›" chooser, "All ideas" toggles the
+list + tune control. Verified on St Thomas in Chrome. 288 tests. Session
+closed; handoff in HANDOFF.md "Session 5".

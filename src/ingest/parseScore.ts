@@ -146,6 +146,7 @@ export function parseScore(xml: string): Score {
   let timeSig: [number, number] = [4, 4]
   let instrument = instrumentFromTranspose(0, 0)
   let sawTranspose = false
+  let keyFifths: number | undefined
 
   const notes: Note[] = []
   const marks: Mark[] = []
@@ -165,6 +166,8 @@ export function parseScore(xml: string): Score {
         if (time) {
           timeSig = [numberOf(time, 'beats', 4), numberOf(time, 'beat-type', 4)]
         }
+        const key = findChild(el, 'key')
+        if (key && keyFifths === undefined) keyFifths = numberOf(key, 'fifths', 0)
         const transpose = findChild(el, 'transpose')
         if (transpose) {
           instrument = instrumentFromTranspose(
@@ -256,6 +259,7 @@ export function parseScore(xml: string): Score {
     chordTracks: [],
     instrument,
     timeSig,
+    keyFifths: keyFifths ?? 0,
     marks,
     barCount: measures.length,
     ...(repeats.length ? { repeats } : {}),

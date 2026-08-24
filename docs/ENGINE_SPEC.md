@@ -170,6 +170,12 @@ vector); pass 2 by overlap adds detectedBy/weights only, never spans.
 
 ## Exercise rendering (`render/musicxml.ts`)
 
+Key: `Score.keyFifths` (first `<key><fifths>`, 0 if none) is written into
+every exercise; black keys spell as sharps when fifths > 0, flats
+otherwise. The page renders a copy without `<transpose>` (`forDisplay`)
+because OSMD applies it and drew tenor parts a tone below their chord
+symbols; downloads keep it for MuseScore.
+
 Beams: notes shorter than a quarter beam within a beat (quarter of the
 bar's time signature); a rest, a longer note or the beat line ends the
 group; adjacent 16ths inside a group carry beam 2. Lone notes unbeamed.

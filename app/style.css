@@ -112,24 +112,21 @@ details summary { cursor: pointer; color: var(--muted); }
 
 details ul { margin: 0.75rem 0 0.25rem; padding-left: 1.1rem; }
 
-.workspace {
-  display: grid;
-  grid-template-columns: minmax(18rem, 24rem) 1fr;
-  gap: 1.5rem;
-  margin-top: 2rem;
-  align-items: start;
-}
+.workspace { margin-top: 2rem; }
 
-@media (max-width: 60rem) {
-  .workspace { grid-template-columns: 1fr; }
-}
+.chooser { display: flex; align-items: center; gap: 0.5rem; margin-top: 1.25rem; }
+.chooser .position { font-weight: 600; min-width: 8rem; text-align: center; }
+.chooser .quiet { padding: 0.3rem 0.7rem; }
+.chooser button:last-child { margin-left: auto; }
 
 .menu {
-  position: sticky;
-  top: 1rem;
-  max-height: calc(100vh - 2rem);
+  margin-top: 1rem;
+  padding: 1rem 1.25rem;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  max-height: 60vh;
   overflow-y: auto;
-  padding-right: 0.5rem;
 }
 
 .menu h2 { margin-top: 0; }
@@ -162,8 +159,6 @@ details ul { margin: 0.75rem 0 0.25rem; padding-left: 1.1rem; }
 .finding .where { color: var(--muted); font-size: 0.9rem; }
 .finding .meta { display: flex; gap: 0.6rem; align-items: baseline; font-size: 0.8rem; color: var(--muted); }
 .finding .drills { margin-left: auto; color: var(--accent); }
-
-.main { min-width: 0; }
 
 .practice {
   margin-top: 1.25rem;
