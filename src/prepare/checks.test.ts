@@ -1,7 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { ingest } from '../ingest/index.ts'
-import { pickupCheck, rangeCheck, transcriberNoteCheck, chordPersistenceCheck } from './checks.ts'
+import { pickupCheck, rangeCheck, transcriberNoteCheck, chordPersistenceCheck, emptyStretchCheck } from './checks.ts'
+import { instrumentFromTranspose } from '../core/instrument.ts'
+import { TICKS_PER_QUARTER as Q } from '../core/types.ts'
+import type { Score } from '../core/types.ts'
 import { detectForm } from './form.ts'
 
 const load = (name: string) => ingest(new Uint8Array(readFileSync(`fixtures/${name}`)))
@@ -59,5 +62,36 @@ describe('chordPersistenceCheck', () => {
     // Bars 1-4 all carry F7 and bars 5-8 all carry Bb7, so nothing persists
     // unusually; a null form means the check has no period to compare against.
     expect(chordPersistenceCheck(score, null)).toEqual([])
+  })
+})
+
+describe('emptyStretchCheck', () => {
+  const scoreWithNotesIn = (bars: number[]): Score => ({
+    notes: bars.map((bar) => ({ midi: 60, onset: (bar - 1) * 4 * Q, duration: Q, bar, beat: 0 })),
+    chordTracks: [],
+    instrument: instrumentFromTranspose(-9, 0),
+    timeSig: [4, 4],
+    marks: [],
+    barCount: 128,
+  })
+  const form = { periodBars: 16, agreement: 1, method: 'absolute' as const, chorusStarts: [1], phaseFrom: 'none' as const, agreesWithMarks: true }
+
+  it('reports a run of empty bars at least one chorus long as another player\'s solo', () => {
+    // Notes through bar 16, nothing until bar 97: five empty choruses.
+    const bars = [...Array.from({ length: 16 }, (_, i) => i + 1), 97, 100, 112]
+    const adjustments = emptyStretchCheck(scoreWithNotesIn(bars), form)
+    expect(adjustments).toHaveLength(1)
+    expect(adjustments[0]).toMatchObject({ kind: 'empty-stretch', severity: 'info', target: { range: [17, 96] } })
+    expect(adjustments[0].reason).toContain('80 empty bars')
+    expect(adjustments[0].reason).toContain('5 choruses')
+  })
+
+  it('ignores rests shorter than a chorus and the silence before the first note', () => {
+    expect(emptyStretchCheck(scoreWithNotesIn([17, 18, 30, 45, 60]), form)).toEqual([])
+  })
+
+  it('uses 8 bars as the threshold when no form was found', () => {
+    expect(emptyStretchCheck(scoreWithNotesIn([1, 10]), null)).toHaveLength(1)
+    expect(emptyStretchCheck(scoreWithNotesIn([1, 9]), null)).toEqual([])
   })
 })

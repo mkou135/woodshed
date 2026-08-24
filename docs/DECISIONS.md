@@ -286,3 +286,12 @@ dominant only, named per order like the triads. Bopland
 66.7/18.5/14.8 → 69.3/16.4/14.3; Blake 13 findings, top unchanged; WJD
 median 13 → 13 · engine, owner's protocol · reverse by deleting the three
 entries.
+
+2026-08-24 · **Empty stretches are reported, not split** · St Thomas:
+Rollins rests 79 bars (played 130–208, printed 114–192) while others solo,
+then returns. The unnamed region is now bounded to played bars (17–257
+printed) and an info `empty-stretch` adjustment names the gap in bars and
+choruses. Not split into two regions: `chooseSoloist` would then drop the
+second stretch, and it is the same player · engine · reverse if a score
+arrives where the returning bars are a different soloist (then a name
+mark should exist anyway).

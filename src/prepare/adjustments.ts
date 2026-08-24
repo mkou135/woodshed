@@ -7,6 +7,7 @@ export type AdjustmentKind =
   | 'range-outlier'
   | 'transcriber-note'
   | 'repeat-unrolled'
+  | 'empty-stretch'
 
 export type Severity = 'info' | 'warn' | 'blocking'
 

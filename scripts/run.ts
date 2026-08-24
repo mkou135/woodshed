@@ -28,6 +28,12 @@ if (report.form) {
 }
 console.log(`soloists: ${report.soloists.map((s) => `${s.name} (${barLabel(score, s.startBar)}-${barLabel(score, s.endBar)})`).join(', ')}`)
 console.log(`phrases: ${analysis.phrases.length}`)
+for (const a of report.adjustments) {
+  const where = 'bar' in a.target
+    ? `bar ${barLabel(score, a.target.bar)}`
+    : `bars ${barLabel(score, a.target.range[0])}-${barLabel(score, a.target.range[1])}`
+  console.log(`  ${a.severity} ${a.kind} ${where}: ${a.reason}`)
+}
 console.log()
 
 const { profile } = analysis

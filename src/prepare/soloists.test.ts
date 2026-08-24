@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { ingest } from '../ingest/index.ts'
 import { chooseSoloist, detectSoloists, soloistAdjustments } from './soloists.ts'
 import { instrumentFromTranspose } from '../core/instrument.ts'
+import { TICKS_PER_QUARTER as Q } from '../core/types.ts'
 import type { Score } from '../core/types.ts'
 
 const load = (name: string) => ingest(new Uint8Array(readFileSync(`fixtures/${name}`)))
@@ -25,6 +26,23 @@ describe('detectSoloists', () => {
   it('does not mistake performance directions for soloist names', () => {
     const regions = detectSoloists(load('transcriber-notes.musicxml'))
     expect(regions).toHaveLength(1)
+  })
+})
+
+describe('detectSoloists — unnamed score', () => {
+  it('bounds the unnamed region to the bars that carry notes', () => {
+    // St Thomas: the head starts at bar 17 and the last bar of the file is a
+    // double bar with nothing in it; "unknown (1-273)" told the player nothing.
+    const note = (bar: number) => ({ midi: 60, onset: (bar - 1) * 4 * Q, duration: Q, bar, beat: 0 })
+    const score: Score = {
+      notes: [note(17), note(40), note(120)],
+      chordTracks: [],
+      instrument: instrumentFromTranspose(-9, 0),
+      timeSig: [4, 4],
+      marks: [],
+      barCount: 273,
+    }
+    expect(detectSoloists(score)).toEqual([{ name: 'unknown', startBar: 17, endBar: 120 }])
   })
 })
 

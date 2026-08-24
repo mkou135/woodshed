@@ -132,3 +132,43 @@ export function repeatCheck(score: Score): Adjustment[] {
     confidence: 1,
   }))
 }
+
+/** Empty bars shorter than this, when no form is known, are a rest, not another player. */
+const EMPTY_STRETCH_MIN_BARS = 8
+
+/**
+ * A run of empty bars at least one chorus long between two played bars is
+ * another player's solo left out of the transcription (St Thomas: Rollins
+ * rests for 79 bars while the piano and bass solo). Reported so the player
+ * knows the gap is real, and so the soloist range is not read as a mistake.
+ */
+export function emptyStretchCheck(score: Score, form: FormResult | null): Adjustment[] {
+  const played = new Set(score.notes.map((n) => n.bar))
+  if (played.size === 0) return []
+  const first = Math.min(...played)
+  const last = Math.max(...played)
+  const minBars = form ? form.periodBars : EMPTY_STRETCH_MIN_BARS
+
+  const out: Adjustment[] = []
+  let gapStart: number | null = null
+  for (let bar = first; bar <= last + 1; bar++) {
+    const empty = bar <= last && !played.has(bar)
+    if (empty && gapStart === null) gapStart = bar
+    if (!empty && gapStart !== null) {
+      const length = bar - gapStart
+      if (length >= minBars) {
+        const choruses = form ? ` (${Math.floor(length / form.periodBars)} choruses)` : ''
+        out.push({
+          kind: 'empty-stretch',
+          severity: 'info',
+          target: { range: [gapStart, bar - 1] },
+          reason: `${length} empty bars${choruses} between played bars: another player's solo, skipped`,
+          decidedBy: 'engine',
+          confidence: 0.9,
+        })
+      }
+      gapStart = null
+    }
+  }
+  return out
+}

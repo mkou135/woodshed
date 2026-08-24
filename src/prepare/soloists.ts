@@ -45,7 +45,11 @@ export function detectSoloists(score: Score): SoloistRegion[] {
     .map((m) => ({ name: m.text.trim(), bar: m.bar }))
 
   if (names.length === 0) {
-    return [{ name: 'unknown', startBar: 1, endBar: score.barCount }]
+    // Bound the region to the bars that carry notes: the head's empty bars
+    // and a trailing double bar are not part of anyone's solo.
+    const bars = score.notes.map((n) => n.bar)
+    if (bars.length === 0) return [{ name: 'unknown', startBar: 1, endBar: score.barCount }]
+    return [{ name: 'unknown', startBar: Math.min(...bars), endBar: Math.max(...bars) }]
   }
 
   const regions: SoloistRegion[] = []

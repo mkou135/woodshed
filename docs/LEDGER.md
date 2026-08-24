@@ -131,3 +131,7 @@ stock discount.
 274 tests.
 2026-08-24 · session 5 · Dominant b9 cells (b7#9b91, 3b91, 1b9b7):
 Bopland 69.3/16.4/14.3, Blake 13/top unchanged, WJD median 13. 276 tests.
+2026-08-24 · session 5 · St Thomas "unknown (1-257)": unnamed region
+bounded to played bars; `empty-stretch` info adjustment (≥ 1 chorus of
+empty bars between played bars, 8 without a form); run.ts prints
+adjustments. 280 tests.

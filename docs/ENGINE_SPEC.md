@@ -74,7 +74,14 @@ rest carry no surface cue (see DECISIONS 2026-08-24).
 Regions come from capitalised single words / "… Solo" text (see
 `DIRECTIONS` for the exclusion list). `chooseSoloist` analyses the named
 region with the **most notes** (ties → earlier); unnamed only if nothing
-is named. Two named regions still raise the blocking adjustment.
+is named. Two named regions still raise the blocking adjustment. With no
+name at all the single `unknown` region spans first → last bar carrying a
+note, not 1 → barCount. `emptyStretchCheck` (`prepare/checks.ts`) reports
+each run of empty bars between played bars of ≥ one chorus (form period;
+`EMPTY_STRETCH_MIN_BARS` 8 without a form) as an info `empty-stretch`
+adjustment ("79 empty bars (4 choruses) … another player's solo,
+skipped"); the region is not split, because it is the same soloist
+returning. `npm run solo` prints every adjustment under the header.
 
 ## Note context (`analyse/context.ts`, `core/pitch.ts`)
 

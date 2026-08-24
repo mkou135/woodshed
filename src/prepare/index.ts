@@ -11,6 +11,7 @@ import {
   transcriberNoteCheck,
   chordPersistenceCheck,
   repeatCheck,
+  emptyStretchCheck,
 } from './checks.ts'
 
 export interface CleanupReport {
@@ -39,6 +40,7 @@ export function prepare(score: Score): CleanupReport {
     ...transcriberNoteCheck(score),
     ...repeatCheck(score),
     ...chordPersistenceCheck(score, form),
+    ...emptyStretchCheck(score, form),
   ]
 
   const counts = summarise(adjustments)
