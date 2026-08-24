@@ -204,3 +204,12 @@ of the owner's idea; corpus frequency deferred) · Blake: u1 holds; the
 run-heavy bars 74–76 and 81–82 fall from u2/u3 to u5/u6, the enclosure
 line at 70–71 rises to u2 · owner asked, engine chose the form · reverse or
 exempt named-finding notes if a named arpeggio unit is seen to sink.
+
+2026-08-24 · **Pickup gesture opens an idea** · A note held ≥ 3× the median,
+then a lone note in the last half-beat of the bar landing on the next
+downbeat: the idea ends on the held note and the pickup starts the next.
+Owner drew two boxes on Blake bars 70 and 71 (cues there were 0.11 and
+0.23, under every threshold). WJD annotators mark it rarely (9%
+precision): ideas F1 77.6 → 77.3, phrases unchanged; Blake 21 → 23 ideas ·
+owner's ear over annotators, as with the bar-67 held G · reverse if it
+splits things the owner hears as one on other solos.

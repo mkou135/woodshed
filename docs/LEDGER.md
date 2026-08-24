@@ -89,3 +89,6 @@ unit rank (OPEN_QUESTIONS).
 (`PracticeUnit.stock`, shown by `npm run solo`). Blake u1 holds, run-heavy
 units sink. 250 tests. Corpus-frequency version and named-finding exemption
 left in OPEN_QUESTIONS.
+2026-08-24 · session 4 · Owner's two boxes on Blake 70/71 → `pickupHeld` 3
+in segment.ts (held note, and-of-4 pickup, downbeat). Blake 23 ideas, WJD
+ideas 77.3 (−0.3), phrases 83.8. 253 tests.

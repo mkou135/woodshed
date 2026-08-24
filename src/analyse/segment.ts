@@ -88,6 +88,13 @@ export interface SegmentOptions {
   peakMin: number
   peakRatio: number
   peakWindow: number
+  /**
+   * Pickup gesture: a note held at least this many medians, then a lone
+   * note in the last half-beat of the bar landing on the next downbeat,
+   * opens an idea before the pickup (Blake bars 69→70 and 70→71, owner's
+   * ear; the Weimar annotators mark it rarely). 0 = off.
+   */
+  pickupHeld: number
 }
 
 export const DEFAULTS: SegmentOptions = {
@@ -113,6 +120,7 @@ export const DEFAULTS: SegmentOptions = {
   peakMin: 0.35,
   peakRatio: 2.5,
   peakWindow: 4,
+  pickupHeld: 3,
 }
 
 const STRUCTURAL_CONFIDENCE = 0.6
@@ -251,6 +259,7 @@ export function segment(
   notes: Note[],
   forcedBoundaryBars: number[] = [],
   options: Partial<SegmentOptions> = {},
+  beatsPerBar = 4,
 ): Phrase[] {
   if (notes.length === 0) return []
   const o = { ...DEFAULTS, ...options }
@@ -273,12 +282,22 @@ export function segment(
     return cues[i].total >= o.peakRatio * (sum / n)
   }
 
+  const isPickup = (i: number): boolean => {
+    if (o.pickupHeld <= 0 || medianDuration <= 0) return false
+    const here = notes[i]
+    const pickup = notes[i + 1]
+    const landing = notes[i + 2]
+    return here.duration >= o.pickupHeld * medianDuration &&
+      pickup.beat >= beatsPerBar - 0.5 && pickup.bar === here.bar &&
+      landing !== undefined && landing.bar === here.bar + 1 && landing.beat === 0
+  }
+
   for (let i = 0; i < notes.length - 1; i++) {
     const next = notes[i + 1]
     const cue = cues[i]
     if (cue.total >= o.threshold && cue.rest > 0) {
       all.push({ at: i + 1, strength: cue.total, kind: 'rest' })
-    } else if (cue.idea >= o.ideaThreshold || isPeak(i)) {
+    } else if (cue.idea >= o.ideaThreshold || isPeak(i) || isPickup(i)) {
       all.push({ at: i + 1, strength: cue.idea, kind: 'arrival' })
     } else if (forced.has(next.bar) && notes[i].bar !== next.bar) {
       all.push({ at: i + 1, strength: STRUCTURAL_CONFIDENCE, kind: 'structural' })

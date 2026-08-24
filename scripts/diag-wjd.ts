@@ -28,6 +28,7 @@ function add(cls: string, f: F) {
 }
 function median(xs: number[]) { const s = [...xs].sort((a, b) => a - b); return s[Math.floor(s.length / 2)] }
 let CTX: NoteContext[] = []
+let BEATS = 4
 let FAM_START = new Set<number>(), FAM_END = new Set<number>(), FAM_START4 = new Set<number>(), FAM_VAR = new Set<number>()
 function feats(notes: Note[], i: number, med: number): F {
   const h = notes[i], n = notes[i + 1]
@@ -69,6 +70,10 @@ function feats(notes: Note[], i: number, med: number): F {
     nextCT: cn?.chordTone ? 1 : 0,
     chordChange: ch?.chord && cn?.chord && ch.chord !== cn.chord ? 1 : 0,
     hereChrom: ch?.chromatic ? 1 : 0,
+    pickup: n.beat >= BEATS - 0.5 && notes[i + 2]?.bar === n.bar + 1 && notes[i + 2].beat === 0 ? 1 : 0,
+    pickupHeld: n.beat >= BEATS - 0.5 && notes[i + 2]?.bar === n.bar + 1 && notes[i + 2].beat === 0 && h.duration >= 2 * med ? 1 : 0,
+    pickupHeld3: n.beat >= BEATS - 0.5 && notes[i + 2]?.bar === n.bar + 1 && notes[i + 2].beat === 0 && h.duration >= 3 * med ? 1 : 0,
+    pickupHeldChord: n.beat >= BEATS - 0.5 && notes[i + 2]?.bar === n.bar + 1 && notes[i + 2].beat === 0 && h.duration >= 2 * med && ch?.chord && CTX[i + 2]?.chord && ch.chord !== CTX[i + 2].chord ? 1 : 0,
     famStart: FAM_START.has(i + 1) ? 1 : 0,
     famStart4: FAM_START4.has(i + 1) ? 1 : 0,
     famEnd: FAM_END.has(i + 1) ? 1 : 0,
@@ -82,6 +87,7 @@ for (const solo of solos) {
   const beats = db.prepare("select bar, beat, coalesce(chord, '') as chord, coalesce(form, '') as form, coalesce(signature, '') as signature from beats where melid = ? order by onset").all(melid) as unknown as WjdBeatRow[]
   let sc; try { sc = scoreFromWjd(solo, rows, beats).score } catch { continue }
   CTX = contextualise(sc.notes, sc.chordTracks[0]?.chords ?? [])
+  BEATS = sc.timeSig[0]
   FAM_START = new Set(); FAM_END = new Set(); FAM_START4 = new Set(); FAM_VAR = new Set()
   for (const h of findRecurring(CTX)) {
     for (const o of h.occurrences) { FAM_START.add(o); FAM_END.add(o + h.intervals.length + 1); if (h.intervals.length >= 4) FAM_START4.add(o) }
@@ -135,6 +141,11 @@ const rules: Record<string, (f: F) => boolean> = {
   'chordChange': (f) => f.chordChange > 0,
   'chordChange&rest16': (f) => f.chordChange > 0 && f.rest > 0,
   'hereCT&rest16&held15': (f) => f.hereCT > 0 && f.rest > 0 && f.held15 > 0,
+  'pickup': (f) => f.pickup > 0,
+  'pickupHeld': (f) => f.pickupHeld > 0,
+  'pickupHeld3': (f) => f.pickupHeld3 > 0,
+  'pickupHeldChord': (f) => f.pickupHeldChord > 0,
+  'pickupHeld|rest8&held15': (f) => f.pickupHeld > 0 || (f.rest8 > 0 && f.held15 > 0),
   'famStart': (f) => f.famStart > 0,
   'famStart4': (f) => f.famStart4 > 0,
   'famVar': (f) => f.famVar > 0,

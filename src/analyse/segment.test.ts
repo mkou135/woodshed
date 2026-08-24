@@ -58,9 +58,10 @@ describe('segment', () => {
   it('does not split on a note twice the local norm, which the corpus probe showed is wrong', () => {
     // A quarter among eighths is not an arrival, and neither is a half note
     // on its own (Weimar: a held note alone has low precision as an idea cue).
+    // The half note ends on beat 3 here, so this is not the pickup gesture.
     const e = (m: number): [number, number, number] => [m, 0.5, 0]
     expect(segment(notesFrom([e(60), e(62), [64, 1, 0], e(65), e(67), e(69)]))).toHaveLength(1)
-    const half = segment(notesFrom([e(60), e(62), e(64), [67, 2, 0], e(65), e(67), e(69), e(70)]))
+    const half = segment(notesFrom([e(60), e(62), [67, 2, 0], e(65), e(67), e(69), e(70), e(72)]))
     expect(half).toHaveLength(1)
     expect(half[0].ideas).toHaveLength(1)
   })
@@ -138,5 +139,30 @@ describe('local peak', () => {
 
   it('is off when peakMin is 0', () => {
     expect(segment(notes, [], { peakMin: 0 })[0].ideas).toHaveLength(1)
+  })
+})
+
+describe('pickup gesture', () => {
+  // Blake bars 69-70: a note held three medians, a lone eighth on the
+  // and-of-4, the downbeat of the next bar. The owner hears a new idea at
+  // the pickup; the note before it ends the old one.
+  const eighths = (n: number): [number, number, number][] =>
+    Array.from({ length: n }, (_, i) => [60 + (i % 3), 0.5, 0])
+  // 4 eighths (2 beats) + a dotted quarter (beat 3 to 4.5) + pickup eighth + downbeat
+  const notes = notesFrom([...eighths(4), [67, 1.5, 0], [70, 0.5, 0], [72, 0.5, 0], ...eighths(3)])
+
+  it('opens an idea before the pickup', () => {
+    const phrases = segment(notes)
+    expect(phrases).toHaveLength(1)
+    expect(phrases[0].ideas.map((i) => i.notes.length)).toEqual([5, 5])
+    expect(phrases[0].ideas[1].notes[0].midi).toBe(70)
+  })
+
+  it('is off when pickupHeld is 0', () => {
+    expect(segment(notes, [], { pickupHeld: 0 })[0].ideas).toHaveLength(1)
+  })
+
+  it('needs the held note: plain eighths into a downbeat are one idea', () => {
+    expect(segment(notesFrom(eighths(12)))[0].ideas).toHaveLength(1)
   })
 })

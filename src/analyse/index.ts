@@ -71,7 +71,7 @@ export function analyse(score: Score, report: CleanupReport): Analysis {
   const contexts = contextualise(notes, chordTrack?.chords ?? [])
 
   const forced = report.form?.chorusStarts ?? []
-  const phrases = segment(notes, forced)
+  const phrases = segment(notes, forced, {}, score.timeSig[0])
   // Detectors look inside phrases: a figure that straddles a phrase boundary
   // is two gestures, not one piece of vocabulary.
   let index = 0
