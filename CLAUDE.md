@@ -46,6 +46,13 @@ npm run build
   quality in iReal charts comes from the explicit core table, never guessed.
 - Style: no semicolons, single quotes, 2-space indent, ESM with explicit `.ts`
   extensions in imports.
+- **External corpora never enter the repo or the app bundle.** The Weimar
+  Jazz Database (ODbL) and the Bopland licks (CC BY-SA 4.0, but scraped from
+  Bopland without permission — the uploader could not license it) live in
+  `~/dev/woodshed-data/` only. Run them, learn from them, commit derived
+  statistics with an attribution note; never commit or ship the notes
+  themselves, and write test fixtures by hand rather than quoting a lick.
+  See DECISIONS 2026-08-24 "Corpus licensing".
 
 ## Verifying
 

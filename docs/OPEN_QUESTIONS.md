@@ -94,3 +94,8 @@ also rejected, 3% precision — idea recall is at its ceiling. Still open:
   notes inside a named finding (e.g. the maj7 arpeggio from the b3) should
   be exempt from the discount — today they are not, and u1 lost 0.67 for it
   while keeping its place. Resolve: watch a few solos' unit order on the page.
+- **Bopland lick corpus** (~/dev/woodshed-data/bopland; licensing in
+  DECISIONS 2026-08-24). Uses in payoff order: dictionary-coverage
+  benchmark (named vs unnamed licks with their changes); second corpus for
+  the stock-vocabulary frequency table; variant-family checks. OMR noise
+  unmeasured — spot-check against the PNGs before trusting any lick.

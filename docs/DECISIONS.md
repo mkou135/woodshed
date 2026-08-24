@@ -257,3 +257,15 @@ answer on A) — noted, not forced. WJD phrases 83.8 → 82.4 (annotators
 split riffs 78% of the time; see the earlier entry), ideas 77.8 unchanged.
 Sweep 2/3/4 beats: 82.8/82.4/82.2; 3 covers Rollins' 2.5-beat rests ·
 owner's ear over annotators · reverse by riffMaxGap 0.
+
+2026-08-24 · **Corpus licensing** · Bopland licks
+(github.com/MathieuLd/BoplandLicksForDevelopers, CC BY-SA 4.0) adopted as a
+local reference corpus at ~/dev/woodshed-data/bopland, alongside the WJD
+(ODbL). Two layers: the CC licence would put share-alike on anything we
+distribute containing the licks; and the uploader scraped Bopland without
+a reply, so cannot grant rights to the content at all. Therefore: local
+use only (benchmarks, frequency tables, tuning); derived aggregate numbers
+may be committed with attribution; no lick, no WJD note data, in the repo
+or the app bundle; fixtures written by hand. Owner asked for a standing
+note: this entry, CLAUDE.md non-negotiables, and Claude's memory · owner +
+engine · reverse only with written permission from the rights holder.
