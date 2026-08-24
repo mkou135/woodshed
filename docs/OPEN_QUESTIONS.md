@@ -70,13 +70,13 @@ moving its resolution into DECISIONS.md.
 - **displace step and 3/4+ time**: placements assume 4/4 feel (beat 2,
   and-of-1). Check against a 3/4 solo when one arrives.
 
-- **Owner brackets as a regression set.** St Thomas printed 57–76 and
-  Mintzer written 3–34 (phrase starts at written bar.beat: 3.1 4.4½ 6.4
-  7.4½ 10.1 13.4½ 17.4½ 22.1 24.1½ 25.4 29.4 32.4½ 34.4½ — Claude's reading
-  of the owner's screenshot, ±½ beat) are only checked by hand-run scratch
-  scripts. Worth a `npm run brackets` that scores every peers file against
-  a committed list. Also: the unmarked-pickup warn on Mintzer still shifts
-  beat positions; check whether that matters once the brackets are tooled.
+- **Owner brackets: the St Thomas 8th.** `npm run brackets` (session 6)
+  scores scripts/brackets.json against the peers files. Mintzer 3–34 is the
+  owner's list (12/13, 22.1 known). St Thomas 57–76 is the engine's output
+  frozen after riff binding + articulation rest — 7 starts where session 4
+  matched 8 brackets; the bar.beat list was never written down. Resolve:
+  owner re-reads 57–76 on the page and corrects the JSON. Also still open:
+  the unmarked-pickup warn on Mintzer shifts beat positions.
 
 ## Segmentation cues (2026-08-24, from a ChatGPT comparison)
 

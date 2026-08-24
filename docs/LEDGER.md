@@ -172,3 +172,8 @@ confident; Details drawer; step path with localStorage done state.
 Verified in Chrome on Blake (lands on bars 76–77, 34 ideas), St Thomas
 (chip amber → picker: "Strode Rode 19 % — probably not", "St. Thomas
 88 % ✓"), Mintzer (85 ideas). 292 tests, build clean. ENGINE_SPEC "Page".
+2026-08-24 · session 6 · `npm run brackets`: scripts/brackets.ts +
+brackets.json score phrase starts against the owner's brackets (Mintzer
+12/13 + 0 false, 22.1 known; St Thomas 57–76 frozen at 7 — the owner's 8th
+is an open question). ENGINE_SPEC "Owner brackets"; CLAUDE.md commands.
+Session closed at 292 tests.

@@ -290,6 +290,15 @@ omitted (6,482 of 7,742). Regenerate after any ingest change.
   `setTimeout`, not `requestAnimationFrame` (never fires in a background
   tab) and not `smooth` (Chrome ignores it on SVG groups).
 
+## Owner brackets (`scripts/brackets.ts`, `npm run brackets`)
+
+`scripts/brackets.json`: per peers file, a printed-bar range and the
+owner's phrase starts as printed bar.beat ("4.4½"). A start matches within
+**0.5** beat (`TOLERANCE`); a `knownMisses` entry absorbs the engine's
+displaced start within 2 beats. Exit 1 on any other miss or false start.
+Sets: Mintzer written 3–34 (13 owner starts, 22.1 known), St Thomas
+printed 57–76 (7, frozen from the engine in session 6 — see OPEN_QUESTIONS).
+
 ## Verification targets
 
 Blake (`npm run solo`): form 56 bars, chorus starts **9 and 65** (8-bar

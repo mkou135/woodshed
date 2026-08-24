@@ -1,0 +1,45 @@
+[
+  {
+    "file": "mintzer.mxl",
+    "range": [
+      3,
+      34
+    ],
+    "starts": [
+      "3.1",
+      "4.4½",
+      "6.4",
+      "7.4½",
+      "10.1",
+      "13.4½",
+      "17.4½",
+      "22.1",
+      "24.1½",
+      "25.4",
+      "29.4",
+      "32.4½",
+      "34.4½"
+    ],
+    "knownMisses": [
+      "22.1"
+    ],
+    "note": "Owner's brackets on the rhythm changes, session 5 (Claude's reading of the screenshot, ±½ beat; 22.1 vs engine 22.2½ is that reading). DECISIONS 2026-08-24 'Articulation rest'."
+  },
+  {
+    "file": "st-thomas-sonny-rollins-solo-transcription.mxl",
+    "range": [
+      57,
+      76
+    ],
+    "starts": [
+      "57.2½",
+      "66.2½",
+      "68.2",
+      "69.3",
+      "70.3½",
+      "73.2",
+      "76.1"
+    ],
+    "note": "Owner's 8 brackets on printed 57–76 matched 8/8 in session 4 (DECISIONS 'Two segmentation bugs'); the bar.beat list was not written down, so this is the engine's output frozen in session 6 after riff binding and the articulation rest (7 starts). Owner to confirm the 8th."
+  }
+]
