@@ -10,6 +10,17 @@ moving its resolution into DECISIONS.md.
   parsed at 0.7 confidence) and a pickup numbered bar 0; a single chorus,
   so no form. Resolve: check the text-chord degrees look right on the page;
   decide whether bar 0 should be renumbered at ingest.
+- **A 2–4 bar vamp is taken as the form** in 34 WJD solos (modal tunes,
+  "Nature of the Beast", one Stardust): `smallestPeriod` accepts the first
+  p > 0.75. Resolve: when rehearsal marks exist, prefer the smallest period
+  consistent with same-letter mark spacing; otherwise a minimum period
+  (8?) — but `transposing-form` pins period 4, so decide with the owner.
+- **Mixed-meter solos** (3 in WJD) are rejected; MusicXML with a mid-score
+  `<time>` change silently takes the last one. Resolve: per-bar time
+  signatures in `Score`, or reject in `parseScore` the same way.
+- **Corpus numbers are printed, not pinned.** Resolve: a golden file for
+  `corpus:wjd` (per-solo findings/units counts) so a change shows its blast
+  radius — like `pipeline.test.ts` does for Blake.
 - **Omnibook as a regression corpus.** 50 Parker heads+solos (Inria, CC
   BY-NC-SA, `~/dev/woodshed-data/omnibook`) all run; ~1,800 units. Not in
   the repo (licence, 50 MB with the WJD copy). Resolve: an

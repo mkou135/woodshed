@@ -29,7 +29,9 @@ export function parseChordSymbol(text: string): ParsedSymbol | null {
   const alter = accidental === 'b' ? -1 : accidental === '#' ? 1 : 0
   const rootPc = (((STEP_SEMITONES[letter] ?? 0) + alter) % 12 + 12) % 12
 
-  let rest = trimmed.slice(rootMatch[0].length)
+  // A slash bass ("C-/Bb", "F/A") names an inversion or pedal; the chord
+  // quality is unchanged and the bass is not a tension.
+  let rest = trimmed.slice(rootMatch[0].length).replace(/\/[A-G][b#]?$/, '')
 
   const tensions: string[] = []
   // "+9" is this dialect's spelling of "#9".

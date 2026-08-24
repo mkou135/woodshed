@@ -160,6 +160,24 @@ jazz standards parse.
 - Corpus (9 files): 6 identified from the title alone, every correct match
   confident (79–100%), no wrong match confident (≤ 29%).
 
+## Weimar Jazz Database ingest (`ingest/wjd.ts`, `npm run corpus:wjd`)
+
+- Rows in (`melody`, `beats`, `solo_info`), Score out; `src/` never
+  touches SQLite. Bar 1 = the earliest bar in either table.
+- Onset = (bar, beat, tatum/division) on the tick grid; duration =
+  seconds / beatdur, rounded to the tatum grid, clipped at the next onset.
+- Pitch is concert; written = concert − (chromatic + 12·octave) per
+  instrument code: ts/bcl (−2,−1), ss/tp/cor/cl (−2,0), as (−9,0),
+  bs (−9,−1), others C.
+- Chords: one per beat where given; WJD `j7`→`maj7`, `alt` dropped, slash
+  bass dropped; `NC` skipped. Track confidence 0.9.
+- Form labels (A1, B2, I1 …) become rehearsal marks (letters only) on the
+  bar they start, so the phase comes from them.
+- A solo whose `period` changes is rejected (one meter per score).
+- Corpus, 2026-08-24: 453 solos run, 3 rejected (mixed meter), 0 unparsed
+  chords, form found in 305, findings median 13 (max 132), units median
+  35.
+
 ## Verification targets
 
 Blake (`npm run solo`): form 56 bars, chorus starts **9 and 65** (8-bar

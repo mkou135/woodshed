@@ -148,3 +148,17 @@ Ornithology 38→94%, Now's The Time 42→69/71%, Suede Shoes 50→100%; the
 **Who.** Claude. **Would reverse it.** A solo that genuinely starts on
 the "and of 3" of bar 1 of the form with no pickup — the vote would then
 disagree and the page would say so.
+
+## 2026-08-24 — WJD as a full-pipeline corpus
+
+**Question.** Only one real MusicXML solo (Blake) exercised the pipeline;
+`eval:wjd` used the Weimar database for phrase boundaries alone.
+**Decision.** Ingest WJD rows into `Score` (notes, chords per beat, form
+labels as rehearsal marks, instrument transposition) and run the whole
+pipeline over all 456 solos with `npm run corpus:wjd`. Mixed-meter solos
+are rejected, not fudged. Slash chords parse as their upper chord.
+**Evidence.** 453/456 run clean; 0 unparsed chord symbols after the slash
+fix (was 233 beats).
+**Who.** Owner asked for more data; Claude picked WJD as the largest
+curated source already on disk.
+**Would reverse it.** Nothing — it is additive. Fixtures stay MusicXML.

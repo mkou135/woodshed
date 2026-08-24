@@ -12,9 +12,10 @@
  * note indices; "near" allows one note of slack either way.
  */
 import { DatabaseSync } from 'node:sqlite'
+import { notesFromWjd } from '../src/ingest/wjd.ts'
+import type { WjdMelodyRow } from '../src/ingest/wjd.ts'
 import { segment } from '../src/analyse/segment.ts'
 import type { SegmentOptions } from '../src/analyse/segment.ts'
-import { TICKS_PER_QUARTER as Q } from '../src/core/types.ts'
 import type { Note } from '../src/core/types.ts'
 
 const dbPath = process.env.WJD ?? `${process.env.HOME}/dev/personal/woodshed-data/wjazzd.db`
@@ -26,38 +27,8 @@ const opts: Partial<SegmentOptions> = optsArg > -1 ? JSON.parse(process.argv[opt
 
 const db = new DatabaseSync(dbPath)
 
-interface Row {
-  onset: number
-  pitch: number
-  duration: number
-  period: number
-  division: number
-  bar: number
-  beat: number
-  tatum: number
-  beatdur: number
-}
-
-function toNotes(rows: Row[]): Note[] {
-  const minBar = Math.min(...rows.map((r) => r.bar))
-  const notes: Note[] = []
-  for (const r of rows) {
-    const quarters = (r.bar - minBar) * r.period + (r.beat - 1) + (r.tatum - 1) / r.division
-    const onset = Math.round(quarters * Q)
-    const beats = r.beatdur > 0 ? r.duration / r.beatdur : 0.5
-    const grid = Q / Math.max(1, r.division)
-    const duration = Math.max(grid, Math.round((beats * Q) / grid) * grid)
-    notes.push({ midi: r.pitch, onset, duration, bar: r.bar - minBar + 1, beat: quarters % r.period })
-  }
-  // No overlaps: a note ends where the next begins at the latest.
-  for (let i = 0; i < notes.length - 1; i++) {
-    notes[i].duration = Math.min(notes[i].duration, Math.max(grid(notes, i), notes[i + 1].onset - notes[i].onset))
-  }
-  return notes
-}
-function grid(notes: Note[], i: number): number {
-  return Math.min(notes[i].duration, Q / 4)
-}
+type Row = WjdMelodyRow
+const toNotes = (rows: Row[]): Note[] => notesFromWjd(rows, Math.min(...rows.map((r) => r.bar)))
 
 interface Tally { tp: number; fp: number; fn: number }
 const tally = (): Tally => ({ tp: 0, fp: 0, fn: 0 })

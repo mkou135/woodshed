@@ -71,3 +71,11 @@ describe('chordTrackFromMarks', () => {
     expect(chordTrackFromMarks([{ bar: 1, kind: 'words', text: 'Swing' }])).toBeNull()
   })
 })
+
+describe('slash chords', () => {
+  it('keeps the quality and drops the bass note', () => {
+    expect(parseChordSymbol('C-/Bb')).toEqual({ rootPc: 0, quality: 'minor', tensions: [] })
+    expect(parseChordSymbol('F/A')).toEqual({ rootPc: 5, quality: 'major', tensions: [] })
+    expect(parseChordSymbol('D-7/G')).toEqual({ rootPc: 2, quality: 'minor-seventh', tensions: [] })
+  })
+})

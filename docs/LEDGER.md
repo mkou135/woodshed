@@ -55,3 +55,6 @@ verified in Chrome on Autumn Leaves · 229 tests.
 2026-08-24 · session 3 · Omnibook (50 Parker files) run: all parse; pickup
 bar 1 broke phase → 'pickup' phase rule; 24/32 title matches vote
 confident. Fixture form-pickup-bar · 230 tests.
+2026-08-24 · session 3 · WJD ingester (`ingest/wjd.ts`) + `npm run
+corpus:wjd`: 453/456 solos through the full pipeline; slash chords parsed;
+mixed meter rejected; eval:wjd reuses the converter · 236 tests.
