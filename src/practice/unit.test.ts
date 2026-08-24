@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { run } from '../pipeline.ts'
 import { partition, stockShare, chordName } from './unit.ts'
 import { TICKS_PER_QUARTER as Q } from '../core/types.ts'
 import type { Note } from '../core/types.ts'
 
 const BLAKE = '/Users/michaelkourkov/Documents/MuseScore4/Scores/Hey Lock! - Seamus Blake Solo Transcription.mxl'
+const ST_THOMAS = '/Users/michaelkourkov/dev/woodshed-data/peers/st-thomas-sonny-rollins-solo-transcription.mxl'
 
 const eighths = (bar: number, count: number): Note[] =>
   Array.from({ length: count }, (_, i) => ({
@@ -75,6 +76,29 @@ describe('buildUnits on the Blake solo', () => {
       expect(through, u.header).toBeDefined()
       if (through?.kind === 'through') expect(through.exercises[0].bars.length).toBeGreaterThan(0)
     }
+  })
+
+  it('takes the top line through its three progression slots, including the resolution', () => {
+    const through = result.units[0].steps.find((step) => step.kind === 'through')
+    const line = through?.kind === 'through'
+      ? through.exercises.find((exercise) => exercise.transformation === 'through-tune')
+      : undefined
+    expect(line?.bars).toHaveLength(9)
+    expect(line?.rationale).toContain('bars 12–14 (G7 → Cm7 → F7 → E7)')
+    expect(line?.rationale).toContain('bars 28–30 (G7 → Cm7 → F7 → E7)')
+    expect(line?.rationale).toContain('bars 52–54 (G7 → Cm7 → F7 → E7)')
+  })
+})
+
+describe.skipIf(!existsSync(ST_THOMAS))('buildUnits on the St Thomas solo', () => {
+  it('takes the top line through the matching dominant–minor–dominant resolution slot', () => {
+    const result = run(new Uint8Array(readFileSync(ST_THOMAS)))
+    const through = result.units[0].steps.find((step) => step.kind === 'through')
+    const line = through?.kind === 'through'
+      ? through.exercises.find((exercise) => exercise.transformation === 'through-tune')
+      : undefined
+    expect(line?.bars).toHaveLength(3)
+    expect(line?.rationale).toContain('bars 11–13 (Bb7 → Em7 → A7 → D)')
   })
 })
 

@@ -67,13 +67,6 @@ moving its resolution into DECISIONS.md.
   nothing on its own. Keep deferred unless something needs it.
 - **Analyse the head (bars 9–64)** to catch the soloist quoting the tune.
   Form phase is fixed, so this is now cheap.
-- **Through / Vary steps don't match the pedagogy** (owner, session 6).
-  Through re-targets the degree cell on every same-family chord (Bergonzi),
-  not the lick over matching progression slots (Baker/Galper). Vary slides
-  the fixed line under fixed chords; passing tones land on beat 1. Research
-  and options in docs/research/through-and-vary.md. Resolve: owner picks a
-  reading, then rebuild the two steps with the Blake u1 and a St Thomas
-  idea as goldens.
 - **displace step and 3/4+ time**: placements assume 4/4 feel (beat 2,
   and-of-1). Check against a 3/4 solo when one arrives.
 

@@ -1,42 +1,99 @@
-import type { Instrument } from '../../core/types.ts'
+import { TICKS_PER_QUARTER } from '../../core/types.ts'
+import type { Chord, Note, Score } from '../../core/types.ts'
 import { overChanges, throughCycleOfFourths } from '../../generate/transform.ts'
 import { isValid } from '../../generate/validity.ts'
-import type { Exercise } from '../../generate/index.ts'
+import type { Exercise, ExerciseBar } from '../../generate/index.ts'
 import type { PracticeUnit, Step } from '../unit.ts'
 import type { Tune } from '../tune.ts'
 import { qualityFamily } from '../../core/pitch.ts'
+import { findProgressionSlots, progressionSlot, transposeLine } from '../slots.ts'
+import { barTicks } from '../tune.ts'
+import { excerpt } from './loop.ts'
+import { chordName } from '../unit.ts'
+
+function sameChord(a: Chord | undefined, b: Chord): boolean {
+  return !!a && a.rootPc === b.rootPc && a.quality === b.quality
+}
+
+/** The first new harmony after the line, when it arrives within one bar. */
+export function resolutionChord(unit: Pick<PracticeUnit, 'notes' | 'harmony'>, score: Score): Chord | null {
+  const lastNote = unit.notes[unit.notes.length - 1]
+  if (!lastNote) return null
+  const lastHarmony = unit.harmony[unit.harmony.length - 1]
+  if (!lastHarmony) return null
+  const lineEnd = lastNote.onset + lastNote.duration
+  const next = (score.chordTracks[0]?.chords ?? []).find((chord) =>
+    chord.onset >= lineEnd && !sameChord(lastHarmony, chord))
+  if (!next) return null
+  return next.onset - lineEnd <= barTicks(score.timeSig) ? next : null
+}
 
 /**
- * Each named cell inside the unit, re-targeted onto every chord of the tune
- * it is vocabulary for. The cycle of fourths stays available but is not the
- * default: Coker prints one key on purpose.
+ * The whole line goes wherever its progression recurs (Baker/Galper). The
+ * named cell on each compatible chord remains available as Bergonzi's drill.
  */
 export function throughStep(
   unit: Omit<PracticeUnit, 'steps'>,
   tune: Tune,
-  instrument: Instrument,
+  score: Score,
   tuneName: string,
-): Step[] {
+): Extract<Step, { kind: 'through' }>[] {
+  const { instrument } = score
   const cells = unit.findings.filter((f) => f.degrees && f.quality)
-  if (cells.length === 0) return []
-
   const chords = tune.bars.flatMap((b, i) => b.chords.map((c) => ({ ...c, bar: i + 1 })))
   const exercises: Exercise[] = []
-  const where: string[] = []
+  const lines: string[] = []
+
+  const resolution = resolutionChord(unit, score)
+  const sourceHarmony = resolution ? [...unit.harmony, resolution] : unit.harmony
+  const slot = progressionSlot(sourceHarmony)
+  const matches = slot ? findProgressionSlots(slot, tune) : []
+  const sourceStart = unit.harmony[0]?.onset ?? unit.notes[0]?.onset ?? 0
+  const ticks = barTicks(tune.timeSig)
+  const lineBars: ExerciseBar[] = []
+  const places: string[] = []
+  for (const match of matches) {
+    const transposed = transposeLine(unit.notes, match.shift, instrument)
+    if (!transposed) continue
+    const move = match.chords[0].onset - sourceStart
+    const notes: Note[] = transposed.map((note) => {
+      const onset = note.onset + move
+      return { ...note, onset, bar: Math.floor(onset / ticks) + 1, beat: (onset % ticks) / TICKS_PER_QUARTER }
+    })
+    const harmony: Chord[] = match.chords.map((chord) => ({ ...chord }))
+    lineBars.push(...excerpt(notes, harmony, tune.timeSig, notes[0].onset % ticks))
+    const bars = match.bar === match.toBar ? `bar ${match.bar}` : `bars ${match.bar}–${match.toBar}`
+    places.push(`${bars} (${match.chords.map(chordName).join(' → ')})`)
+  }
+  if (lineBars.length > 0) {
+    exercises.push({
+      id: `${unit.id}-through-line`,
+      title: `The line through ${tuneName}`,
+      findingId: unit.findings[0]?.id ?? '',
+      findingName: unit.findings[0]?.name ?? '',
+      transformation: 'through-tune',
+      bars: lineBars,
+      sourceBar: unit.notes[0].bar,
+      rationale: `Same line and rhythm, transposed wherever the progression recurs: ${places.join('; ')}.`,
+      timeSig: tune.timeSig,
+    })
+    lines.push(`The progression occurs ${places.length === 1 ? 'once' : `${places.length} times`} in ${tuneName}: ${places.join('; ')}.`)
+  }
 
   const nowhere: string[] = []
   for (const finding of cells) {
     const over = overChanges(finding, chords, instrument)
     if (!over || !isValid(over, finding)) nowhere.push(finding.name)
     if (over && isValid(over, finding)) {
-      over.id = `${unit.id}-${finding.id}-through`
-      over.title = `${finding.name} through ${tuneName}`
-      exercises.push(over)
+      over.id = `${unit.id}-${finding.id}-cell`
       const family = qualityFamily(finding.quality!)
+      over.title = `The cell alone on every ${family} chord`
+      over.rationale = 'Bergonzi’s drill: the named cell alone, one compatible chord at a time.'
+      exercises.push(over)
       const bars = chords
         .filter((c) => qualityFamily(c.quality) === family)
         .map((c) => c.bar)
-      where.push(`${finding.name}: every ${family} chord in ${tuneName} (bars ${[...new Set(bars)].join(', ')})`)
+      lines.push(`${finding.name}: every ${family} chord in ${tuneName} (bars ${[...new Set(bars)].join(', ')}).`)
     }
     const cycle = throughCycleOfFourths(finding, instrument)
     if (cycle && isValid(cycle, finding)) {
@@ -46,12 +103,9 @@ export function throughStep(
   }
   if (exercises.length === 0) return []
 
-  const lines = [
-    ...where.map((w) => `${w}.`),
-    ...nowhere.map((n) => `No chord in ${tuneName} fits ${n}; the cycle of fourths stands in.`),
-    'Play it slowly in each place by ear — think in degrees, not note names — then with a play-along.',
-  ]
-  if (where.length > 0) lines.push('The cycle-of-fourths version is there when you want all twelve keys.')
+  lines.push(...nowhere.map((n) => `No chord in ${tuneName} fits ${n}; the cycle of fourths stands in.`))
+  lines.push('Learn it by ear, then play it slowly in each place with a play-along.')
+  if (cells.length > 0) lines.push('The cell drill and cycle are separate ways to generalise the vocabulary.')
 
   return [{
     kind: 'through',

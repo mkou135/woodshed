@@ -30,8 +30,8 @@ const TITLES: Record<Step['kind'], string> = {
 function intent(step: Step, unit: PracticeUnit, result: PipelineResult): string {
   switch (step.kind) {
     case 'loop': return `Sing it, then play along with the record from bar ${barLabel(result.score, unit.notes[0].bar)}.`
-    case 'through': return `Same shape over every chord in ${step.tune} that takes it; all twelve keys.`
-    case 'displace': return 'Moved in the bar, then your own variations.'
+    case 'through': return `The whole line over every matching progression in ${step.tune}; cell and cycle drills follow.`
+    case 'displace': return 'The line and changes move together; hear the new metric feel.'
     case 'write': return 'Three lines into the targets; drop the file back to check.'
   }
 }

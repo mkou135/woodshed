@@ -181,3 +181,10 @@ Session closed at 292 tests.
 transcription; selecting an idea highlights without scrolling. Owner
 questions through/vary pedagogy → docs/research/through-and-vary.md,
 OPEN_QUESTIONS. Pushed to main (prototype: push on every change).
+2026-08-24 · session 8 · Through/Vary pedagogy shipped from the completed
+research: whole line + exact rhythm + resolution over matching progression
+slots; Bergonzi cell drill kept separate; Vary moves the harmonic frame with
+the line. Blake/St Thomas goldens and focused regression coverage added.
+Browser-checked both steps on Blake; review fixes preserve shifted chord
+offsets, print resolution bars and reject changes under held final notes.
+Full build, brackets and 299 tests green.

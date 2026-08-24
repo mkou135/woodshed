@@ -54,13 +54,22 @@ export function excerpt(
       pos = 0
     }
   }
-  // Fill the last bar to the line.
-  const lastBar = bars.length - 1
+  // Chords: the ones that sounded under the notes, moved by the same shift.
+  const placedHarmony = harmony.map((chord) => {
+    // A chord already sounding before the excerpt is carried at its start;
+    // otherwise retain its real offset from the line instead of pinning it
+    // to the first note.
+    const { bar, at } = place(Math.max(chord.onset, base - shift))
+    return { chord, bar, at }
+  }).filter(({ bar }) => bar >= 0)
+
+  // A supplied resolution after the last note still belongs in the excerpt:
+  // extend with a rest bar so the player can see where the line is going.
+  const lastBar = Math.max(bars.length - 1, ...placedHarmony.map(({ bar }) => bar))
+  ensure(lastBar)
   pushRest((lastBar + 1) * ticks)
 
-  // Chords: the ones that sounded under the notes, moved by the same shift.
-  for (const chord of harmony) {
-    const { bar, at } = place(Math.max(chord.onset, notes[0].onset))
+  for (const { chord, bar, at } of placedHarmony) {
     if (bar < 0 || bar >= bars.length) continue
     const target = bars[bar]
     const entry: BarChord = { onset: at, rootPc: chord.rootPc, quality: chord.quality }
