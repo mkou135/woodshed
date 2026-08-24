@@ -321,3 +321,18 @@ ideas"): engine 12 matched / 4 false → 12 matched / 0 false (the one
 phrases 82.4 → 82.5, ideas 77.8 → 77.6; Blake 16 phrases unchanged, St
 Thomas 55 → 54 · owner's ear, corpus agrees · reverse by articulationSpan
 0.
+
+## 2026-08-24 · Page redesign (session 6)
+
+**Question.** How should the page look and behave for a working jazz
+musician? **Decision.** The "practice desk" design in
+docs/superpowers/specs/2026-08-24-practice-desk-design.md: single column,
+score full width, highlighter marks the idea in hand, tune chip always
+visible and amber when unsure, engine diagnostics behind Details, four
+steps as a path with a done state. No framework in `app/` (plain DOM,
+split into modules). Fonts self-hosted, never a CDN. Step completion
+remembered per solo in localStorage. **Evidence class.** Owner's usability
+feedback from sessions 4–5 plus a mockup reviewed by the owner. **Who.**
+Owner. **Reverses it.** A player test showing the step path or the
+highlighter confuses rather than guides; or the app needing state a
+framework would make cheaper.

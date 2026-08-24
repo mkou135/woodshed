@@ -161,3 +161,7 @@ Mintzer brackets bars 3–34 go 12/13 + 4 false → 12/13 + 0 false; WJD
 phrases 82.5 (+0.1), ideas 77.6 (−0.2). Mintzer brackets hand-coded in
 the session's scratch diag only; worth adding to diag:wjd-style tooling
 next time (OPEN_QUESTIONS). 291 tests.
+2026-08-24 · session 6 · UI/UX pass opened. Brainstormed, mockup shown,
+owner approved: practice-desk design (spec in docs/superpowers/specs/),
+no framework, self-hosted fonts, step done-state in localStorage.
+DECISIONS updated. Next: implementation plan, then build.
