@@ -69,3 +69,30 @@ moving its resolution into DECISIONS.md.
   Form phase is fixed, so this is now cheap.
 - **displace step and 3/4+ time**: placements assume 4/4 feel (beat 2,
   and-of-1). Check against a 3/4 solo when one arrives.
+
+## Segmentation cues to trial (2026-08-24, from a ChatGPT comparison; see LEDGER)
+
+All resolve the same way: add as a `SegmentOptions` parameter, sweep with
+`npm run eval:wjd`, accept only if IDEA or PHRASE F1 rises; record in
+DECISIONS. Ordered by expected payoff.
+
+- **Separate idea profile.** One strength profile serves both levels today;
+  ideas differ from phrases only by rest = 0. Trial a second profile for
+  ideas with rhythm-change and contour-change terms (extends "Idea recall
+  is 68%" above).
+- **Rhythm-change cue.** No term fires when the duration vocabulary changes
+  between adjacent groups (8ths → triplets, 8ths → quarter figure).
+- **Harmonic arrival cue.** `boundaryStrength` never consults the chord;
+  trial wArrival × (chord tone 1/3/5, strong beat). Also tests Weimar
+  hypothesis 8 (phrase ends at a target with no rest) and the 8 Blake
+  non-chord-tone endings.
+- **Metric position cue.** Rest × beat position — the "smarter form" the
+  rejected short-rest idea cue was deferred to.
+- **Variant clustering.** Finding merge is exact identity (degrees / name /
+  interval vector). Recognise A′ as a variant of A: same contour with one
+  interval changed, same pitches rhythmically displaced, sequence,
+  inversion. Feeds Σ occurrences in the unit rank.
+- **Local peak-picking threshold.** Global 0.45 vs "stronger than most
+  gaps inside the span"; may help across densities (Parker vs ballad).
+- **Contour closure cue.** Line reaches an extreme then settles. Lowest
+  expected payoff; only if headroom remains.

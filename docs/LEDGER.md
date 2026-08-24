@@ -62,3 +62,8 @@ mixed meter rejected; eval:wjd reuses the converter · 236 tests.
 `eval:omnibook` script + golden counts for corpus:wjd; vamp-as-form (34 WJD
 solos); vote over period×phase for weak tune matches; peers' files via a
 Dropbox file request into ~/dev/woodshed-data/peers.
+2026-08-24 · session 4 · Compared segmentation against a ChatGPT hierarchical
+model (ideas → phrases, separate weight vectors, harmonic/metric cues,
+variant clustering). Already in place: weighted profile, two levels, graded
+rest, held-note, leap, minGroup, identity clustering, WJD eval. Seven new
+cues logged in OPEN_QUESTIONS under "Segmentation cues to trial". No code.
