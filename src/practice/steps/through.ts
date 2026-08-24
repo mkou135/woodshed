@@ -21,10 +21,11 @@ export function resolutionChord(unit: Pick<PracticeUnit, 'notes' | 'harmony'>, s
   if (!lastNote) return null
   const lastHarmony = unit.harmony[unit.harmony.length - 1]
   if (!lastHarmony) return null
+  const lineEnd = lastNote.onset + lastNote.duration
   const next = (score.chordTracks[0]?.chords ?? []).find((chord) =>
-    chord.onset > lastNote.onset && !sameChord(lastHarmony, chord))
+    chord.onset >= lineEnd && !sameChord(lastHarmony, chord))
   if (!next) return null
-  return next.onset - (lastNote.onset + lastNote.duration) <= barTicks(score.timeSig) ? next : null
+  return next.onset - lineEnd <= barTicks(score.timeSig) ? next : null
 }
 
 /**

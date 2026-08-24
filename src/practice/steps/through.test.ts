@@ -4,7 +4,7 @@ import { TICKS_PER_QUARTER as Q } from '../../core/types.ts'
 import type { Chord, Note, Score } from '../../core/types.ts'
 import type { PracticeUnit } from '../unit.ts'
 import type { Tune } from '../tune.ts'
-import { throughStep } from './through.ts'
+import { resolutionChord, throughStep } from './through.ts'
 
 const chord = (rootPc: number, quality: Chord['quality'], onset: number, bar: number): Chord => ({
   rootPc, quality, onset, bar, tensions: [],
@@ -84,7 +84,9 @@ describe('throughStep', () => {
     const [step] = throughStep(resolutionUnit, tune, resolutionScore, tune.title)
     const line = step.exercises.find((exercise) => exercise.transformation === 'through-tune')
 
-    expect(line?.bars).toHaveLength(2)
+    expect(line?.bars).toHaveLength(4)
+    expect(line?.bars[1].chords?.[0]).toMatchObject({ rootPc: 9, quality: 'dominant', onset: 0 })
+    expect(line?.bars[3].chords?.[0]).toMatchObject({ rootPc: 2, quality: 'dominant', onset: 0 })
     expect(line?.rationale).toContain('bars 1–2')
     expect(line?.rationale).toContain('bars 3–4')
     expect(line?.rationale).not.toContain('bar 5')
@@ -102,5 +104,17 @@ describe('throughStep', () => {
     const [step] = throughStep(unharmonised, tune, source, tune.title)
 
     expect(step.exercises.some((exercise) => exercise.transformation === 'through-tune')).toBe(false)
+  })
+
+  it('does not call a chord change during the final held note a resolution', () => {
+    const held = [{ ...notes[0], onset: 2 * Q, duration: 3 * Q, beat: 2 }]
+    const heldUnit = { ...unit, notes: held, endIndex: 0, harmony: [harmony[0]] }
+    const heldScore = {
+      ...score,
+      notes: held,
+      chordTracks: [{ chords: harmony, provenance: 'file' as const, confidence: 1 }],
+    }
+
+    expect(resolutionChord(heldUnit, heldScore)).toBeNull()
   })
 })

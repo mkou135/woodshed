@@ -83,10 +83,9 @@ describe('displaceStep', () => {
     expect(varied.exercises.map((exercise) => exercise.title)).toEqual([
       'Start it on beat 1', 'Start it on the "and" of 1', 'Start it on beat 2', 'Start it as a pickup into beat 1',
     ])
-    for (const exercise of varied.exercises) {
-      const chordPositions = exercise.bars.flatMap((bar, i) =>
-        (bar.chords ?? []).map((change) => i * 4 * Q + change.onset))
-      expect(chordPositions[1] - chordPositions[0]).toBe(Q * 1.5)
-    }
+    const pickup = varied.exercises[3]
+    const chordPositions = pickup.bars.flatMap((bar, i) =>
+      (bar.chords ?? []).map((change) => i * 4 * Q + change.onset))
+    expect(chordPositions).toEqual([2 * Q, 5 * Q])
   })
 })

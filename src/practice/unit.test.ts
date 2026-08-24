@@ -83,7 +83,7 @@ describe('buildUnits on the Blake solo', () => {
     const line = through?.kind === 'through'
       ? through.exercises.find((exercise) => exercise.transformation === 'through-tune')
       : undefined
-    expect(line?.bars).toHaveLength(6)
+    expect(line?.bars).toHaveLength(9)
     expect(line?.rationale).toContain('bars 12–14 (G7 → Cm7 → F7 → E7)')
     expect(line?.rationale).toContain('bars 28–30 (G7 → Cm7 → F7 → E7)')
     expect(line?.rationale).toContain('bars 52–54 (G7 → Cm7 → F7 → E7)')
@@ -97,7 +97,7 @@ describe.skipIf(!existsSync(ST_THOMAS))('buildUnits on the St Thomas solo', () =
     const line = through?.kind === 'through'
       ? through.exercises.find((exercise) => exercise.transformation === 'through-tune')
       : undefined
-    expect(line?.bars).toHaveLength(2)
+    expect(line?.bars).toHaveLength(3)
     expect(line?.rationale).toContain('bars 11–13 (Bb7 → Em7 → A7 → D)')
   })
 })

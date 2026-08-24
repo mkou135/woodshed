@@ -169,11 +169,12 @@ vector); pass 2 by overlap adds detectedBy/weights only, never spans.
   idea's progression or a degree-cell has somewhere to go; vary (always).
 - Through (`practice/slots.ts`, `practice/steps/through.ts`): the idea's slot
   is its distinct chord classes + root intervals, followed by the first new
-  chord after the last note when it arrives within one bar. The whole line
+  chord after the final note ends when it arrives within one bar. The whole line
   (pitches and exact rhythm) is transposed to every matching occurrence in
   the tune, in tune order, capped at 8; the nearest octave fitting the normal
-  written range is used. A named cell on each compatible chord remains as a
-  separate Bergonzi drill, followed by the twelve-key cycle.
+  written range is used; a rest bar prints a cross-bar resolution. A named
+  cell on each compatible chord remains as a separate Bergonzi drill,
+  followed by the twelve-key cycle.
 - Vary (`practice/steps/displace.ts`): placements beat 1, and-of-1, beat 2,
   pickup; smallest shift modulo the bar. Notes and chord changes move by the
   same offset, preserving harmonic function while changing metric feel.
