@@ -52,3 +52,6 @@ form-letters-in-chorus, soloist-tag-first · 217 tests.
 title guess from `<work-title>`/file name, transposition by bar-root vote
 (overrides file instrument when confident); page: search box + pills,
 verified in Chrome on Autumn Leaves · 229 tests.
+2026-08-24 · session 3 · Omnibook (50 Parker files) run: all parse; pickup
+bar 1 broke phase → 'pickup' phase rule; 24/32 title matches vote
+confident. Fixture form-pickup-bar · 230 tests.

@@ -134,3 +134,17 @@ changes alone.
 about substitutions); Claude for the vote.
 **Would reverse it.** A chart whose comping diverges on most bars, or a
 book chart in a different form length from the solo.
+
+## 2026-08-24 — A pickup written as a full bar 1
+
+**Question.** Omnibook files start with a pickup bar numbered 1 whose
+chord is the form's last bar; with no marks the form phased from bar 1
+and every tune vote compared against the wrong chart bar.
+**Decision.** No marks + first note of bar 1 at or after mid-bar → pickup,
+phase from bar 2. Marks always take precedence.
+**Evidence.** Omnibook: Anthropology 31→77%, Billie's Bounce 36→77%,
+Ornithology 38→94%, Now's The Time 42→69/71%, Suede Shoes 50→100%; the
+9-file corpus unchanged.
+**Who.** Claude. **Would reverse it.** A solo that genuinely starts on
+the "and of 3" of bar 1 of the form with no pickup — the vote would then
+disagree and the page would say so.

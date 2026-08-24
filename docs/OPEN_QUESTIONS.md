@@ -10,6 +10,15 @@ moving its resolution into DECISIONS.md.
   parsed at 0.7 confidence) and a pickup numbered bar 0; a single chorus,
   so no form. Resolve: check the text-chord degrees look right on the page;
   decide whether bar 0 should be renumbered at ingest.
+- **Omnibook as a regression corpus.** 50 Parker heads+solos (Inria, CC
+  BY-NC-SA, `~/dev/woodshed-data/omnibook`) all run; ~1,800 units. Not in
+  the repo (licence, 50 MB with the WJD copy). Resolve: an
+  `npm run eval:omnibook` that points at the folder and pins counts, like
+  `eval:wjd`; decide whether the licence allows a few as fixtures.
+- **Correct tune, weak vote** — Barbados 33%, Perhaps 41%, Cheryl 24%
+  (period detected as 24 not 12), Blue Bird, Relaxing With Lee (title →
+  Donna Lee). Resolve: try the vote over period × phase offsets, not just
+  the detected phase; that is also the "rank the book by changes" item.
 - **Tunes not in the book** ("Blues in all keys", "Rhythm Changes", "Hey
   Lock") only get "paste a link". Resolve: aliases (rhythm changes → I Got
   Rhythm; blues → a 12-bar template) and, later, ranking the book by how

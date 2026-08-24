@@ -1,3 +1,4 @@
+import { TICKS_PER_QUARTER } from '../core/types.ts'
 import type { Chord, Score } from '../core/types.ts'
 import type { Adjustment } from './adjustments.ts'
 
@@ -7,7 +8,7 @@ export interface FormResult {
   method: 'absolute' | 'relative'
   chorusStarts: number[]
   /** Which marks fixed the phase (rehearsal letters beat double bars). */
-  phaseFrom: 'rehearsal' | 'double-bar' | 'none'
+  phaseFrom: 'rehearsal' | 'double-bar' | 'pickup' | 'none'
   /** True when the marks that set the phase all sit a whole number of periods apart. */
   agreesWithMarks: boolean
 }
@@ -97,6 +98,14 @@ function phase(
       (m) => (m.kind === 'rehearsal' || m.kind === 'double-bar') && (m.bar - firstStart) % period === 0,
     )
     return { firstStart, phaseFrom: kind, agreesWithMarks: new Set(inPhase.map((m) => m.bar)).size >= 2 }
+  }
+  // No marks. A first bar whose notes all sit in its second half is a
+  // pickup written as a full bar (the Omnibook does this throughout): the
+  // form starts on bar 2.
+  const ticks = (score.timeSig[0] * 4 * TICKS_PER_QUARTER) / score.timeSig[1]
+  const first = score.notes.find((n) => n.bar === 1)
+  if (first && first.beat * TICKS_PER_QUARTER >= ticks / 2 && score.barCount > period) {
+    return { firstStart: 2, phaseFrom: 'pickup', agreesWithMarks: false }
   }
   return { firstStart: 1, phaseFrom: 'none', agreesWithMarks: false }
 }

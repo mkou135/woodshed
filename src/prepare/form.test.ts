@@ -68,3 +68,13 @@ describe('form phase with letters inside the chorus', () => {
     expect(form.phaseFrom).toBe('rehearsal')
   })
 })
+
+describe('form phase with a pickup bar and no marks', () => {
+  it('treats a first bar that only has notes in its second half as a pickup', () => {
+    const form = detectForm(load('form-pickup-bar.musicxml'))!
+    expect(form.periodBars).toBe(8)
+    expect(form.chorusStarts).toEqual([2, 10])
+    expect(form.phaseFrom).toBe('pickup')
+    expect(form.agreesWithMarks).toBe(false)
+  })
+})

@@ -52,8 +52,10 @@ first note is off the eighth grid starts on its quarter-note beat
   (mod period) holding the most marks of that kind, ties to the earliest
   mark; choruses start on every bar in that class from the first ≥ 1 (the
   head before the first letter is a chorus; bars before that are an intro).
-  `agreesWithMarks` = ≥ 2 marks of either kind in the class. No marks →
-  bar 1, `phaseFrom: 'none'`. Rationale: docs/research/notation-conventions.md.
+  `agreesWithMarks` = ≥ 2 marks of either kind in the class. No marks and
+  bar 1's first note at or after mid-bar (and more bars than one period) →
+  bar 1 is a pickup, phase from bar 2, `phaseFrom: 'pickup'`. Else bar 1,
+  `phaseFrom: 'none'`. Rationale: docs/research/notation-conventions.md.
 - Adjustment confidence 0.95 when phased by marks, else the agreement.
 
 ## Soloist choice (`prepare/soloists.ts`)
@@ -152,6 +154,9 @@ jazz standards parse.
   (`MIN_AGREEMENT`, `MIN_MARGIN`). Confident → its shift overrides the
   file's `<transpose>`; else the file's instrument is used and the page
   asks "Right tune?".
+- Omnibook corpus (50 files, `~/dev/woodshed-data/omnibook`, concert
+  pitch, pickup bars): all parse; 24 of 32 title-matched tunes vote
+  confident, 0 wrong titles do.
 - Corpus (9 files): 6 identified from the title alone, every correct match
   confident (79–100%), no wrong match confident (≤ 29%).
 
