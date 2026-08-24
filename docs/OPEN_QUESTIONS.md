@@ -99,3 +99,11 @@ also rejected, 3% precision — idea recall is at its ceiling. Still open:
   benchmark (named vs unnamed licks with their changes); second corpus for
   the stock-vocabulary frequency table; variant-family checks. OMR noise
   unmeasured — spot-check against the PNGs before trusting any lick.
+- **Dictionary coverage on Bopland is 37% named / 39% unnamed-only / 24%
+  nothing** (`npm run bench:bopland`, 1,785 licks with their own changes).
+  The "nothing" sample shows shapes the degree-cell dictionary lacks: bare
+  triads in any order (1 3 5 / 3 5 1 / 5 3 1 — cells are length 4 today),
+  dominant b9 cells (3 b9 1, 1 b9 b7, b7 #9 b9 1), and 3-note approach
+  cells. Adding cells changes what the app names on every solo, so it is
+  the owner's call: propose triads first (measure the Blake/WJD finding
+  counts before and after), then the b9 family.
