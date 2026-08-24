@@ -31,7 +31,7 @@ export interface ExerciseBar {
 }
 
 export type Transformation =
-  | 'cycle-of-fourths' | 'over-changes' | 'loop' | 'displace' | 'template'
+  | 'cycle-of-fourths' | 'over-changes' | 'through-tune' | 'loop' | 'displace' | 'template'
 
 export interface Exercise {
   id: string

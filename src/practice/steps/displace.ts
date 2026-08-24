@@ -1,17 +1,14 @@
 import { TICKS_PER_QUARTER } from '../../core/types.ts'
 import type { Score } from '../../core/types.ts'
-import { contextualise } from '../../analyse/context.ts'
 import type { Exercise } from '../../generate/index.ts'
 import type { PracticeUnit, Step } from '../unit.ts'
 import { barTicks } from '../tune.ts'
 import { excerpt } from './loop.ts'
 
 /**
- * The same notes and the same relative rhythm, starting somewhere else in
- * the bar. Barry Harris and Galper drill exactly this. Pitches never change,
- * so there is no wrong note to put in anyone's hands; a placement is only
- * dropped when moving the line under its own chords turns the arrival from
- * a chord tone into something else.
+ * The same line and harmonic frame, starting somewhere else in the bar.
+ * Crook treats this as a metric-feel exercise: isolate the time placement
+ * while the pitches, rhythm and chord relationships stay fixed.
  */
 const PLACEMENTS: { label: string; offset: number }[] = [
   { label: 'on beat 1', offset: 0 },
@@ -36,13 +33,12 @@ export function displaceStep(unit: Omit<PracticeUnit, 'steps'>, score: Score): E
     if (shift > ticks / 2) shift -= ticks
     if (shift < -ticks / 2) shift += ticks
     const moved = unit.notes.map((n) => ({ ...n, onset: n.onset + shift }))
-    // Keep the arrival honest under the chords that were there.
-    if (unit.arrival?.chordTone && unit.harmony.length > 0) {
-      const chords = unit.harmony.map((c) => ({ ...c }))
-      const ctx = contextualise(moved, chords)
-      if (!ctx[ctx.length - 1].chordTone) continue
-    }
-    const bars = excerpt(moved, unit.harmony, score.timeSig, offset)
+    const movedHarmony = unit.harmony.map((chord) => ({
+      ...chord,
+      onset: chord.onset + shift,
+      bar: Math.floor((chord.onset + shift) / ticks) + 1,
+    }))
+    const bars = excerpt(moved, movedHarmony, score.timeSig, offset)
     exercises.push({
       id: `${unit.id}-displace-${exercises.length + 1}`,
       title: `Start it ${placement.label}`,
@@ -51,7 +47,7 @@ export function displaceStep(unit: Omit<PracticeUnit, 'steps'>, score: Score): E
       transformation: 'displace',
       bars,
       sourceBar: first.bar,
-      rationale: 'Same notes, same rhythm, a different place in the bar.',
+      rationale: 'Same line and changes, a different place in the bar — listen to how the metric feel changes.',
       timeSig: score.timeSig,
     })
   }
@@ -60,7 +56,7 @@ export function displaceStep(unit: Omit<PracticeUnit, 'steps'>, score: Score): E
     kind: 'displace',
     exercises,
     prompt:
-      'Same notes and rhythm, moved in the bar. Then on your own: start it on a different ' +
-      'chord tone, play its rhythm on one note, reverse the contour, split it and recombine the halves.',
+      'Move the line and its changes together so every note keeps its harmonic job. Listen for the new metric feel. ' +
+      'Then isolate one variable of your own: play the rhythm on one note, reverse the contour, or split and recombine the halves.',
   }
 }

@@ -336,3 +336,20 @@ feedback from sessions 4–5 plus a mockup reviewed by the owner. **Who.**
 Owner. **Reverses it.** A player test showing the step path or the
 highlighter confuses rather than guides; or the app needing state a
 framework would make cheaper.
+
+## 2026-08-24 · Through the tune and Vary (session 8)
+
+**Question.** Does “through the tune” mean the detected four-note cell or
+the player's whole line, and how can “Vary” change its start without making
+passing notes clash with the old harmony? **Decision.** Through carries the
+whole line, exact rhythm and resolution through every matching progression
+slot (same chord classes and root motion). The previous cell-on-compatible-
+chords exercise remains, explicitly named as Bergonzi's drill, with the
+twelve-key cycle separate. Vary moves the line and its harmonic frame by the
+same metric offset; it does not slide fixed pitches under fixed changes.
+**Evidence class.** Published methods: Baker/Galper for progression slots,
+Bergonzi for cell-per-chord practice, Crook for isolated metric displacement;
+real-solo goldens on Blake and St Thomas. **Who.** Owner approved shipping the
+complete researched plan. **Reverses it.** A player test showing the full-line
+exercise is unreadable or that a different harmonic adaptation produces more
+usable practice material.

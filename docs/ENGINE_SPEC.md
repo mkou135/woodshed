@@ -6,7 +6,7 @@ the code. Each section names the file that implements it — if this file and
 the code disagree, that is a bug to fix immediately, in whichever direction
 the DECISIONS log supports.
 
-Last updated: 2026-08-24 (session 6).
+Last updated: 2026-08-24 (session 8).
 
 ## Units
 
@@ -165,9 +165,18 @@ vector); pass 2 by overlap adds detectedBy/weights only, never spans.
     `CORPUS_FREQUENCY` share of any 4-note window covering it (0 if none is
     in the table); mean over notes. A bebop scale fragment ≈ 0.7, a bare
     maj7 arpeggio contour ≈ 0.4, an unseen figure 0.
-- Steps: loop (always), through + write (only with a degree-cell), displace
-  (always; placements beat 1, and-of-1, beat 2, pickup; smallest shift
-  modulo bar; dropped if a chord-tone arrival stops being one).
+- Steps: loop (always); write (only with a degree-cell); through when the
+  idea's progression or a degree-cell has somewhere to go; vary (always).
+- Through (`practice/slots.ts`, `practice/steps/through.ts`): the idea's slot
+  is its distinct chord classes + root intervals, followed by the first new
+  chord after the last note when it arrives within one bar. The whole line
+  (pitches and exact rhythm) is transposed to every matching occurrence in
+  the tune, in tune order, capped at 8; the nearest octave fitting the normal
+  written range is used. A named cell on each compatible chord remains as a
+  separate Bergonzi drill, followed by the twelve-key cycle.
+- Vary (`practice/steps/displace.ts`): placements beat 1, and-of-1, beat 2,
+  pickup; smallest shift modulo the bar. Notes and chord changes move by the
+  same offset, preserving harmonic function while changing metric feel.
 
 ## Exercise rendering (`render/musicxml.ts`)
 

@@ -262,7 +262,7 @@ export function buildUnits(analysis: Analysis, score: Score, options: BuildOptio
   for (const unit of ranked) {
     unit.steps = [
       loopStep(unit, score),
-      ...throughStep(unit, options.tune, score.instrument, options.tuneName ?? options.tune.title),
+      ...throughStep(unit, options.tune, score, options.tuneName ?? options.tune.title),
       displaceStep(unit, score),
       ...writeTemplate(unit, options.tune, score.instrument, options.tuneName ?? options.tune.title),
     ]

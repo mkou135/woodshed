@@ -62,4 +62,31 @@ describe('displaceStep', () => {
     expect(leadingRest(step.exercises[2])).toBe(Q)
     expect(leadingRest(step.exercises[3])).toBe(Q * 3.5)
   })
+
+  it('moves the harmonic frame with the line instead of dropping placements that clash with the old frame', () => {
+    const changes = [
+      { ...chord, rootPc: 0, quality: 'major' as const, onset: 0 },
+      { ...chord, rootPc: 7, quality: 'dominant' as const, onset: 3 * Q },
+    ]
+    const line = [60, 64, 67, 65].map((midi, i) => ({
+      midi, onset: Q * (1.5 + i / 2), duration: Q / 2, bar: 1, beat: 1.5 + i / 2,
+    }))
+    const resolving = {
+      ...unit,
+      notes: line,
+      harmony: changes,
+      arrival: { degree: 'b7', chordTone: true },
+    }
+
+    const varied = displaceStep(resolving, { ...score, notes: line, chordTracks: [{ chords: changes, provenance: 'file', confidence: 1 }] })
+
+    expect(varied.exercises.map((exercise) => exercise.title)).toEqual([
+      'Start it on beat 1', 'Start it on the "and" of 1', 'Start it on beat 2', 'Start it as a pickup into beat 1',
+    ])
+    for (const exercise of varied.exercises) {
+      const chordPositions = exercise.bars.flatMap((bar, i) =>
+        (bar.chords ?? []).map((change) => i * 4 * Q + change.onset))
+      expect(chordPositions[1] - chordPositions[0]).toBe(Q * 1.5)
+    }
+  })
 })
