@@ -1,3 +1,4 @@
+import { barLabel } from './core/bars.ts'
 import type { Score } from './core/types.ts'
 import { ingest } from './ingest/index.ts'
 import { prepare } from './prepare/index.ts'
@@ -39,13 +40,13 @@ const STRONG = 0.7
 const MODERATE = 0.45
 
 /** Pure, so the page's list can be tested without a DOM. */
-export function describeFinding(finding: Finding): FindingView {
+export function describeFinding(finding: Finding, score: Pick<Score, 'repeats'> = {}): FindingView {
   const bars = [...new Set(finding.spans.map((s) => s.bar))].sort((a, b) => a - b)
   const location =
     bars.length === 1
       // Beats are 0-based internally and 1-based for a reader.
-      ? `bar ${bars[0]}, beat ${finding.spans[0].beat + 1}`
-      : `bars ${bars.join(', ')}`
+      ? `bar ${barLabel(score, bars[0])}, beat ${finding.spans[0].beat + 1}`
+      : `bars ${bars.map((b) => barLabel(score, b)).join(', ')}`
 
   const confidenceLabel =
     finding.confidence >= STRONG ? 'strong'
@@ -78,7 +79,7 @@ export function run(bytes: Uint8Array): PipelineResult {
     report,
     analysis,
     exercises,
-    findingViews: analysis.findings.map(describeFinding),
+    findingViews: analysis.findings.map((f) => describeFinding(f, score)),
     tune,
     units,
   }

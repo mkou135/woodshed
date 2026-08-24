@@ -1,3 +1,4 @@
+import { barLabel, barRange } from '../../core/bars.ts'
 import { TICKS_PER_QUARTER } from '../../core/types.ts'
 import type { Chord, Note, Score } from '../../core/types.ts'
 import type { Exercise, ExerciseBar, ExerciseEvent, BarChord } from '../../generate/index.ts'
@@ -88,7 +89,7 @@ export function loopStep(unit: Omit<PracticeUnit, 'steps'>, score: Score): Step 
   const last = unit.notes[unit.notes.length - 1]
   const exercise: Exercise = {
     id: `${unit.id}-loop`,
-    title: `As played, bars ${first.bar}–${last.bar}`,
+    title: `As played, ${barRange(score, first.bar, last.bar)}`,
     findingId: unit.findings[0]?.id ?? '',
     findingName: unit.findings[0]?.name ?? '',
     transformation: 'loop',
@@ -102,7 +103,7 @@ export function loopStep(unit: Omit<PracticeUnit, 'steps'>, score: Score): Step 
     kind: 'loop',
     exercise,
     prompt:
-      `Sing it first — pitches, rhythm, accents. Then loop the record from bar ${first.bar}, ` +
+      `Sing it first — pitches, rhythm, accents. Then loop the record from bar ${barLabel(score, first.bar)}, ` +
       `beat ${beat}, and play along until the time feel matches, not just the notes.`,
   }
 }

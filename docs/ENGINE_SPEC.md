@@ -197,7 +197,11 @@ endings, pass two stops before ending 1 and continues after it; ending 2
 plays once. Two passes only (`times` ignored). Played bar = written bar +
 bars inserted before it, so a score without repeats keeps its own numbers.
 `Score.repeats` lists the sections by written bar; `prepare` emits an
-info `repeat-unrolled` adjustment. Segno / coda remain
+info `repeat-unrolled` adjustment. **Every bar number shown to the player
+is the printed one**: `core/bars.ts` `writtenBar` / `barLabel` ("17 (2nd
+time)") / `barRange`, used by findings, unit headers, steps, the profile,
+the CLI and the page; the page keys the rendered score by printed bar and
+draws no ticks for a second pass. Segno / coda remain
 `UnsupportedScoreError`.
 
 ## Weimar Jazz Database ingest (`ingest/wjd.ts`, `npm run corpus:wjd`)

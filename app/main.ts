@@ -1,5 +1,6 @@
 import bookLink from './data/jazz1460.irealb.txt?raw'
 import { OpenSheetMusicDisplay } from 'opensheetmusicdisplay'
+import { barLabel, barRange, writtenBar } from '../src/core/bars.ts'
 import {
   run, readScoreXml, exerciseToMusicXml, UnsupportedScoreError, TICKS_PER_QUARTER,
   parseIReal, parseIRealBook, practiseOver, transposeTune, tuneFromScore, checkWriting, chordName, noteName,
@@ -37,10 +38,12 @@ function showError(title: string, detail: string): void {
 }
 
 /** An Adjustment targets either a single bar or an inclusive range. */
-function whereOf(adjustment: Adjustment): string {
+function whereOf(adjustment: Adjustment, score: Pick<Score, 'repeats'>): string {
   const target = adjustment.target
-  if ('bar' in target) return `bar ${target.bar}`
-  return `bars ${target.range[0]}–${target.range[1]}`
+  // Repeat sections are reported by written bar already.
+  if (adjustment.kind === 'repeat-unrolled' && 'range' in target) return `bars ${target.range[0]}–${target.range[1]}`
+  if ('bar' in target) return `bar ${barLabel(score, target.bar)}`
+  return barRange(score, target.range[0], target.range[1])
 }
 
 function download(name: string, xml: string): void {
@@ -82,7 +85,7 @@ function summarySection(result: PipelineResult): HTMLElement {
   row(
     'Soloists',
     report.soloists.length > 0
-      ? report.soloists.map((s) => `${s.name} (bars ${s.startBar}–${s.endBar})`).join(', ')
+      ? report.soloists.map((s) => `${s.name} (${barRange(result.score, s.startBar, s.endBar)})`).join(', ')
       : 'none named',
   )
 
@@ -110,7 +113,7 @@ function profileSection(result: PipelineResult): HTMLElement {
     const row = el('tr')
     const cells = [
       label,
-      `${r.startBar}–${r.endBar}`,
+      `${barLabel(result.score, r.startBar)}–${barLabel(result.score, r.endBar)}`,
       r.notesPerBar.toFixed(1),
       `${Math.round(r.silence * 100)}%`,
       `${r.phrases} of ~${Math.round(r.meanPhraseNotes)}`,
@@ -122,17 +125,17 @@ function profileSection(result: PipelineResult): HTMLElement {
   }
   section.appendChild(table)
 
-  const silent = profile.bars.filter((b) => b.silence >= 0.75).map((b) => b.bar)
+  const silent = profile.bars.filter((b) => b.silence >= 0.75).map((b) => barLabel(result.score, b.bar))
   const busiest = [...profile.bars].sort((a, b) => b.notes - a.notes).slice(0, 3)
   section.appendChild(el('p', 'note',
-    `Busiest bars ${busiest.map((b) => b.bar).join(', ')}. ` +
+    `Busiest bars ${busiest.map((b) => barLabel(result.score, b.bar)).join(', ')}. ` +
     (silent.length ? `Mostly silent: ${silent.join(', ')}. ` : '') +
     `Phrase starts ${Math.round(profile.phraseChromaticism.start * 100)}% chromatic, ` +
     `phrase ends ${Math.round(profile.phraseChromaticism.end * 100)}%.`))
   return section
 }
 
-function adjustmentSections(adjustments: Adjustment[]): HTMLElement[] {
+function adjustmentSections(adjustments: Adjustment[], score: Pick<Score, 'repeats'>): HTMLElement[] {
   const out: HTMLElement[] = []
   const blocking = adjustments.filter((a) => a.severity === 'blocking')
   const rest = adjustments.filter((a) => a.severity !== 'blocking')
@@ -140,7 +143,7 @@ function adjustmentSections(adjustments: Adjustment[]): HTMLElement[] {
   for (const adjustment of blocking) {
     const box = el('div', 'blocking')
     box.append(
-      el('strong', undefined, `Needs your decision — ${whereOf(adjustment)}`),
+      el('strong', undefined, `Needs your decision — ${whereOf(adjustment, score)}`),
       el('span', undefined, adjustment.reason),
     )
     out.push(box)
@@ -152,7 +155,7 @@ function adjustmentSections(adjustments: Adjustment[]): HTMLElement[] {
     const list = el('ul')
     for (const adjustment of rest) {
       list.appendChild(
-        el('li', undefined, `${adjustment.severity} · ${whereOf(adjustment)} — ${adjustment.reason}`),
+        el('li', undefined, `${adjustment.severity} · ${whereOf(adjustment, score)} — ${adjustment.reason}`),
       )
     }
     details.appendChild(list)
@@ -301,16 +304,25 @@ function tick(
  * own SVG group; the tick lives in the same SVG so it scrolls with it.
  */
 function markPhrases(result: PipelineResult, map: SoloMap): void {
+  const score = result.score
+  // The rendered score is keyed by printed bar; a second pass through a
+  // repeat lands on the same measures, whose ticks are already drawn.
+  const printed = (bar: number): number | null => {
+    const w = writtenBar(score, bar)
+    return w.pass === 2 ? null : w.bar
+  }
   result.analysis.phrases.forEach((phrase, i) => {
     const first = phrase.notes[0]
+    const firstBar = printed(first.bar)
+    if (firstBar === null) return
     // A phrase that begins on a rest inside a tuplet is marked at the rest.
     let anchor: SVGGElement | undefined
     if (phrase.onset !== first.onset) {
       const beat = (phrase.onset - (first.onset - first.beat * TICKS_PER_QUARTER)) / TICKS_PER_QUARTER
-      anchor = map.rests.get(noteKey(first.bar, beat))
+      anchor = map.rests.get(noteKey(firstBar, beat))
     }
-    anchor ??= map.notes.get(noteKey(first.bar, first.beat))?.[0]
-    const staff = map.staves.get(first.bar)
+    anchor ??= map.notes.get(noteKey(firstBar, first.beat))?.[0]
+    const staff = map.staves.get(firstBar)
     if (!anchor || !staff) return
     tick(anchor, staff, `phrase-tick${phrase.confidence < 0.6 ? ' weak' : ''}`, String(i + 1))
 
@@ -319,8 +331,10 @@ function markPhrases(result: PipelineResult, map: SoloMap): void {
     phrase.ideas.forEach((idea, j) => {
       if (j === 0) return
       const note = idea.notes[0]
-      const target = map.notes.get(noteKey(note.bar, note.beat))?.[0]
-      const ideaStaff = map.staves.get(note.bar)
+      const noteBar = printed(note.bar)
+      if (noteBar === null) return
+      const target = map.notes.get(noteKey(noteBar, note.beat))?.[0]
+      const ideaStaff = map.staves.get(noteBar)
       if (target && ideaStaff) tick(target, ideaStaff, 'idea-tick', `${i + 1}.${j + 1}`)
     })
   })
@@ -334,7 +348,7 @@ function unitElements(
   const out: SVGGElement[] = []
   for (let i = unit.startIndex; i <= unit.endIndex; i++) {
     const note = result.analysis.contexts[i]?.note
-    if (note) out.push(...(byKey.get(noteKey(note.bar, note.beat)) ?? []))
+    if (note) out.push(...(byKey.get(noteKey(writtenBar(result.score, note.bar).bar, note.beat)) ?? []))
   }
   return out
 }
@@ -346,13 +360,13 @@ const STEP_TITLES: Record<Step['kind'], string> = {
   write: '4 · Write your own',
 }
 
-function unitItem(unit: PracticeUnit): HTMLLIElement {
+function unitItem(unit: PracticeUnit, score: Pick<Score, 'repeats'>): HTMLLIElement {
   const item = el('li', 'finding unit')
   item.tabIndex = 0
   item.dataset.id = unit.id
   const first = unit.notes[0]
   const last = unit.notes[unit.notes.length - 1]
-  const where = first.bar === last.bar ? `bar ${first.bar}` : `bars ${first.bar}–${last.bar}`
+  const where = barRange(score, first.bar, last.bar)
   const part = unit.part ? ` · part ${unit.part.n} of ${unit.part.of}` : ''
   item.append(
     el('span', 'name', `${where}${part} · ${unit.harmony.map(chordName).join(' → ') || 'no chord'}`),
@@ -454,7 +468,7 @@ function tuneControl(
   let pasted: IRealSong[] = []
   const chartShift = -result.score.instrument.transpose.chromatic
   const starts = result.report.form?.chorusStarts ?? []
-  const soloTune = tuneFromScore(result.score, starts.length ? [starts[0]] : [])
+  const soloTune = tuneFromScore(result.score, starts)
 
   const choose = (song: IRealSong): void => {
     // Charts are concert pitch; the player reads written pitch. The solo's
@@ -546,7 +560,7 @@ async function annotatedSolo(result: PipelineResult, xml: string, filename: stri
 
   const fill = (): void => {
     list.replaceChildren()
-    for (const unit of units) list.appendChild(unitItem(unit))
+    for (const unit of units) list.appendChild(unitItem(unit, result.score))
     heading.textContent = `Ideas (${units.length})`
   }
 
@@ -609,7 +623,7 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
   resultBox.hidden = false
 
   resultBox.appendChild(summarySection(result))
-  for (const node of adjustmentSections(result.report.adjustments)) resultBox.appendChild(node)
+  for (const node of adjustmentSections(result.report.adjustments, result.score)) resultBox.appendChild(node)
   resultBox.appendChild(profileSection(result))
   await annotatedSolo(result, xml, filename)
 }

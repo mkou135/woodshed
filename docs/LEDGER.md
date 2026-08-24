@@ -101,3 +101,8 @@ tune from the chordless intro → `tuneFromScore` picks the first chorus
 with chords (88% vs book); chordName gets '6'; riff-across-rest measured on
 WJD (78% still a phrase) → no change; long even-eighth lines stay one idea
 (known ceiling). diag:wjd gains riffRepeat. 257 tests.
+2026-08-24 · session 4 · Printed bar numbers everywhere (`core/bars.ts`);
+page ticks were 16 bars late on St Thomas after the unroll — the owner's
+"weird placements". Verified in Chrome. MuseScore CLI renders any score to
+PNG for reading: `"/Applications/MuseScore 4.app/Contents/MacOS/mscore" -o
+out.png file.mxl` (unsandboxed). 262 tests.

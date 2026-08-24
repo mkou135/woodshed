@@ -5,6 +5,7 @@
  *
  * Green tests are not evidence the output is good. This is how you read it.
  */
+import { barLabel } from '../src/core/bars.ts'
 import { readFileSync } from 'node:fs'
 import { run } from '../src/index.ts'
 
@@ -25,7 +26,7 @@ console.log(`${score.instrument.name}; ${score.barCount} bars, ${score.notes.len
 if (report.form) {
   console.log(`form: ${report.form.periodBars}-bar chorus x${report.form.chorusStarts.length} (${Math.round(report.form.agreement * 100)}% agreement)`)
 }
-console.log(`soloists: ${report.soloists.map((s) => `${s.name} (${s.startBar}-${s.endBar})`).join(', ')}`)
+console.log(`soloists: ${report.soloists.map((s) => `${s.name} (${barLabel(score, s.startBar)}-${barLabel(score, s.endBar)})`).join(', ')}`)
 console.log(`phrases: ${analysis.phrases.length}`)
 console.log()
 
@@ -33,7 +34,7 @@ const { profile } = analysis
 const region = (label: string, r: typeof profile.overall): void => {
   const reg = r.register ? `${note(r.register.lo)}-${note(r.register.hi)} (mean ${note(Math.round(r.register.mean))})` : '-'
   console.log(
-    `  ${label.padEnd(14)} bars ${String(r.startBar).padStart(3)}-${String(r.endBar).padEnd(4)}` +
+    `  ${label.padEnd(14)} bars ${barLabel(score, r.startBar).padStart(3)}-${barLabel(score, r.endBar).padEnd(4)}` +
     ` ${r.notesPerBar.toFixed(1)} notes/bar  silence ${Math.round(r.silence * 100)}%` +
     `  ${r.phrases} phrases of ~${Math.round(r.meanPhraseNotes)}  register ${reg}` +
     `  chromatic ${Math.round(r.chromaticRatio * 100)}%`,
@@ -46,14 +47,14 @@ console.log(
   `  phrase edges: chromatic at start ${Math.round(profile.phraseChromaticism.start * 100)}%,` +
   ` at end ${Math.round(profile.phraseChromaticism.end * 100)}%`,
 )
-const busiest = [...profile.bars].sort((a, b) => b.notes - a.notes).slice(0, 3).map((b) => `${b.bar} (${b.notes})`)
-const silent = profile.bars.filter((b) => b.silence >= 0.75).map((b) => b.bar)
+const busiest = [...profile.bars].sort((a, b) => b.notes - a.notes).slice(0, 3).map((b) => `${barLabel(score, b.bar)} (${b.notes})`)
+const silent = profile.bars.filter((b) => b.silence >= 0.75).map((b) => barLabel(score, b.bar))
 console.log(`  busiest bars: ${busiest.join(', ')}; mostly silent: ${silent.join(', ') || 'none'}`)
 console.log()
 
 console.log(`findings: ${analysis.findings.length}`)
 for (const f of analysis.findings) {
-  const bars = [...new Set(f.spans.map((s) => s.bar))].join(',')
+  const bars = [...new Set(f.spans.map((s) => barLabel(score, s.bar)))].join(',')
   const played = f.spans
     .slice(0, 3)
     .map((s) => analysis.contexts.slice(s.startIndex, s.endIndex + 1).map((c) => note(c.note.midi)).join(' '))

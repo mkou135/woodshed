@@ -1,3 +1,4 @@
+import { barRange } from '../core/bars.ts'
 import type { Chord, Note, Score } from '../core/types.ts'
 import type { Analysis, Finding } from '../analyse/index.ts'
 import type { Exercise } from '../generate/index.ts'
@@ -61,10 +62,10 @@ function sameChord(a: Chord | null, b: Chord | null): boolean {
   return !!a && !!b && a.rootPc === b.rootPc && a.quality === b.quality
 }
 
-function header(unit: Omit<PracticeUnit, 'header' | 'steps' | 'rank' | 'id'>): string {
+function header(unit: Omit<PracticeUnit, 'header' | 'steps' | 'rank' | 'id'>, score: Pick<Score, 'repeats'>): string {
   const first = unit.notes[0]
   const last = unit.notes[unit.notes.length - 1]
-  const bars = first.bar === last.bar ? `Bar ${first.bar}` : `Bars ${first.bar}–${last.bar}`
+  const bars = barRange(score, first.bar, last.bar, true)
   const over = unit.harmony.length > 0 ? ` over ${unit.harmony.map(chordName).join(' → ')}` : ''
   const notes = unit.notes.map((n) => noteName(n.midi)).join(' ')
   const named = unit.findings.map((f) => f.name)
@@ -193,7 +194,7 @@ export function buildUnits(analysis: Analysis, score: Score, options: BuildOptio
       const unit: Omit<PracticeUnit, 'id'> = {
         ...partial,
         rank,
-        header: header(partial),
+        header: header(partial, score),
         steps: [],
       }
       units.push(unit)
