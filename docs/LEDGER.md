@@ -118,3 +118,9 @@ in CLAUDE.md/DECISIONS/memory). `bench:bopland`: 37% of licks get a named
 finding, 39% unnamed only, 24% nothing; top names 5-3-2-1 (201), maj7 arp
 from the b3 (166), dom7 arp (90), 3-5-7-9 (87). Gaps logged in
 OPEN_QUESTIONS (triads, b9 cells).
+2026-08-24 · session 4 · Close. Pushed through 2a32d58, 270 tests. Next
+candidates: triad + dominant-b9 degree cells under the before/after
+protocol (bench:bopland, Blake, corpus:wjd counts); soloist detection when
+other players' choruses are empty bars (St Thomas "unknown"); more owner
+brackets on St Thomas later choruses; corpus-frequency version of the
+stock discount.
