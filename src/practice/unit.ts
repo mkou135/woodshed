@@ -1,5 +1,5 @@
 import { corpusShare } from './corpus.ts'
-import { barRange } from '../core/bars.ts'
+import { barLabel, barRange, writtenBar } from '../core/bars.ts'
 import type { Chord, Note, Score } from '../core/types.ts'
 import type { Analysis, Finding } from '../analyse/index.ts'
 import type { Exercise } from '../generate/index.ts'
@@ -40,7 +40,46 @@ export interface PracticeUnit {
   rank: number
   /** One line a teacher would write above the excerpt. */
   header: string
+  /** The header's parts, for a page that lays them out rather than prints them. */
+  summary: UnitSummary
   steps: Step[]
+}
+
+export interface UnitSummary {
+  /** 'Bars 76–77', printed numbers. */
+  bars: string
+  chords: string[]
+  /** Distinct finding names, in order. */
+  cells: string[]
+  landing: string | null
+  /** Printed bars, outside this unit, where its findings recur. */
+  alsoAt: string[]
+  /** Mostly a scale run or plain arpeggio (stock ≥ STOCK_SHOWN). */
+  stock: boolean
+}
+
+/** Stock share at or above this reads as "mostly a scale run" on the page. */
+const STOCK_SHOWN = 0.5
+
+function summary(
+  unit: Omit<PracticeUnit, 'header' | 'summary' | 'steps' | 'rank' | 'id'>,
+  score: Pick<Score, 'repeats'>,
+): UnitSummary {
+  const first = unit.notes[0]
+  const last = unit.notes[unit.notes.length - 1]
+  const inside = new Set(unit.notes.map((n) => writtenBar(score, n.bar).bar))
+  const also = new Set<string>()
+  for (const f of unit.findings) {
+    for (const s of f.spans) if (!inside.has(writtenBar(score, s.bar).bar)) also.add(barLabel(score, s.bar))
+  }
+  return {
+    bars: barRange(score, first.bar, last.bar, true),
+    chords: unit.harmony.map(chordName),
+    cells: [...new Set(unit.findings.map((f) => f.name))],
+    landing: unit.arrival?.degree ?? null,
+    alsoAt: [...also].sort((a, b) => parseInt(a) - parseInt(b)),
+    stock: unit.stock >= STOCK_SHOWN,
+  }
 }
 
 const NOTE_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
@@ -63,7 +102,7 @@ function sameChord(a: Chord | null, b: Chord | null): boolean {
   return !!a && !!b && a.rootPc === b.rootPc && a.quality === b.quality
 }
 
-function header(unit: Omit<PracticeUnit, 'header' | 'steps' | 'rank' | 'id'>, score: Pick<Score, 'repeats'>): string {
+function header(unit: Omit<PracticeUnit, 'header' | 'summary' | 'steps' | 'rank' | 'id'>, score: Pick<Score, 'repeats'>): string {
   const first = unit.notes[0]
   const last = unit.notes[unit.notes.length - 1]
   const bars = barRange(score, first.bar, last.bar, true)
@@ -207,6 +246,7 @@ export function buildUnits(analysis: Analysis, score: Score, options: BuildOptio
         ...partial,
         rank,
         header: header(partial, score),
+        summary: summary(partial, score),
         steps: [],
       }
       units.push(unit)

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { run } from '../pipeline.ts'
-import { partition, stockShare } from './unit.ts'
+import { partition, stockShare, chordName } from './unit.ts'
 import { TICKS_PER_QUARTER as Q } from '../core/types.ts'
 import type { Note } from '../core/types.ts'
 
@@ -55,6 +55,17 @@ describe('buildUnits on the Blake solo', () => {
 
   it('writes a header a teacher could have written', () => {
     expect(result.units[0].header).toMatch(/^Bars \d+–\d+ over .+: .+ — .+, landing on the .+\.$/)
+  })
+
+  it('carries a structured summary the page can lay out', () => {
+    const unit = result.units[0]
+    expect(unit.summary.bars).toBe('Bars 76–77')
+    expect(unit.summary.chords).toEqual(unit.harmony.map(chordName))
+    expect(unit.summary.cells).toEqual([...new Set(unit.findings.map((f) => f.name))])
+    expect(unit.summary.landing).toBe(unit.arrival?.degree ?? null)
+    expect(unit.summary.stock).toBe(unit.stock >= 0.5)
+    // The maj7-from-the-b3 shape recurs at 73 and the [2,-2,-5] cell at 102; own bars excluded.
+    expect(unit.summary.alsoAt).toEqual(['73', '102'])
   })
 
   it('gives every unit with a degree-cell a through step over this solo', () => {

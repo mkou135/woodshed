@@ -26,6 +26,7 @@ const tune: Tune = {
 const unit = {
   id: 'u1', phrase: 0, idea: 0, notes: [{ midi: 60, onset: 0, duration: Q, bar: 1, beat: 0 }],
   startIndex: 0, endIndex: 0, harmony: [], degrees: [], findings: [cell], arrival: null, stock: 0,
+  summary: { bars: 'Bar 1', chords: [], cells: [], landing: null, alsoAt: [], stock: false },
     rank: 0, header: '',
 } as Omit<PracticeUnit, 'steps'>
 
