@@ -56,3 +56,55 @@ describe('findRecurring', () => {
     expect(findRecurring(ctxOf([60, 62]))).toEqual([])
   })
 })
+
+describe('findRecurring variants', () => {
+  // A cell of four or more intervals that comes back with one interval bent
+  // by up to two semitones (a sequence adapted to the changes) or turned
+  // upside down is the same idea; the family is reported once, headed by
+  // its most common exact form.
+  it('groups A, A-prime and A-double-prime with no exact repeat', () => {
+    // [1,4,3,4] · [1,4,3,5] · [1,4,2,4]
+    const ctx = ctxOf([60, 61, 65, 68, 72, 50, 51, 55, 58, 63, 40, 41, 45, 47, 51])
+    const hits = findRecurring(ctx)
+    expect(hits).toHaveLength(1)
+    expect(hits[0].intervals).toEqual([1, 4, 3, 4])
+    expect(hits[0].occurrences).toEqual([0, 5, 10])
+    expect(hits[0].variants.map((v) => v.relation)).toEqual(['near', 'near'])
+  })
+
+  it('takes an inversion as a variant', () => {
+    // [1,4,3,4] then [-1,-4,-3,-4]
+    const ctx = ctxOf([60, 61, 65, 68, 72, 84, 83, 79, 76, 72])
+    const hits = findRecurring(ctx)
+    expect(hits).toHaveLength(1)
+    expect(hits[0].occurrences).toEqual([0, 5])
+    expect(hits[0].variants[0].relation).toBe('inversion')
+  })
+
+  it('does not relate cells that differ in two intervals', () => {
+    // [1,4,3,4] · [1,4,2,5]
+    const ctx = ctxOf([60, 61, 65, 68, 72, 50, 51, 55, 57, 62])
+    expect(findRecurring(ctx)).toEqual([])
+  })
+
+  it('does not relate cells that differ in contour', () => {
+    // [1,4,3,4] · [1,4,-1,4]: a bent interval keeps its direction
+    const ctx = ctxOf([60, 61, 65, 68, 72, 50, 51, 55, 54, 58])
+    expect(findRecurring(ctx)).toEqual([])
+  })
+
+  it('never bends a three-interval cell', () => {
+    // [1,4,3] · [1,4,5]
+    const ctx = ctxOf([60, 61, 65, 68, 50, 51, 55, 60])
+    expect(findRecurring(ctx)).toEqual([])
+  })
+
+  it('heads the family with the exact form that occurs most', () => {
+    // [1,4,3,5] once, then [1,4,3,4] twice
+    const ctx = ctxOf([60, 61, 65, 68, 73, 45, 46, 50, 53, 57, 40, 41, 45, 48, 52])
+    const hits = findRecurring(ctx)
+    expect(hits).toHaveLength(1)
+    expect(hits[0].intervals).toEqual([1, 4, 3, 4])
+    expect(hits[0].occurrences).toEqual([0, 5, 10])
+  })
+})

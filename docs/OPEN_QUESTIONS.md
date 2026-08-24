@@ -77,16 +77,17 @@ profile with rest/rhythm-change terms, harmonic arrival, metric position —
 all rejected, no surface cue reaches 20% precision on the unmarked gaps.
 Local peak picking accepted (ideas F1 77.6). Still open:
 
-- **Variant clustering.** Finding merge is exact identity (degrees / name /
-  interval vector). Recognise A′ as a variant of A: same contour with one
-  interval changed, same pitches rhythmically displaced, sequence,
-  inversion. Feeds Σ occurrences in the unit rank. Not scored by eval:wjd;
-  judge on Blake / Autumn Leaves output.
+- **Variant clustering — done for bend/inversion** (DECISIONS 2026-08-24).
+  Not yet: retrograde, a bent interval in a 3-note cell, two small bends in
+  a 6-note cell, and "same idea, different length" (a 4-note head inside a
+  5-note variant). Also a near-trivia family ([-1,-1,-1,-1,-1,2] vs …,3])
+  passes because trivia is judged on the whole cell. Resolve: look at the
+  families on the page for a few solos before widening.
 - **Similarity as an idea cue.** The ~75% of intra-phrase WJD idea
   boundaries we miss have no surface cue; the only remaining candidate is
   "the next few notes repeat/transform an earlier group" (a crude 2-interval
-  repeat test showed no lift, 22% vs 21%). Resolve: once variant clustering
-  exists, score its starts against WJD IDEA sections.
+  repeat test showed no lift, 22% vs 21%). Resolve: score the starts of
+  variant-family occurrences against WJD IDEA sections (families exist now).
 - **Contour closure cue.** Line reaches an extreme then settles. Peak
   (up-then-down) was 23% at missed boundaries vs 20% elsewhere — likely
   nothing; only if headroom remains.

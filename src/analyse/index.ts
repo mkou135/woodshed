@@ -8,6 +8,7 @@ import type { NoteContext } from './context.ts'
 import { matchShapes } from './detectors/shapes.ts'
 import { detectTargets } from './detectors/targets.ts'
 import { findRecurring } from './detectors/recurring.ts'
+import type { Variant } from './detectors/recurring.ts'
 import { qualityFamily } from '../core/pitch.ts'
 import { profile } from './profile.ts'
 import type { SoloProfile } from './profile.ts'
@@ -26,6 +27,8 @@ export interface Finding {
   spans: FindingSpan[]
   degrees?: string[]
   intervals?: number[]
+  /** Bent or inverted forms of a recurring cell; their spans are already in `spans`. */
+  variants?: Variant[]
   quality?: Quality
   detectedBy: string[]
   /**
@@ -135,9 +138,11 @@ export function analyse(score: Score, report: CleanupReport): Analysis {
     raw.push({
       id: '',
       kind: 'cell',
-      name: `recurring cell [${hit.intervals.join(', ')}]`,
+      name: `recurring cell [${hit.intervals.join(', ')}]` +
+        (hit.variants.length ? ` with ${hit.variants.length} variant${hit.variants.length > 1 ? 's' : ''}` : ''),
       spans: hit.occurrences.map((start) => spanOf(start, start + hit.intervals.length)),
       intervals: hit.intervals,
+      variants: hit.variants.length ? hit.variants : undefined,
       detectedBy: ['recurring'],
       weights: { recurring: 1 },
       confidence: 0,

@@ -16,6 +16,8 @@ export interface FindingView {
   name: string
   location: string
   occurrences: number
+  /** How many of the occurrences are bent or inverted forms. */
+  variants: number
   confidence: number
   confidenceLabel: 'strong' | 'moderate' | 'weak'
   detectedBy: string[]
@@ -55,6 +57,7 @@ export function describeFinding(finding: Finding): FindingView {
     name: finding.name,
     location,
     occurrences: finding.spans.length,
+    variants: finding.variants?.reduce((n, v) => n + v.occurrences.length, 0) ?? 0,
     confidence: finding.confidence,
     confidenceLabel,
     detectedBy: finding.detectedBy,

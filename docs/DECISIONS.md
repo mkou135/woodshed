@@ -179,3 +179,12 @@ the 0.45 threshold. Ideas F1 76.3 → 77.6 (±1: 78.0 → 79.5); applied to
 phrases it costs 0.5 F1, so ideas only. Blake output unchanged · WJD sweep
 (peakMin .25–.4, ratio 2–3, window 3–8 all plateau at 77.6) · engine ·
 re-sweep before changing.
+
+2026-08-24 · **Variant clustering in the recurring detector** · Cells ≥ 4
+intervals form families by one-interval bend (≤ 2 semitones, contour kept)
+or exact inversion, tested against the family head only · Blake: the
+bars-63/73 figure gains its bar-83 form (last interval bent to Gb), 12 → 13
+findings, top unchanged; Confirmation: C Db D Bb G A C at 46/94 gains 78;
+corpus:wjd median findings 13 → 13, max 132 → 120, no zero-finding solo ·
+engine, owner asked for it · reverse if the page shows bent forms that are
+not the same idea (raise variantMinLength or lower bend first).

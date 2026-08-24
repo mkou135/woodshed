@@ -109,6 +109,14 @@ arpeggio", 135b7 dominant; minor: 1345, 1235, 5321 (all minor-family), 3572
 Interval n-grams length 3–6, ≥2 occurrences; trivia (all steps, one
 direction) excluded; shorter cells swallowed by longer/overlapping ones.
 
+Variant families (`variantOf`): cells of length ≥ `variantMinLength` 4
+join a family when, against the family **head** (most frequent exact form,
+earliest on a tie — never chained), they are its exact inversion or differ
+in exactly one interval by ≤ `bend` 2 semitones with the sign kept. A
+family counts with ≥ 2 occurrences in total, so A → A′ → A″ with no exact
+repeat is found. Finding keeps the head's `intervals` (generators unchanged)
+and all spans; `Finding.variants` / `FindingView.variants` carry the rest.
+
 ## Finding confidence (`analyse/index.ts`)
 
 min(1, min(0.6, Σ 0.3·weight_detector) + 0.25 if degrees + 0.15 if >1 span

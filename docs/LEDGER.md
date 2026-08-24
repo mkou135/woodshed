@@ -75,3 +75,8 @@ rest, rhythm-change, harmonic arrival, metric cues rejected (params kept at
 0). Local peak picking (0.35 / 2.5 / 4) accepted for ideas: 77.6, phrases
 unchanged, Blake unchanged, 238 tests. Diagnostic script: scripts/diag-wjd.ts (`npm run diag:wjd`), was
 $CLAUDE_JOB_DIR/tmp/diag.ts (job 947da956; not in repo).
+2026-08-24 · session 4 · Variant clustering: `variantOf` + families in
+`detectors/recurring.ts` (variantMinLength 4, bend 2, inversion),
+`Finding.variants`, `FindingView.variants`, name "with n variants". Blake
+12 → 13 findings (bar 68 target crossed 0.4 on recurring evidence), top
+unchanged; corpus:wjd median 13 → 13 · 244 tests.
