@@ -56,7 +56,7 @@ function startHere(unit: PracticeUnit, total: number): HTMLElement {
   p.append(
     document.createTextNode(`Idea 1 of ${total} is highlighted in the score — `),
     el('em', undefined, `${s.bars.toLowerCase()}${s.cells[0] ? `, ${s.cells[0]}` : ''}${s.chords[0] ? ` over ${s.chords[0]}` : ''}`),
-    document.createTextNode('. Four steps under the score; do them in order, then Next › to the next idea.'),
+    document.createTextNode('. Four steps below; do them in order, then Next › to the next idea. The transcription is under the desk.'),
   )
   const close = button('close', '×', () => strip.remove())
   close.setAttribute('aria-label', 'Dismiss')
@@ -129,7 +129,8 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
   drawer.append(drawerHead, drawerScroll)
 
   const { button: detailsButton, drawer: detailsBox } = detailsDrawer(result)
-  resultBox.append(detailsBox, ...blocking(result), sheet, deskHost, drawer)
+  // The desk first: the exercises are the work, the transcription the reference.
+  resultBox.append(detailsBox, ...blocking(result), deskHost, drawer, sheet)
 
   const view = await renderScore(solo, result, xml)
   gotoInput.addEventListener('change', () => { const n = Number(gotoInput.value); if (n > 0) view.goTo(n) })
@@ -174,7 +175,7 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
   if (units[0]) {
     // Strip first, then select: the selection scrolls the score into view.
     strip = startHere(units[0], units.length)
-    sheet.before(strip)
+    deskHost.before(strip)
     fillDrawer()
     await desk.select(units[0].id)
   }

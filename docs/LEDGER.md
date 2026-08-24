@@ -177,3 +177,7 @@ brackets.json score phrase starts against the owner's brackets (Mintzer
 12/13 + 0 false, 22.1 known; St Thomas 57–76 frozen at 7 — the owner's 8th
 is an open question). ENGINE_SPEC "Owner brackets"; CLAUDE.md commands.
 Session closed at 292 tests.
+2026-08-24 · session 6 · Owner's page read: desk moved above the
+transcription; selecting an idea highlights without scrolling. Owner
+questions through/vary pedagogy → docs/research/through-and-vary.md,
+OPEN_QUESTIONS. Pushed to main (prototype: push on every change).

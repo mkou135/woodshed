@@ -184,11 +184,7 @@ export async function renderScore(container: HTMLElement, result: PipelineResult
       svg.insertBefore(rect, svg.firstChild)
       rects.push(rect)
     }
-    // After this task: the desk under the score is still being laid out.
-    // A timeout, not requestAnimationFrame (which a background tab never
-    // fires); instant, because Chrome ignores smooth scrolling to an SVG group.
-    const first = hits[0]
-    if (first) setTimeout(() => first.scrollIntoView({ block: 'center' }), 0)
+    // No scrolling: the player asked for the page to stay put on Next.
   }
 
   const goTo = (printedBar: number): void => {
