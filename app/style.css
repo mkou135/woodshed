@@ -163,9 +163,38 @@ details ul { margin: 0.75rem 0 0.25rem; padding-left: 1.1rem; }
 .finding .meta { display: flex; gap: 0.6rem; align-items: baseline; font-size: 0.8rem; color: var(--muted); }
 .finding .drills { margin-left: auto; color: var(--accent); }
 
-.drills-panel { margin-top: 0.5rem; cursor: default; }
-.drills-panel .exercise { margin: 0.6rem 0; padding: 0.75rem 0.85rem; }
-.drills-panel .notation { max-width: 100%; }
+.main { min-width: 0; }
+
+.practice {
+  margin-top: 1.25rem;
+  padding: 1rem 1.25rem 1.25rem;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.practice:empty { display: none; }
+.practice .header { margin: 0 0 0.9rem; font-size: 1rem; }
+.practice .tabs { display: flex; flex-wrap: wrap; gap: 0.3rem; border-bottom: 1px solid var(--line); padding-bottom: 0.6rem; }
+.practice .tab {
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  cursor: pointer;
+}
+.practice .tab:hover { border-color: var(--accent); color: var(--accent); background: #fff; }
+.practice .tab.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+.practice .step { margin: 0; padding: 0; }
+.practice .step .prompt { font-size: 1rem; margin: 0.9rem 0 0.5rem; }
+.practice .exercise { margin: 0.75rem 0; }
+.practice .notation { max-width: 100%; }
+.practice .step-nav { display: flex; justify-content: space-between; margin-top: 0.75rem; }
+button.quiet { background: #fff; color: var(--accent); }
+button.quiet:hover { background: #e4efe9; }
+button:disabled, button.quiet:disabled { opacity: 0.4; cursor: default; background: #fff; }
 
 /* A highlighted note in the solo. OSMD draws noteheads and stems as paths. */
 .solo g.hit path { fill: var(--accent); stroke: var(--accent); }
@@ -247,7 +276,6 @@ button:hover { background: #17493c; }
 .chip { font-size: 0.75rem; padding: 0.1rem 0.5rem; border-radius: 999px; background: #e4efe9; color: var(--accent); }
 .chip.faint { background: transparent; border: 1px solid var(--line); color: var(--muted); }
 
-.drills-panel .header { margin: 0.5rem 0; font-size: 0.9rem; }
 .step { margin: 0.5rem 0; padding: 0.5rem 0.75rem; }
 .step summary { font-weight: 600; color: var(--ink); }
 .step .prompt { margin: 0.4rem 0 0.6rem; color: var(--muted); font-size: 0.9rem; }

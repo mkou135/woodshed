@@ -170,6 +170,10 @@ vector); pass 2 by overlap adds detectedBy/weights only, never spans.
 
 ## Exercise rendering (`render/musicxml.ts`)
 
+Beams: notes shorter than a quarter beam within a beat (quarter of the
+bar's time signature); a rest, a longer note or the beat line ends the
+group; adjacent 16ths inside a group carry beam 2. Lone notes unbeamed.
+
 Even eighths (divisions 2) unless `ExerciseBar.events` present, then
 divisions 48 per quarter, exact plain/dotted/triplet types, `cue` notes
 small. Flats-preferred spelling.

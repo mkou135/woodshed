@@ -43,6 +43,38 @@ describe('exerciseToMusicXml', () => {
     expect(xml).toContain('<type>eighth</type>')
   })
 
+  it('beams even eighths in pairs within each beat', () => {
+    const xml = exerciseToMusicXml(exercise, tenor)
+    const beams = [...xml.matchAll(/<beam number="1">(\w+)<\/beam>/g)].map((m) => m[1])
+    expect(beams.slice(0, 4)).toEqual(['begin', 'end', 'begin', 'end'])
+  })
+
+  it('breaks a beam at a rest, a beat line and a quarter; 16ths share a second beam', () => {
+    const Q = 960
+    const rhythmic: Exercise = {
+      ...exercise,
+      bars: [{
+        rootPc: 0, quality: 'major-seventh', midis: [],
+        // beat 1: two eighths; beat 2: eighth rest, eighth; beat 3: four 16ths; beat 4: quarter
+        events: [
+          { midi: 60, duration: Q / 2 }, { midi: 62, duration: Q / 2 },
+          { midi: null, duration: Q / 2 }, { midi: 64, duration: Q / 2 },
+          { midi: 65, duration: Q / 4 }, { midi: 67, duration: Q / 4 }, { midi: 69, duration: Q / 4 }, { midi: 71, duration: Q / 4 },
+          { midi: 72, duration: Q },
+        ],
+      }],
+    }
+    const xml = exerciseToMusicXml(rhythmic, tenor)
+    const notes = [...xml.matchAll(/<note>.*?<\/note>/g)].map((m) => m[0])
+    const beams = (n: string): string[] => [...n.matchAll(/<beam number="(\d)">(\w+)<\/beam>/g)].map((m) => `${m[1]}:${m[2]}`)
+    expect(notes.map(beams)).toEqual([
+      ['1:begin'], ['1:end'],
+      [], [],
+      ['1:begin', '2:begin'], ['1:continue', '2:continue'], ['1:continue', '2:continue'], ['1:end', '2:end'],
+      [],
+    ])
+  })
+
   it('includes the title so the file is identifiable in MuseScore', () => {
     expect(exerciseToMusicXml(exercise, tenor)).toContain('digital pattern 1235')
   })

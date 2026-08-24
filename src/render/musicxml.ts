@@ -101,11 +101,53 @@ function typeXml(ticks: number): string {
   return `<type>${nearest[1]}</type>`
 }
 
-function eventXml(event: ExerciseEvent): string {
+/**
+ * Beam marks for a bar's events, one entry per event ('' for none). Notes
+ * shorter than a quarter beam within a beat; a rest, a longer note or the
+ * beat line ends the group. Adjacent 16ths inside a group share a second
+ * beam. Without these every eighth gets its own flag, which is unreadable.
+ */
+function beamMarks(events: ExerciseEvent[]): string[] {
+  const marks = events.map(() => '')
+  const positions: number[] = []
+  let position = 0
+  for (const e of events) { positions.push(position); position += e.duration }
+  const beamable = (i: number): boolean => events[i].midi !== null && events[i].duration < TICKS_PER_QUARTER
+  const beat = (i: number): number => Math.floor(positions[i] / TICKS_PER_QUARTER)
+
+  const runs: [number, number][] = []
+  let start = -1
+  for (let i = 0; i <= events.length; i++) {
+    const joins = i < events.length && beamable(i) && (start < 0 || beat(i) === beat(start))
+    if (joins) { if (start < 0) start = i; continue }
+    if (start >= 0 && i - start >= 2) runs.push([start, i - 1])
+    start = i < events.length && beamable(i) ? i : -1
+  }
+
+  const mark = (level: number, from: number, to: number): void => {
+    for (let k = from; k <= to; k++) {
+      const state = k === from ? 'begin' : k === to ? 'end' : 'continue'
+      marks[k] += `<beam number="${level}">${state}</beam>`
+    }
+  }
+  for (const [from, to] of runs) {
+    mark(1, from, to)
+    let s = -1
+    for (let k = from; k <= to + 1; k++) {
+      const fine = k <= to && events[k].duration <= TICKS_PER_QUARTER / 4
+      if (fine) { if (s < 0) s = k; continue }
+      if (s >= 0 && k - s >= 2) mark(2, s, k - 1)
+      s = -1
+    }
+  }
+  return marks
+}
+
+function eventXml(event: ExerciseEvent, beam = ''): string {
   const divisions = Math.max(1, Math.round(event.duration / TICKS_PER_DIVISION))
   const body = event.midi === null ? '<rest/>' : pitchXml(event.midi)
   const cue = event.cue ? '<cue/>' : ''
-  return `<note>${cue}${body}<duration>${divisions}</duration>${typeXml(event.duration)}</note>`
+  return `<note>${cue}${body}<duration>${divisions}</duration>${typeXml(event.duration)}${beam}</note>`
 }
 
 /** A bar with real rhythm: chords at their offsets, events in order. */
@@ -119,16 +161,17 @@ function rhythmicMeasureXml(
   const chords: BarChord[] = bar.chords ?? [{ onset: 0, rootPc: bar.rootPc, quality: bar.quality }]
   const head = number === 1 ? attributesXml(instrument, FINE_DIVISIONS, timeSig) : ''
   let out = `<measure number="${number}">${head}`
+  const beams = beamMarks(events)
   let position = 0
   let chordIndex = 0
-  for (const event of events) {
+  events.forEach((event, i) => {
     while (chordIndex < chords.length && chords[chordIndex].onset <= position) {
       out += harmonyXml(chords[chordIndex])
       chordIndex++
     }
-    out += eventXml(event)
+    out += eventXml(event, beams[i])
     position += event.duration
-  }
+  })
   while (chordIndex < chords.length) out += harmonyXml(chords[chordIndex++])
   return `${out}</measure>`
 }
@@ -149,8 +192,9 @@ function restsXml(eighths: number): string {
 
 function measureXml(bar: ExerciseBar, number: number, instrument: Instrument): string {
   const midis = bar.midis.slice(0, EIGHTHS_PER_BAR)
+  const beams = beamMarks(midis.map((midi) => ({ midi, duration: TICKS_PER_QUARTER / 2 })))
   const notes = midis
-    .map((midi) => `<note>${pitchXml(midi)}<duration>1</duration><type>eighth</type></note>`)
+    .map((midi, i) => `<note>${pitchXml(midi)}<duration>1</duration><type>eighth</type>${beams[i]}</note>`)
     .join('')
   const head = number === 1 ? attributesXml(instrument, DIVISIONS, [4, 4]) : ''
   return (

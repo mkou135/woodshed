@@ -139,3 +139,9 @@ adjustments. 280 tests.
 writes src/data/corpusFrequency.ts (1,260 patterns ≥ 5%); `corpusShare`
 in unit stock, named 4-note cells exempt. Blake u1 holds, St Thomas top 3
 unchanged, WJD medians unchanged. 285 tests.
+2026-08-24 · session 5 · Owner's page read: rendered exercises had no
+beams (every eighth flagged) → `beamMarks` in render/musicxml.ts (beam
+within the beat, rest/quarter/beat line break it, adjacent 16ths share
+beam 2). Steps moved out of the 24rem rail into a stepper under the score
+(app/main.ts `stepPanels`, `.practice`); notation now full width. Owner
+read idea boundary St Thomas 10.2 as probably right — no change. 287 tests.

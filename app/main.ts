@@ -182,17 +182,15 @@ async function renderNotation(container: HTMLElement, xml: string): Promise<void
   }
 }
 
-function exerciseCard(exercise: Exercise, instrument: Instrument): {
+function exerciseCard(exercise: Exercise, instrument: Instrument, withRationale = true): {
   card: HTMLElement
   notation: HTMLElement
   xml: string
 } {
   const xml = exerciseToMusicXml(exercise, instrument)
   const card = el('article', 'exercise')
-  card.append(
-    el('h3', undefined, exercise.title),
-    el('p', 'rationale', exercise.rationale),
-  )
+  card.appendChild(el('h3', undefined, exercise.title))
+  if (withRationale) card.appendChild(el('p', 'rationale', exercise.rationale))
 
   const notation = el('div', 'notation')
   card.appendChild(notation)
@@ -379,37 +377,70 @@ function unitItem(unit: PracticeUnit, score: Pick<Score, 'repeats'>): HTMLLIElem
   return item
 }
 
-/** The four steps under a selected idea. Notation renders when a panel opens. */
+/**
+ * The four steps for a selected idea as a stepper: one step visible at a
+ * time, full width under the score, so the notation has room to read.
+ * Notation renders the first time a step is shown.
+ */
 async function stepPanels(unit: PracticeUnit, result: PipelineResult, host: HTMLElement): Promise<void> {
   host.appendChild(el('p', 'header', unit.header))
-  const renderers: (() => Promise<void>)[] = []
+  const tabs = el('div', 'tabs')
+  tabs.setAttribute('role', 'tablist')
+  const body = el('div', 'step-body')
+  const nav = el('div', 'step-nav')
+  const prev = el('button', 'quiet', '← Previous')
+  const next = el('button', 'quiet', 'Next →')
+  prev.type = 'button'
+  next.type = 'button'
+  nav.append(prev, next)
+  host.append(tabs, body, nav)
+
+  const panes: { tab: HTMLButtonElement; pane: HTMLElement; render: () => Promise<void> }[] = []
+  let current = 0
+
+  const show = async (index: number): Promise<void> => {
+    current = Math.max(0, Math.min(panes.length - 1, index))
+    panes.forEach(({ tab, pane }, i) => {
+      const on = i === current
+      tab.classList.toggle('selected', on)
+      tab.setAttribute('aria-selected', String(on))
+      pane.hidden = !on
+    })
+    prev.disabled = current === 0
+    next.disabled = current === panes.length - 1
+    await panes[current].render()
+  }
 
   unit.steps.forEach((step, index) => {
-    const details = el('details', 'step')
-    details.open = index === 0
-    details.appendChild(el('summary', undefined, STEP_TITLES[step.kind]))
-    details.appendChild(el('p', 'prompt', step.prompt))
+    const tab = el('button', 'tab', STEP_TITLES[step.kind])
+    tab.type = 'button'
+    tab.setAttribute('role', 'tab')
+    tab.addEventListener('click', () => { void show(index) })
+    tabs.appendChild(tab)
+
+    const pane = el('section', 'step')
+    pane.hidden = true
+    pane.appendChild(el('p', 'prompt', step.prompt))
     const exercises =
       step.kind === 'loop' ? [step.exercise]
         : step.kind === 'write' ? []
           : step.exercises
     const pending: { notation: HTMLElement; xml: string }[] = []
     for (const exercise of exercises) {
-      const { card, notation, xml } = exerciseCard(exercise, result.score.instrument)
-      details.appendChild(card)
+      // The loop step's one exercise says what the header already said.
+      const { card, notation, xml } = exerciseCard(exercise, result.score.instrument, step.kind !== 'loop')
+      pane.appendChild(card)
       pending.push({ notation, xml })
     }
-    const renderMine = async (): Promise<void> => {
+    const render = async (): Promise<void> => {
       for (const item of pending.splice(0)) await renderNotation(item.notation, item.xml)
     }
-    details.addEventListener('toggle', () => { if (details.open) void renderMine() })
-    if (details.open) renderers.push(renderMine)
 
     if (step.kind === 'write') {
       const button = el('button', undefined, 'Download the template')
       button.type = 'button'
       button.addEventListener('click', () => download(`${unit.id}-write-your-own.musicxml`, step.template))
-      details.appendChild(button)
+      pane.appendChild(button)
       const check = el('label', 'check')
       check.append(el('span', undefined, 'Then check your writing: '))
       const input = el('input')
@@ -431,11 +462,15 @@ async function stepPanels(unit: PracticeUnit, result: PipelineResult, host: HTML
         }
       })
       check.appendChild(input)
-      details.append(check, verdict)
+      pane.append(check, verdict)
     }
-    host.appendChild(details)
+    body.appendChild(pane)
+    panes.push({ tab, pane, render })
   })
-  for (const render of renderers) await render()
+
+  prev.addEventListener('click', () => { void show(current - 1) })
+  next.addEventListener('click', () => { void show(current + 1) })
+  await show(0)
 }
 
 const TUNE_KEY = 'woodshed.tune'
@@ -547,8 +582,10 @@ async function annotatedSolo(result: PipelineResult, xml: string, filename: stri
   const section = el('section', 'workspace')
   const aside = el('aside', 'menu')
   const scoreBox = el('div', 'solo')
-  const panels = el('div', 'drills-panel')
-  section.append(aside, scoreBox)
+  const panels = el('div', 'practice')
+  const main = el('div', 'main')
+  main.append(scoreBox, panels)
+  section.append(aside, main)
 
   let units = result.units
   let selected: string | null = null
@@ -576,7 +613,7 @@ async function annotatedSolo(result: PipelineResult, xml: string, filename: stri
     for (const item of list.querySelectorAll<HTMLLIElement>('li.unit')) {
       const on = item.dataset.id === id
       item.classList.toggle('selected', on)
-      if (on) item.appendChild(panels)
+      if (on && scroll) item.scrollIntoView({ block: 'nearest' })
     }
     for (const node of highlighted) node.classList.remove('hit')
     highlighted = unitElements(unit, result, byKey)
@@ -602,13 +639,11 @@ async function annotatedSolo(result: PipelineResult, xml: string, filename: stri
   }
 
   list.addEventListener('click', (event) => {
-    if ((event.target as HTMLElement).closest('.drills-panel')) return
     const item = (event.target as HTMLElement).closest<HTMLLIElement>('li.unit')
     if (item?.dataset.id) void select(item.dataset.id, true)
   })
   list.addEventListener('keydown', (event) => {
     if (event.key !== 'Enter' && event.key !== ' ') return
-    if ((event.target as HTMLElement).closest('.drills-panel')) return
     const item = (event.target as HTMLElement).closest<HTMLLIElement>('li.unit')
     if (item?.dataset.id) { event.preventDefault(); void select(item.dataset.id, true) }
   })
