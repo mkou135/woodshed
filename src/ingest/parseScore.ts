@@ -136,7 +136,9 @@ export function parseScore(xml: string): Score {
 
       if (tag === 'barline') {
         const style = findChild(el, 'bar-style')
-        if (style && textOf(style).trim() === 'light-light') {
+        // A double bar closes a section; the mark goes on the bar that opens
+        // the next one. On the last measure it closes the piece: no mark.
+        if (style && textOf(style).trim() === 'light-light' && measure !== measures[measures.length - 1]) {
           marks.push({ bar: barNumber + 1, kind: 'double-bar', text: '' })
         }
         continue

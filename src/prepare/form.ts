@@ -69,10 +69,11 @@ function smallestPeriod<T>(items: T[]): { period: number; agreement: number } | 
 /**
  * Autocorrelation gives the period but not the phase. Marks give the phase:
  * a chorus starts on a marked bar. Rehearsal letters are the stronger
- * evidence (letter A is conventionally the head), double bars the fallback —
- * both mark section ends, so the chorus start is the earliest mark whose
- * congruent marks (mod period) include at least one other mark.
- * See docs/research/notation-conventions.md.
+ * evidence (letter A is conventionally the head), double bars the fallback.
+ * Letters may sit inside the chorus too (A A B C on a 32-bar tune), so the
+ * phase is the residue class (mod period) holding the most marks, and
+ * choruses start on every bar in that class, from the first one after bar 0.
+ * Ties go to the earliest mark. See docs/research/notation-conventions.md.
  */
 function phase(
   score: Score,
@@ -81,14 +82,21 @@ function phase(
   for (const kind of ['rehearsal', 'double-bar'] as const) {
     const bars = [...new Set(score.marks.filter((m) => m.kind === kind).map((m) => m.bar))]
       .sort((a, b) => a - b)
-    if (bars.length < 2) continue
+    if (bars.length === 0) continue
+    let best = { bar: bars[0], count: 0 }
     for (const b of bars) {
-      const aligned = bars.filter((x) => (x - b) % period === 0)
-      if (aligned.length >= 2) {
-        // Bars before b are an intro (or a head shorter than a chorus).
-        return { firstStart: b, phaseFrom: kind, agreesWithMarks: true }
-      }
+      const count = bars.filter((x) => (x - b) % period === 0).length
+      if (count > best.count) best = { bar: b, count }
     }
+    // Marks may sit only on the solo choruses; the head before them repeats
+    // the same changes, so walk back to the earliest bar in the same residue
+    // class. Whatever is left before it is an intro.
+    const firstStart = ((best.bar - 1) % period) + 1
+    // Corroboration: any two marks of either kind a whole number of periods apart.
+    const inPhase = score.marks.filter(
+      (m) => (m.kind === 'rehearsal' || m.kind === 'double-bar') && (m.bar - firstStart) % period === 0,
+    )
+    return { firstStart, phaseFrom: kind, agreesWithMarks: new Set(inPhase.map((m) => m.bar)).size >= 2 }
   }
   return { firstStart: 1, phaseFrom: 'none', agreesWithMarks: false }
 }

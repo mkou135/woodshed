@@ -6,6 +6,14 @@ moving its resolution into DECISIONS.md.
 - **A pickup before the first chorus shows as its own "chorus" region** in
   the profile (Blake 63–64). Resolve: label regions before the first chorus
   start as "pickup" in `analyse/profile.ts` and the page.
+- **Parker "All the Things" chart has chords only as staff text** (41
+  parsed at 0.7 confidence) and a pickup numbered bar 0; a single chorus,
+  so no form. Resolve: check the text-chord degrees look right on the page;
+  decide whether bar 0 should be renumbered at ingest.
+- **Mintzer "Blues in all keys"** has no part-name and transpose 0, so it
+  reads as a C instrument; absolute root matching still reports 87% on a
+  12-bar period, which a tune that changes key every chorus should not
+  give. Resolve: inspect the chord track; maybe the chart repeats keys.
 - **Charts with neither letters nor double bars** fall back to bar 1 with
   no warning. Resolve: when `phaseFrom` is 'none' and the solo starts
   mid-period, raise a warning adjustment; test on such a chart when one

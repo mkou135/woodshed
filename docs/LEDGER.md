@@ -42,3 +42,9 @@ docs/research/notation-conventions.md.
 bar 1); `double-bar` Mark kind at ingest; new fixture
 form-intro-doublebars; Blake choruses 9/65, profile 63–64 + 65–122 ·
 spec/decisions/questions updated · 214 tests.
+2026-08-24 · session 3 · Corpus run over 8 downloaded transcriptions
+(~/Downloads/MusicXML Transcriptions; sandbox blocks that folder — copy
+out first). Found: letters inside/only-on-solo broke phase → residue-class
+rule with walk-back; final double bar → no mark; first-named soloist was a
+1-bar tag → most-notes rule. Autumn Leaves 0 → 28 findings. Fixtures
+form-letters-in-chorus, soloist-tag-first · 217 tests.

@@ -90,3 +90,29 @@ Claude.
 **Would reverse it.** A body of transcriptions where double bars fall at
 arbitrary bars (e.g. every 8 regardless of form), or where the earliest
 aligned mark is not the head.
+
+## 2026-08-24 — Phase: residue class, not aligned pairs
+
+**Question.** Letters sit inside the chorus (Autumn Leaves A A B C at 2, 10,
+18, 26) or only on the solo choruses (Blake A–G at 65–113); no two are a
+period apart, so "earliest mark with an aligned partner" fell through to
+the double bars or the wrong chorus.
+**Decision.** Phase = residue class mod period with the most marks, ties
+to the earliest; walk back to the first bar in that class. Corroboration
+counts either mark kind.
+**Evidence.** 8-file corpus in ~/Downloads/MusicXML Transcriptions: Autumn
+Leaves [2, 34], Blake [9, 65], Bartley [5, 45, …], 26-2 [1, 33, …].
+**Who.** Claude, from the corpus run.
+**Would reverse it.** A chart whose head is a different length from the
+solo form (walk-back would then invent a chorus).
+
+## 2026-08-24 — Which soloist to analyse by default
+
+**Question.** Autumn Leaves has "Miles" over bar 1 (the tag of the
+previous solo) and "Cannonball Solo" from bar 2; the engine analysed bar 1.
+**Decision.** Named region with the most notes. The user-choice adjustment
+stays blocking.
+**Evidence.** Autumn Leaves: 0 findings → 28. Tenor Madness unchanged
+(Trane, 84 bars, has more notes than Sonny).
+**Who.** Claude. **Would reverse it.** Owner preferring "first named" or a
+page control that makes the default moot.

@@ -1,3 +1,4 @@
+import { chooseSoloist } from '../prepare/soloists.ts'
 import type { Quality, Score } from '../core/types.ts'
 import type { CleanupReport } from '../prepare/index.ts'
 import { segment } from './segment.ts'
@@ -57,8 +58,7 @@ const CHORD_WEIGHT = 0.15
 const MIN_CONFIDENCE = 0.4
 
 export function analyse(score: Score, report: CleanupReport): Analysis {
-  const region =
-    report.soloists.find((s) => s.name !== 'unknown') ?? report.soloists[0]
+  const region = chooseSoloist(score, report.soloists)
 
   const notes = region
     ? score.notes.filter((n) => n.bar >= region.startBar && n.bar <= region.endBar)

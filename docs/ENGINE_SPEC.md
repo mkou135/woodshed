@@ -46,13 +46,22 @@ first note is off the eighth grid starts on its quarter-note beat
 - Period: smallest p ≥ 2 with bar-symbol agreement > 0.75 (`MIN_AGREEMENT`),
   absolute root+quality first, then root intervals (`relative`). Needs ≥ 8
   bars with chords.
-- Phase, from marks: rehearsal letters first, else double bars
-  (`Mark.kind 'double-bar'`, placed on the bar *after* a `light-light`
-  barline at ingest). First chorus start = earliest mark bar with ≥ 1 other
-  mark a whole number of periods later. No such marks → bar 1,
-  `phaseFrom: 'none'`, `agreesWithMarks: false`. Bars before the first
-  start are an intro. Rationale: docs/research/notation-conventions.md.
+- Phase, from marks: rehearsal letters if any exist, else double bars
+  (`Mark.kind 'double-bar'`, placed at ingest on the bar *after* a
+  `light-light` barline; none for the last measure). Phase = residue class
+  (mod period) holding the most marks of that kind, ties to the earliest
+  mark; choruses start on every bar in that class from the first ≥ 1 (the
+  head before the first letter is a chorus; bars before that are an intro).
+  `agreesWithMarks` = ≥ 2 marks of either kind in the class. No marks →
+  bar 1, `phaseFrom: 'none'`. Rationale: docs/research/notation-conventions.md.
 - Adjustment confidence 0.95 when phased by marks, else the agreement.
+
+## Soloist choice (`prepare/soloists.ts`)
+
+Regions come from capitalised single words / "… Solo" text (see
+`DIRECTIONS` for the exclusion list). `chooseSoloist` analyses the named
+region with the **most notes** (ties → earlier); unnamed only if nothing
+is named. Two named regions still raise the blocking adjustment.
 
 ## Note context (`analyse/context.ts`, `core/pitch.ts`)
 

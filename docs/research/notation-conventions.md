@@ -23,12 +23,28 @@ Researched 2026-08-24 (session 3). Sources at the end.
 - Many transcriptions (Blake included) carry no letters at all; the double
   bars are then the only structural marks.
 
+## What the corpus actually does (8 charts, 2026-08-24)
+
+- Letters per chorus, numbered: 26-2 (1–4 at 1/33/65/97), Blues in all
+  keys (1–13 every 12). Letters per *section*: Bartley (A–E every 40 with a
+  4-bar intro), Autumn Leaves (A A B C inside one chorus), Blake (A–G on
+  the solo chorus only, none on the head).
+- Double bars every chorus (Tenor Madness, 26-2, Blues) or every section
+  (Blake, Bartley); none at all (Mintzer Rhythm Changes, Sandu).
+- A `light-light` on the last measure closes the piece (Autumn Leaves).
+- Chords as staff text instead of `<harmony>` (Parker ATTYA); pickup as
+  measure 0 (same file).
+- Soloist names as words: "Trane"/"Sonny"; "Miles" over a one-bar tag
+  before "Cannonball Solo". Performance words seen: swing, sloppy, flat,
+  lay back, growl, half-tonguing, (straight 8ths), On Downbeat, Up Down,
+  quick F, (8ve.
+
 ## Consequence for `prepare/form.ts`
 
 Double bars and letters are evidence of **section boundaries**, not chorus
 boundaries. They fix the *phase* of the form; autocorrelation of the changes
-fixes the *period*. Chorus start = the earliest marked bar whose congruent
-marks (mod period) line up. Precedence: rehearsal letters, then double
+fixes the *period*. Phase = residue class (mod period) with the most
+marks; choruses on every bar in it. Precedence: rehearsal letters, then double
 bars, then bar 1 with reduced confidence. Bars before the first chorus
 start are an intro.
 

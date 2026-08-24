@@ -82,3 +82,11 @@ describe('double bars', () => {
     expect(bars).toEqual([5, 13, 21])
   })
 })
+
+describe('final double bar', () => {
+  it('does not mark a bar past the end of the score', () => {
+    const score = parseScore(load('form-letters-in-chorus.musicxml'))
+    const bars = score.marks.filter((m) => m.kind === 'double-bar').map((m) => m.bar)
+    expect(bars).toEqual([10])
+  })
+})

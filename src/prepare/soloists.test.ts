@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { ingest } from '../ingest/index.ts'
-import { detectSoloists, soloistAdjustments } from './soloists.ts'
+import { chooseSoloist, detectSoloists, soloistAdjustments } from './soloists.ts'
 import { instrumentFromTranspose } from '../core/instrument.ts'
 import type { Score } from '../core/types.ts'
 
@@ -74,5 +74,14 @@ describe('detectSoloists — capitalised performance directions', () => {
   it('still accepts single-word attributions', () => {
     const score = scoreWith([[1, 'Trane'], [85, 'Sonny']])
     expect(detectSoloists(score).map((r) => r.name)).toEqual(['Trane', 'Sonny'])
+  })
+})
+
+describe('chooseSoloist', () => {
+  it('prefers the named region with the most notes, not the first one', () => {
+    const score = load('soloist-tag-first.musicxml')
+    const regions = detectSoloists(score)
+    expect(regions.map((r) => r.name)).toEqual(['Miles', 'Cannonball Solo'])
+    expect(chooseSoloist(score, regions)?.name).toBe('Cannonball Solo')
   })
 })

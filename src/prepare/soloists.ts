@@ -65,6 +65,23 @@ export function detectSoloists(score: Score): SoloistRegion[] {
   return regions
 }
 
+/**
+ * The region to analyse when the user has not chosen. The first named region
+ * is often a one-bar tag ("Miles" over the last bar of the previous solo),
+ * so take the named region with the most notes; ties go to the earlier one.
+ */
+export function chooseSoloist(score: Score, regions: SoloistRegion[]): SoloistRegion | undefined {
+  const named = regions.filter((r) => r.name !== 'unknown')
+  const candidates = named.length > 0 ? named : regions
+  let best: SoloistRegion | undefined
+  let bestNotes = -1
+  for (const r of candidates) {
+    const n = score.notes.filter((x) => x.bar >= r.startBar && x.bar <= r.endBar).length
+    if (n > bestNotes) { best = r; bestNotes = n }
+  }
+  return best
+}
+
 export function soloistAdjustments(regions: SoloistRegion[]): Adjustment[] {
   const named = regions.filter((r) => r.name !== 'unknown')
   if (named.length < 2) return []

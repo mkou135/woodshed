@@ -59,3 +59,12 @@ describe('form phase', () => {
     expect(detectForm(load('transposing-form.musicxml'))!.phaseFrom).toBe('none')
   })
 })
+
+describe('form phase with letters inside the chorus', () => {
+  it('phases from the earliest rehearsal letter even when no two letters are a period apart', () => {
+    const form = detectForm(load('form-letters-in-chorus.musicxml'))!
+    expect(form.periodBars).toBe(8)
+    expect(form.chorusStarts).toEqual([2, 10])
+    expect(form.phaseFrom).toBe('rehearsal')
+  })
+})
