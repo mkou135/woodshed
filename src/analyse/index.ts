@@ -51,6 +51,8 @@ const MAX_DETECTOR_CREDIT = 0.6
 const CREDIT_PER_DETECTOR = 0.3
 /** A finding we can name from the dictionary is worth more than an unnamed one. */
 const NAMED_BONUS = 0.25
+/** A bare triad is stock by definition: a cell shorter than 4 notes never scores as a full figure. */
+const SHORT_CELL_FACTOR = 0.65
 const REPEAT_BONUS = 0.15
 const CHORD_WEIGHT = 0.15
 /**
@@ -161,7 +163,7 @@ export function analyse(score: Score, report: CleanupReport): Analysis {
     .map((f, i) => ({
       ...f,
       id: `f${i + 1}`,
-      confidence: Math.min(
+      confidence: (f.degrees && f.degrees.length < 4 ? SHORT_CELL_FACTOR : 1) * Math.min(
         1,
         Math.min(MAX_DETECTOR_CREDIT, detectorCredit(f)) +
           (f.degrees ? NAMED_BONUS : 0) +

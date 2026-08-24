@@ -55,6 +55,32 @@ describe('matchShapes', () => {
     expect(matchShapes(ctx)).toEqual([])
   })
 
+  it('finds a bare major triad in any order as a 3-note cell', () => {
+    const ctx = contextualise(line([67, 64, 60]), [chord(1, 0, 'major')])
+    const hits = matchShapes(ctx)
+    expect(hits).toHaveLength(1)
+    expect(hits[0]).toMatchObject({ startIndex: 0, length: 3, name: 'major triad 5-3-1' })
+    expect(hits[0].degrees).toEqual(['5', '3', '1'])
+    expect(hits[0].intervals).toEqual([-3, -4])
+  })
+
+  it('names a minor triad over a minor chord', () => {
+    const ctx = contextualise(line([62, 65, 69]), [chord(1, 2, 'minor-seventh')])
+    expect(matchShapes(ctx)[0].name).toBe('minor triad 1-3-5')
+  })
+
+  it('does not report the triad inside a four-note arpeggio hit', () => {
+    const ctx = contextualise(line([60, 64, 67, 71]), [chord(1, 0, 'major-seventh')])
+    const hits = matchShapes(ctx)
+    expect(hits.map((h) => h.name)).toEqual(['major-seventh arpeggio'])
+  })
+
+  it('reports a triad that follows a longer hit without sharing a note', () => {
+    // 1 3 5 7 then 5 3 1: the arpeggio covers notes 0-3, the descending triad 4-6.
+    const ctx = contextualise(line([60, 64, 67, 71, 67, 64, 60]), [chord(1, 0, 'major-seventh')])
+    expect(matchShapes(ctx).map((h) => h.name)).toEqual(['major-seventh arpeggio', 'major triad 5-3-1'])
+  })
+
   it('returns nothing when no chord is sounding', () => {
     expect(matchShapes(contextualise(line([60, 62, 64, 67]), []))).toEqual([])
   })
@@ -78,7 +104,7 @@ describe('matchShapes: quality, not just family', () => {
     // dictionary by family alone matched this and drilled it through every
     // dominant in the tune.
     const ctx = contextualise(line([62, 66, 69, 73]), [chord(1, 2, 'dominant')])
-    expect(matchShapes(ctx)).toEqual([])
+    expect(matchShapes(ctx).map((h) => h.name)).toEqual(['major triad 1-3-5'])
   })
 
   it('names the dominant seventh arpeggio over a dominant', () => {

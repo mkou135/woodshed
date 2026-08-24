@@ -20,6 +20,8 @@ interface Entry {
   qualities: Quality[]
 }
 
+const TRIAD_ORDERS = ['135', '153', '315', '351', '513', '531']
+
 const MAJOR: Quality[] = ['major', 'major-seventh']
 const DOMINANT: Quality[] = ['dominant', 'augmented-seventh']
 const MAJOR_FAMILY: Quality[] = [...MAJOR, ...DOMINANT, 'augmented', 'suspended-fourth']
@@ -49,9 +51,16 @@ const DICTIONARY: Entry[] = [
   { degrees: '3572', name: 'major-seventh arpeggio from the b3', qualities: MINOR },
   { degrees: '1357', name: 'minor seventh arpeggio', qualities: MINOR },
   { degrees: '13b57', name: 'half-diminished arpeggio', qualities: ['half-diminished'] },
+
+  // Bare triads, three notes in any order; each order is its own figure to
+  // drill. Over a minor chord the third is labelled '3' (context.ts), so the
+  // same strings name the minor triad.
+  ...TRIAD_ORDERS.map((degrees) => ({ degrees, name: `major triad ${degrees.split('').join('-')}`, qualities: MAJOR_FAMILY })),
+  ...TRIAD_ORDERS.map((degrees) => ({ degrees, name: `minor triad ${degrees.split('').join('-')}`, qualities: MINOR_FAMILY })),
 ]
 
-const CELL_LENGTH = 4
+/** Cell lengths tried, longest first so a shorter hit inside a longer one is dropped. */
+const CELL_LENGTHS = [4, 3]
 
 /** The dictionary entry a degree string names over this quality, if any. */
 export function lookup(degrees: string[], quality: Quality): Entry | undefined {
@@ -62,33 +71,39 @@ export function lookup(degrees: string[], quality: Quality): Entry | undefined {
 export function matchShapes(ctx: NoteContext[]): ShapeHit[] {
   const hits: ShapeHit[] = []
 
-  for (let i = 0; i + CELL_LENGTH <= ctx.length; i++) {
-    if (!samePhrase(ctx, i, i + CELL_LENGTH - 1)) continue
-    const cell = ctx.slice(i, i + CELL_LENGTH)
-    const chord = cell[0].chord
-    if (!chord) continue
-    // Same harmony, compared by root and quality rather than object identity:
-    // a cell often spans two bars carrying the same chord as separate <harmony>
-    // elements, and identity would reject it. A genuine chord change still
-    // rejects, because the degrees would then describe two harmonies.
-    if (!cell.every((c) => c.chord !== null
-      && c.chord.rootPc === chord.rootPc
-      && c.chord.quality === chord.quality)) continue
-    if (cell.some((c) => c.degree === null)) continue
+  for (const cellLength of CELL_LENGTHS) {
+    for (let i = 0; i + cellLength <= ctx.length; i++) {
+      const end = i + cellLength
+      // A triad sharing notes with an already-matched longer cell is part of
+      // that event (1357 contains 135; 3-5-1 across two 1235s is no triad).
+      if (hits.some((h) => h.startIndex < end && i < h.startIndex + h.length)) continue
+      if (!samePhrase(ctx, i, end - 1)) continue
+      const cell = ctx.slice(i, end)
+      const chord = cell[0].chord
+      if (!chord) continue
+      // Same harmony, compared by root and quality rather than object identity:
+      // a cell often spans two bars carrying the same chord as separate <harmony>
+      // elements, and identity would reject it. A genuine chord change still
+      // rejects, because the degrees would then describe two harmonies.
+      if (!cell.every((c) => c.chord !== null
+        && c.chord.rootPc === chord.rootPc
+        && c.chord.quality === chord.quality)) continue
+      if (cell.some((c) => c.degree === null)) continue
 
-    const degrees = cell.map((c) => c.degree as string)
-    const entry = lookup(degrees, chord.quality)
-    if (!entry) continue
+      const degrees = cell.map((c) => c.degree as string)
+      const entry = lookup(degrees, chord.quality)
+      if (!entry) continue
 
-    hits.push({
-      startIndex: i,
-      length: CELL_LENGTH,
-      name: entry.name,
-      degrees,
-      quality: chord.quality,
-      intervals: intervalsOf(cell.map((c) => c.note.midi)),
-    })
+      hits.push({
+        startIndex: i,
+        length: cellLength,
+        name: entry.name,
+        degrees,
+        quality: chord.quality,
+        intervals: intervalsOf(cell.map((c) => c.note.midi)),
+      })
+    }
   }
 
-  return hits
+  return hits.sort((a, b) => a.startIndex - b.startIndex)
 }

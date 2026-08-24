@@ -90,12 +90,17 @@ is named. Two named regions still raise the blocking adjustment.
 
 ## Shape dictionary (`analyse/detectors/shapes.ts`)
 
-Cell length 4. Keyed by degree string AND allowed qualities (not family):
+Cell lengths 4 then 3, longest first; a 3-note hit sharing any note with a
+4-note hit is dropped (1357 contains 135; 3-5-1 across two 1235s is no
+triad). Keyed by degree string AND allowed qualities (not family):
 1235/1234/5321 over all major-family; 3572 major/maj7 = "3-5-7-9 upper
 structure", dominant = "3-5-b7-9" (as 35b72); 1357 maj = "major-seventh
 arpeggio", 135b7 dominant; minor: 1345, 1235, 5321 (all minor-family), 3572
 = "major-seventh arpeggio from the b3" (minor/m7 only), 1357 (minor/m7),
-13b57 half-diminished. Hits carry intervals **as played** (contour kept).
+13b57 half-diminished. Triads: 1 3 5 in all six orders, each its own
+entry ("major triad 5-3-1" over major-family, "minor triad 5-3-1" over
+minor-family; diminished/augmented never match because their 5/3 carry
+accidentals). Hits carry intervals **as played** (contour kept).
 
 ## Target detector (`analyse/detectors/targets.ts`)
 
@@ -124,8 +129,11 @@ and all spans; `Finding.variants` / `FindingView.variants` carry the rest.
 ## Finding confidence (`analyse/index.ts`)
 
 min(1, min(0.6, Σ 0.3·weight_detector) + 0.25 if degrees + 0.15 if >1 span
-+ 0.15·chordTrackConfidence). Weight is 1 for shape/recurring, the hit
-score for target. Findings below **0.4** are dropped. Labels
++ 0.15·chordTrackConfidence), then × `SHORT_CELL_FACTOR` **0.65** when the
+finding is a degree cell of fewer than 4 notes (a bare triad is stock by
+definition and never scores as a full figure; without this a 17-note
+mostly-scalar unit at Blake 74–75 outranked the maj7 figure). Weight is 1
+for shape/recurring, the hit score for target. Findings below **0.4** are dropped. Labels
 (`pipeline.ts`): strong ≥ 0.7, moderate ≥ 0.45.
 
 Merge: pass 1 by identity (degrees+family, else name, else interval

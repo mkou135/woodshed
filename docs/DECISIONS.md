@@ -269,3 +269,14 @@ may be committed with attribution; no lick, no WJD note data, in the repo
 or the app bundle; fixtures written by hand. Owner asked for a standing
 note: this entry, CLAUDE.md non-negotiables, and Claude's memory · owner +
 engine · reverse only with written permission from the rights holder.
+
+2026-08-24 · **Bare triads in the dictionary** · 1 3 5 in all six orders
+as 3-note cells (cell lengths 4 then 3, shorter hits sharing a note with a
+longer hit dropped), named per order, confidence × 0.65 for cells under 4
+notes. Before/after: Bopland named/unnamed/nothing 37.1/39.0/23.9 →
+66.7/18.5/14.8; Blake 12 → 13 findings, top unchanged; WJD median
+findings 13 → 13. Rejected on the way: a smaller named bonus for short
+cells alone left "minor triad 5-3-1" at 1.00 and moved Blake's first
+practice unit · engine, under the owner's before/after protocol · reverse
+by removing the triad entries if the app starts naming triads in every
+solo to no useful end.

@@ -124,3 +124,8 @@ protocol (bench:bopland, Blake, corpus:wjd counts); soloist detection when
 other players' choruses are empty bars (St Thomas "unknown"); more owner
 brackets on St Thomas later choruses; corpus-frequency version of the
 stock discount.
+2026-08-24 · session 5 · Baseline recorded (Bopland 37.1/39.0/23.9, Blake
+12 findings, WJD median 13). Bare triads added as 3-note cells
+(shapes.ts CELL_LENGTHS [4,3], overlap suppression, SHORT_CELL_FACTOR
+0.65): Bopland 66.7/18.5/14.8, Blake 13 with top unchanged, WJD median 13.
+274 tests.
