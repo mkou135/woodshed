@@ -73,5 +73,5 @@ cues logged in OPEN_QUESTIONS under "Segmentation cues to trial". No code.
 recall is 25%; no surface/harmonic/metric cue > 18% precision → idea-profile
 rest, rhythm-change, harmonic arrival, metric cues rejected (params kept at
 0). Local peak picking (0.35 / 2.5 / 4) accepted for ideas: 77.6, phrases
-unchanged, Blake unchanged, 238 tests. Diagnostic script:
+unchanged, Blake unchanged, 238 tests. Diagnostic script: scripts/diag-wjd.ts (`npm run diag:wjd`), was
 $CLAUDE_JOB_DIR/tmp/diag.ts (job 947da956; not in repo).

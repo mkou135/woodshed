@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "solo": "node --experimental-strip-types --no-warnings scripts/run.ts",
     "eval:wjd": "node --experimental-strip-types --no-warnings scripts/eval-wjd.ts",
-    "corpus:wjd": "node --experimental-strip-types --no-warnings scripts/corpus-wjd.ts"
+    "corpus:wjd": "node --experimental-strip-types --no-warnings scripts/corpus-wjd.ts",
+    "diag:wjd": "node --experimental-strip-types scripts/diag-wjd.ts"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",

@@ -170,8 +170,7 @@ precision for an idea boundary (base rate 2%): short rest 7%, rest+held
 window 3–6) lowers F1 at every weight, chord-tone 1/3/5 arrival 2–7%,
 1/3/5 on a strong beat 3%, chord change 4%, downbeat/on-beat ≈ base rate.
 Same at phrase level (harmonic arrival 1–5%). The missed idea boundaries
-are motivic/perceptual, not surface events · scripts kept in the job tmp
-only; numbers in LEDGER · engine · reverses if a similarity-based
+are motivic/perceptual, not surface events · `npm run diag:wjd` reproduces the table · engine · reverses if a similarity-based
 (repetition/transformation) cue is shown to add recall at ≥ 50% precision.
 
 2026-08-24 · **Local peak picking for ideas** · A gap ≥ 0.35 that is the
