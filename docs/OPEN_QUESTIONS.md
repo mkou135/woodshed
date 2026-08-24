@@ -118,3 +118,14 @@ also rejected, 3% precision — idea recall is at its ceiling. Still open:
   in. Adding cells changes what the app names on every solo, so it is
   the owner's call: propose triads first (measure the Blake/WJD finding
   counts before and after), then the b9 family.
+- **8 of 50 Omnibook files detect no form.** Each is a multiple of 12 or
+  32/64 plus 1–2 bars, with no pickup and starting at measure 1 — so
+  trailing tag/coda bars look like they defeat the residue-class phase
+  rule. Resolve: run form phase on `Cosmic_Rays` (37 = 3x12+1) and
+  `Red_Cross` (66 = 2x32+2) from `~/dev/woodshed-data/omnibook/`; see
+  `docs/research/datasets.md`.
+- **Are the Omnibook files head+solo?** LORIA ships "themes *and*
+  improvisations"; Donna Lee's chorus 1 runs 6.9 notes/bar against 5.6/5.7
+  after, which reads as the composed head pooled with the solo. Decides
+  whether that corpus can be scored as improvised vocabulary. Resolve:
+  compare chorus 1 against the known melody for a few tunes.

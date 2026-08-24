@@ -198,3 +198,10 @@ build clean · Omnibook 50 files 0 crashes. One-chord slots confirmed by the
 owner. Reached here twice: worktree-datasets-research had rebuilt the same
 feature in parallel against a stale main; that branch keeps the datasets
 survey, its implementation is superseded.
+2026-08-25 · session 9 · Survey of online MusicXML solo datasets (carried
+over from worktree-datasets-research). One drop-in: LORIA Charlie Parker
+Omnibook (50 files, real `<kind>` harmony, concert pitch, CC BY-NC-SA,
+free) — 50/50 parse, 9–29 findings each, form on 42/50; in
+`~/dev/woodshed-data/omnibook/`, not vendored. Filosax/FiloBass/QMUL gated;
+WJD has no MusicXML export; Effendi is lead sheets · docs/research/
+datasets.md · two new open questions (form on 8 files, head+solo).
