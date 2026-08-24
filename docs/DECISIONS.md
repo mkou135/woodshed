@@ -280,3 +280,9 @@ cells alone left "minor triad 5-3-1" at 1.00 and moved Blake's first
 practice unit · engine, under the owner's before/after protocol · reverse
 by removing the triad entries if the app starts naming triads in every
 solo to no useful end.
+
+2026-08-24 · **Dominant b9 cells** · b7 #9 b9 1, 3 b9 1, 1 b9 b7 over
+dominant only, named per order like the triads. Bopland
+66.7/18.5/14.8 → 69.3/16.4/14.3; Blake 13 findings, top unchanged; WJD
+median 13 → 13 · engine, owner's protocol · reverse by deleting the three
+entries.

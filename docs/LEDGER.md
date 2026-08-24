@@ -129,3 +129,5 @@ stock discount.
 (shapes.ts CELL_LENGTHS [4,3], overlap suppression, SHORT_CELL_FACTOR
 0.65): Bopland 66.7/18.5/14.8, Blake 13 with top unchanged, WJD median 13.
 274 tests.
+2026-08-24 · session 5 · Dominant b9 cells (b7#9b91, 3b91, 1b9b7):
+Bopland 69.3/16.4/14.3, Blake 13/top unchanged, WJD median 13. 276 tests.

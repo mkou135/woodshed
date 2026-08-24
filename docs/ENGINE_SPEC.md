@@ -95,7 +95,8 @@ Cell lengths 4 then 3, longest first; a 3-note hit sharing any note with a
 triad). Keyed by degree string AND allowed qualities (not family):
 1235/1234/5321 over all major-family; 3572 major/maj7 = "3-5-7-9 upper
 structure", dominant = "3-5-b7-9" (as 35b72); 1357 maj = "major-seventh
-arpeggio", 135b7 dominant; minor: 1345, 1235, 5321 (all minor-family), 3572
+arpeggio", 135b7 dominant; dominant b9 cells b7#9b91, 3b91, 1b9b7
+("dominant b9 cell b7-#9-b9-1" etc., dominant only); minor: 1345, 1235, 5321 (all minor-family), 3572
 = "major-seventh arpeggio from the b3" (minor/m7 only), 1357 (minor/m7),
 13b57 half-diminished. Triads: 1 3 5 in all six orders, each its own
 entry ("major triad 5-3-1" over major-family, "minor triad 5-3-1" over

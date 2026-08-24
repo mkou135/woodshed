@@ -107,6 +107,19 @@ describe('matchShapes: quality, not just family', () => {
     expect(matchShapes(ctx).map((h) => h.name)).toEqual(['major triad 1-3-5'])
   })
 
+  it('names the dominant b9 cells', () => {
+    // Over G7: B Ab G (3 b9 1), G Ab F (1 b9 b7), F Bb Ab G (b7 #9 b9 1).
+    const g7 = [chord(1, 7, 'dominant')]
+    expect(matchShapes(contextualise(line([71, 68, 67]), g7))[0].name).toBe('dominant b9 cell 3-b9-1')
+    expect(matchShapes(contextualise(line([67, 68, 65]), g7))[0].name).toBe('dominant b9 cell 1-b9-b7')
+    const four = matchShapes(contextualise(line([65, 70, 68, 67]), g7))
+    expect(four.map((h) => h.name)).toEqual(['dominant b9 cell b7-#9-b9-1'])
+  })
+
+  it('does not name b9 cells over a major chord', () => {
+    expect(matchShapes(contextualise(line([71, 68, 67]), [chord(1, 7, 'major-seventh')]))).toEqual([])
+  })
+
   it('names the dominant seventh arpeggio over a dominant', () => {
     const ctx = contextualise(line([62, 66, 69, 72]), [chord(1, 2, 'dominant')])
     expect(matchShapes(ctx)[0].name).toBe('dominant seventh arpeggio')

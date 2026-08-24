@@ -44,6 +44,9 @@ const DICTIONARY: Entry[] = [
   { degrees: '35b72', name: '3-5-b7-9 upper structure', qualities: DOMINANT },
   { degrees: '1357', name: 'major-seventh arpeggio', qualities: MAJOR },
   { degrees: '135b7', name: 'dominant seventh arpeggio', qualities: DOMINANT },
+  { degrees: 'b7#9b91', name: 'dominant b9 cell b7-#9-b9-1', qualities: DOMINANT },
+  { degrees: '3b91', name: 'dominant b9 cell 3-b9-1', qualities: DOMINANT },
+  { degrees: '1b9b7', name: 'dominant b9 cell 1-b9-b7', qualities: DOMINANT },
 
   { degrees: '1345', name: 'minor cell 1345', qualities: MINOR_FAMILY },
   { degrees: '1235', name: 'minor digital pattern 1235', qualities: MINOR_FAMILY },

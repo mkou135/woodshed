@@ -103,7 +103,9 @@ also rejected, 3% precision — idea recall is at its ceiling. Still open:
   nothing** (`npm run bench:bopland`, 1,785 licks with their own changes).
   The "nothing" sample shows shapes the degree-cell dictionary lacks: bare
   triads in any order (done 2026-08-24: nothing 23.9 → 14.8%),
-  dominant b9 cells (3 b9 1, 1 b9 b7, b7 #9 b9 1), and 3-note approach
-  cells. Adding cells changes what the app names on every solo, so it is
+  dominant b9 cells (done 2026-08-24: nothing 14.8 → 14.3%), and 3-note
+  approach cells. Coverage now 69.3% named / 16.4% unnamed / 14.3% nothing;
+  the remaining "nothing" sample has not been re-read since the triads went
+  in. Adding cells changes what the app names on every solo, so it is
   the owner's call: propose triads first (measure the Blake/WJD finding
   counts before and after), then the b9 family.
