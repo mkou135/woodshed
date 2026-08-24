@@ -177,3 +177,13 @@ brackets.json score phrase starts against the owner's brackets (Mintzer
 12/13 + 0 false, 22.1 known; St Thomas 57–76 frozen at 7 — the owner's 8th
 is an open question). ENGINE_SPEC "Owner brackets"; CLAUDE.md commands.
 Session closed at 292 tests.
+2026-08-24 · session 7 · Jazz pedagogy literature review (owner's
+~/Downloads "Jazz Books"; real books skipped). Eight sources read —
+Owens' Parker dissertation, the aural-imitative transcription PhD, David
+Baker *How to Play Bebop 1*, Coker *Elements of the Jazz Language*,
+Bergonzi *Melodic Structures*, Ligon *Jazz Theory Resources*; Levine and
+Bergonzi *Pentatonics* triaged and deferred. Findings written to
+docs/research/jazz-pedagogy-literature.md (derived statements only — the
+scans are copyrighted and stay out of the repo). Nine new entries in
+OPEN_QUESTIONS. No engine change: every proposal needs eval:wjd /
+brackets evidence and the owner's call first.

@@ -118,3 +118,66 @@ also rejected, 3% precision — idea recall is at its ceiling. Still open:
   in. Adding cells changes what the app names on every solo, so it is
   the owner's call: propose triads first (measure the Blake/WJD finding
   counts before and after), then the b9 family.
+
+## From the jazz pedagogy literature (2026-08-24)
+
+Full write-up and citations in `docs/research/jazz-pedagogy-literature.md`.
+All of these are proposals; none is implemented.
+
+- **7-3 resolution is undetected** (b7 of II-7 → 3 of V7; also V7 → I).
+  Coker gives it a whole chapter; Ligon and Owens arrive at it
+  independently. It is the only device on Coker's list that looks *across*
+  a chord change, which no detector of ours does. Resolve: build it from
+  the chord track and `NoteContext` degrees, and decide deliberately
+  whether it may cross an idea boundary (`samePhrase` currently forbids
+  that for every detector).
+- **Phrase boundaries carry a metric and formal position we ignore.**
+  Baker: phrases mostly end on the upbeat of beat 1 or 3. Owens: Parker's
+  phrase endings cluster in bars 7–8 of each 8-bar section. Bergonzi and
+  Ligon both tell students to attend to exactly this. `segment()` uses only
+  rest, length and leap. Resolve: try (a) a metric-position term and (b) a
+  form-position bonus at bars 7–8 of each section, scored against
+  `eval:wjd` and `npm run brackets`. This is the most promising lead on
+  "Idea recall is 68%", since a form prior helps precisely the boundaries
+  that have no surface cue.
+- **We never report where the player's phrases start and end.** `Phrase.onset`
+  exists; the profile says nothing about it. Resolve: add a metric-position
+  summary to `SoloProfile` ("phrases mostly begin on the and-of-4").
+- **A bebop scale and a random scale run score the same.** Baker's rule for
+  the bebop scale is entirely metric — the added chromatic note exists so
+  that chord tones land on downbeats. `stockShare` penalises any run of ≥ 4
+  same-direction steps regardless of placement. Resolve: measure the
+  chord-tone-on-downbeat share of a run, and decide whether it earns a
+  detector of its own or a term that lifts the stock penalty.
+- **A note that fits the next chord is still called chromatic.**
+  `analyse/context.ts` judges each note against the current chord only.
+  Coker's rule is to look at the chords before *and* after before drawing a
+  conclusion, and he names the phenomenon (bar-line shift). Resolve: test
+  the note against neighbouring chords; see whether this explains the 8 of
+  18 Blake phrase ends that are non-chord-tones.
+- **Variant families do not say what the variation is.** Ligon's taxonomy
+  has thirteen devices (sequencing, fragmentation, augmentation,
+  diminution, retrograde, displacement, interpolation …); `variantOf`
+  implements two. Fragmentation is actively discarded by the swallow rule.
+  Resolve: name the relation between a variant and its family head, and
+  surface it — it is what turns a repeat count into motivic development.
+- **Coker's list of the jazz language is two-thirds unimplemented.**
+  Missing: change running, harmonic generalization, CESH, quotes, bar-line
+  shifts, side-slipping, the bebop lick, named licks. Resolve: decide which
+  are worth detecting and in what order; harmonic generalization is
+  interesting because it explains the *absence* of change running.
+- **The shape dictionary hand-lists orderings.** Bergonzi's system is one
+  four-note set (1-2-3-5 major/dominant, 1-3-4-5 minor — both already ours)
+  times its 24 permutations. Resolve: consider restating entries as
+  set + permutation, which would collapse the six triad entries into one
+  and generate a "play it in another order" practice step.
+- **Four practice steps the sources have and we do not**: visualise (away
+  from the horn — Bergonzi; answers the faculty consensus that memorising
+  beats notating), edit (omit notes for rhythmic variety), permutation, and
+  connect-by-step into the next chord. Resolve: owner tries them; visualise
+  is nearly free since it renders no exercise.
+- **The app can be used without ever listening.** The faculty surveyed are
+  split on transcription software, and the dissenting view is that students
+  who lean on it do worst. Resolve: make "play it with the record" a
+  standing rule in the AI summariser's output, and decide whether the page
+  should say it too.
