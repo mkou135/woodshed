@@ -80,3 +80,8 @@ $CLAUDE_JOB_DIR/tmp/diag.ts (job 947da956; not in repo).
 `Finding.variants`, `FindingView.variants`, name "with n variants". Blake
 12 → 13 findings (bar 68 target crossed 0.4 on recurring evidence), top
 unchanged; corpus:wjd median 13 → 13 · 244 tests.
+2026-08-24 · session 4 · Families reviewed on Donna Lee / Blues for Alice
+(Parker sequences through changes, bars 1–2, 8–9, 31–32): keep. diag:wjd
+gains fam* rules: family start 3% precision → similarity cue rejected, idea
+recall ceiling recorded in DECISIONS. Next: stock-vocabulary discount in
+unit rank (OPEN_QUESTIONS).

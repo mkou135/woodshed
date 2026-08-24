@@ -12,6 +12,7 @@ import type { WjdMelodyRow } from '../src/ingest/wjd.ts'
 import { segment, boundaryCue } from '../src/analyse/segment.ts'
 import { scoreFromWjd } from '../src/ingest/wjd.ts'
 import type { WjdBeatRow, WjdSolo } from '../src/ingest/wjd.ts'
+import { findRecurring } from '../src/analyse/detectors/recurring.ts'
 import { contextualise } from '../src/analyse/context.ts'
 import type { NoteContext } from '../src/analyse/context.ts'
 import type { Note } from '../src/core/types.ts'
@@ -27,6 +28,7 @@ function add(cls: string, f: F) {
 }
 function median(xs: number[]) { const s = [...xs].sort((a, b) => a - b); return s[Math.floor(s.length / 2)] }
 let CTX: NoteContext[] = []
+let FAM_START = new Set<number>(), FAM_END = new Set<number>(), FAM_START4 = new Set<number>(), FAM_VAR = new Set<number>()
 function feats(notes: Note[], i: number, med: number): F {
   const h = notes[i], n = notes[i + 1]
   const ch = CTX[i], cn = CTX[i + 1]
@@ -67,6 +69,10 @@ function feats(notes: Note[], i: number, med: number): F {
     nextCT: cn?.chordTone ? 1 : 0,
     chordChange: ch?.chord && cn?.chord && ch.chord !== cn.chord ? 1 : 0,
     hereChrom: ch?.chromatic ? 1 : 0,
+    famStart: FAM_START.has(i + 1) ? 1 : 0,
+    famStart4: FAM_START4.has(i + 1) ? 1 : 0,
+    famEnd: FAM_END.has(i + 1) ? 1 : 0,
+    famVar: FAM_VAR.has(i + 1) ? 1 : 0,
   }
 }
 for (const solo of solos) {
@@ -76,6 +82,11 @@ for (const solo of solos) {
   const beats = db.prepare("select bar, beat, coalesce(chord, '') as chord, coalesce(form, '') as form, coalesce(signature, '') as signature from beats where melid = ? order by onset").all(melid) as unknown as WjdBeatRow[]
   let sc; try { sc = scoreFromWjd(solo, rows, beats).score } catch { continue }
   CTX = contextualise(sc.notes, sc.chordTracks[0]?.chords ?? [])
+  FAM_START = new Set(); FAM_END = new Set(); FAM_START4 = new Set(); FAM_VAR = new Set()
+  for (const h of findRecurring(CTX)) {
+    for (const o of h.occurrences) { FAM_START.add(o); FAM_END.add(o + h.intervals.length + 1); if (h.intervals.length >= 4) FAM_START4.add(o) }
+    for (const v of h.variants) for (const o of v.occurrences) FAM_VAR.add(o)
+  }
   const secs = db.prepare("select type, start from sections where melid = ? and type in ('PHRASE','IDEA') and start > 0").all(melid) as { type: string; start: number }[]
   const ph = new Set(secs.filter((s) => s.type === 'PHRASE').map((s) => s.start))
   const id = new Set(secs.filter((s) => s.type === 'IDEA').map((s) => s.start))
@@ -124,6 +135,15 @@ const rules: Record<string, (f: F) => boolean> = {
   'chordChange': (f) => f.chordChange > 0,
   'chordChange&rest16': (f) => f.chordChange > 0 && f.rest > 0,
   'hereCT&rest16&held15': (f) => f.hereCT > 0 && f.rest > 0 && f.held15 > 0,
+  'famStart': (f) => f.famStart > 0,
+  'famStart4': (f) => f.famStart4 > 0,
+  'famVar': (f) => f.famVar > 0,
+  'famEnd': (f) => f.famEnd > 0,
+  'famStart&rest16': (f) => f.famStart > 0 && f.rest > 0,
+  'famStart&(rest|held15|leap)': (f) => f.famStart > 0 && (f.rest > 0 || f.held15 > 0 || f.leap > 0),
+  'famStart&downbeat': (f) => f.famStart > 0 && f.downbeat > 0,
+  'famStart&onBeat': (f) => f.famStart > 0 && f.onBeat > 0,
+  'famEnd&(rest|held15|leap)': (f) => f.famEnd > 0 && (f.rest > 0 || f.held15 > 0 || f.leap > 0),
   'anyGap&held15': (f) => f.shortRest + f.rest > 0 && f.held15 > 0,
 }
 const keys = Object.keys(acc.FN.sum)

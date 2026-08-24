@@ -188,3 +188,12 @@ findings, top unchanged; Confirmation: C Db D Bb G A C at 46/94 gains 78;
 corpus:wjd median findings 13 → 13, max 132 → 120, no zero-finding solo ·
 engine, owner asked for it · reverse if the page shows bent forms that are
 not the same idea (raise variantMinLength or lower bend first).
+
+2026-08-24 · **Similarity as an idea cue rejected; idea recall ceiling
+accepted** · The start (or end) of a recurring-family occurrence is at 14%
+of missed WJD idea boundaries vs 9% of ordinary gaps — 3% precision, 6–8%
+with a rest/held/leap alongside. With surface, harmonic, metric and motivic
+cues all tested, the ~75% of intra-phrase WJD idea boundaries we miss are
+not recoverable from features the engine has; ideas F1 77.6 stands as the
+working ceiling · `npm run diag:wjd` (fam* rules) · engine · reverses only
+with a new class of evidence (e.g. annotator-style listening tests).
