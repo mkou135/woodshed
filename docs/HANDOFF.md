@@ -345,3 +345,22 @@ owner's call).
 Also open before the design pass, if the owner prefers engine work first:
 Mintzer rhythm changes phrase markers (OPEN_QUESTIONS) — needs the
 owner's brackets on one chorus, then a threshold review for fast tempos.
+
+## Session 6 handoff (2026-08-24)
+
+The page is now the "practice desk" (spec:
+docs/superpowers/specs/2026-08-24-practice-desk-design.md; plan:
+docs/superpowers/plans/2026-08-24-practice-desk.md). Header with the
+solo, a tune chip that is amber and never auto-taken unless the chord vote
+is confident, Details for engine data, a start-here strip, the score full
+width with the idea in hand painted in highlighter, the desk (big idea
+number, bars · chords · named cells, ‹ › All ideas Reset), the four steps
+as a path with a remembered done state, and an All-ideas table.
+`app/main.ts` is wiring only; the modules are listed in ENGINE_SPEC
+"Page". Owner decisions: no framework, self-hosted fonts, done state in
+localStorage (DECISIONS 2026-08-24 "Page redesign").
+
+Not yet done from the design: nothing structural. Worth an owner read on a
+real practice session: is "Done — through the tune →" the right verb; does
+the All-ideas table want the phrase/idea number; does the start-here strip
+need to come back on a new visit (it returns on every load today).

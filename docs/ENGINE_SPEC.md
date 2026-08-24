@@ -6,7 +6,7 @@ the code. Each section names the file that implements it — if this file and
 the code disagree, that is a bug to fix immediately, in whichever direction
 the DECISIONS log supports.
 
-Last updated: 2026-08-24 (session 3).
+Last updated: 2026-08-24 (session 6).
 
 ## Units
 
@@ -264,6 +264,31 @@ no note data). Key = three semitone intervals as played, each clipped to
 ±12 (`patternKey`); value = share of the 452 solos containing the pattern
 at least once (document frequency, not count). Patterns below 0.05 are
 omitted (6,482 of 7,742). Regenerate after any ingest change.
+
+## Page (`app/`, DOM only; design in docs/superpowers/specs/2026-08-24-practice-desk-design.md)
+
+- Modules: `main.ts` (wiring, landing, header, start-here strip, All-ideas
+  drawer), `score.ts` (OSMD, phrase/idea ticks, highlighter, go-to-bar),
+  `desk.ts` (idea head, step path, panes), `tune.ts` (chip + picker),
+  `details.ts` (engine diagnostics behind a button), `done.ts`, `dom.ts`.
+  No framework; fonts self-hosted in `app/fonts/` (SIL OFL), never a CDN.
+- Idea head is laid out from `PracticeUnit.summary` (`practice/unit.ts`):
+  `bars` (printed, "Bars 76–77"), `chords`, `cells` (distinct finding
+  names), `landing`, `alsoAt` (printed bars outside the unit where its
+  findings recur), `stock` (unit stock ≥ `STOCK_SHOWN` **0.5** → "mostly
+  a scale run"). **No note names on the page** — the score shows them.
+  `header` string remains for the CLI and the loop step's rationale.
+- Tune chip: the file-name/title guess is taken only when
+  `inferTransposition` is confident (same rule as before); otherwise the
+  chip is amber "which tune?", units come from the solo's own changes, and
+  the picker shows agreement per candidate (< 0.5 → "probably not").
+- Done state: `localStorage` key `woodshed.done.<title>:<notes>:<bars>`,
+  JSON array of `<unit id>:<step kind>`; a unit opens at its first undone
+  step; "Reset ticks" clears the solo's set. `woodshed.tune` keeps a pasted
+  irealb link (as before).
+- Scrolling to an SVG note group must be instant and deferred with
+  `setTimeout`, not `requestAnimationFrame` (never fires in a background
+  tab) and not `smooth` (Chrome ignores it on SVG groups).
 
 ## Verification targets
 

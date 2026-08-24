@@ -165,3 +165,10 @@ next time (OPEN_QUESTIONS). 291 tests.
 owner approved: practice-desk design (spec in docs/superpowers/specs/),
 no framework, self-hosted fonts, step done-state in localStorage.
 DECISIONS updated. Next: implementation plan, then build.
+2026-08-24 · session 6 · Practice-desk page built (branch practice-desk →
+main): `PracticeUnit.summary`; app/ split into 7 modules; self-hosted
+fonts; highlighter on the idea's bars; tune chip amber unless the vote is
+confident; Details drawer; step path with localStorage done state.
+Verified in Chrome on Blake (lands on bars 76–77, 34 ideas), St Thomas
+(chip amber → picker: "Strode Rode 19 % — probably not", "St. Thomas
+88 % ✓"), Mintzer (85 ideas). 292 tests, build clean. ENGINE_SPEC "Page".
