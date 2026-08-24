@@ -8,19 +8,26 @@
   </head>
   <body>
     <main>
-      <h1>woodshed</h1>
-      <p class="lede">
-        Drop in a transcribed solo — <code>.mxl</code> or <code>.musicxml</code> —
-        and see the vocabulary it contains, with exercises that drill it.
-      </p>
+      <header id="top" class="top" hidden></header>
 
-      <div id="drop" class="drop">
-        <p>Drop a transcription here</p>
-        <label class="file">
-          <input id="file" type="file" accept=".mxl,.musicxml,.xml" />
-          <span>or choose a file</span>
-        </label>
-      </div>
+      <section id="landing" class="land">
+        <h1>Woodshed</h1>
+        <p class="lede">
+          Drop a transcribed solo. Woodshed finds the ideas in it and turns each one
+          into four things to practise.
+        </p>
+        <div id="drop" class="drop">
+          Drop a transcription here
+          <small>.mxl or .musicxml from MuseScore, Sibelius, Finale — or choose a file</small>
+          <input id="file" type="file" accept=".mxl,.musicxml,.xml" aria-label="Choose a transcription" />
+        </div>
+        <div class="then">
+          <div><div class="n">1</div><div class="t">Loop it</div><p>As played, with the record.</p></div>
+          <div><div class="n">2</div><div class="t">Through the tune</div><p>Every chord that takes it.</p></div>
+          <div><div class="n">3</div><div class="t">Vary it</div><p>Moved, reversed, recombined.</p></div>
+          <div><div class="n">4</div><div class="t">Write your own</div><p>Then check it here.</p></div>
+        </div>
+      </section>
 
       <p id="status" class="status" hidden></p>
       <div id="error" class="error" hidden></div>
