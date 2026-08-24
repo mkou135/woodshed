@@ -247,3 +247,13 @@ cut a phrase that began as a pickup into the chorus; now skipped when the
 last rest boundary opened ≤ 3 notes in the last two beats before. Owner's 8
 brackets on printed 57–76 all match after the fix (6 before); WJD phrases
 83.8 → 83.8, ideas 77.3 → 77.8 · owner's ear + eval · engine.
+
+2026-08-24 · **Riff binding** · A rest of ≤ 3 beats between two statements
+of the same figure (same first pitch class, same contour over the first
+three intervals, comparable opening length) ends an idea, not a phrase.
+Owner: St Thomas printed 33–41 is one unit; now one phrase of 7 riff
+ideas. Printed 49–56 stays three phrases (the riff there starts on D, the
+answer on A) — noted, not forced. WJD phrases 83.8 → 82.4 (annotators
+split riffs 78% of the time; see the earlier entry), ideas 77.8 unchanged.
+Sweep 2/3/4 beats: 82.8/82.4/82.2; 3 covers Rollins' 2.5-beat rests ·
+owner's ear over annotators · reverse by riffMaxGap 0.

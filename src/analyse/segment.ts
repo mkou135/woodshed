@@ -95,6 +95,12 @@ export interface SegmentOptions {
    * ear; the Weimar annotators mark it rarely). 0 = off.
    */
   pickupHeld: number
+  /**
+   * Riff binding: a rest no longer than this (ticks) between two statements
+   * of the same figure ends an idea, not a phrase, so a riff chain is one
+   * phrase of repeated ideas (St Thomas printed 33–41). 0 = off.
+   */
+  riffMaxGap: number
 }
 
 export const DEFAULTS: SegmentOptions = {
@@ -121,6 +127,7 @@ export const DEFAULTS: SegmentOptions = {
   peakRatio: 2.5,
   peakWindow: 4,
   pickupHeld: 3,
+  riffMaxGap: 3 * TICKS_PER_QUARTER,
 }
 
 const STRUCTURAL_CONFIDENCE = 0.6
@@ -208,6 +215,26 @@ interface Boundary {
   rest?: number
   /** A rest (or structural) boundary ends a phrase; an arrival ends an idea. */
   kind: 'rest' | 'structural' | 'arrival'
+}
+
+/**
+ * The same figure again: same contour over the first three intervals, the
+ * same starting pitch class, and an opening note of comparable length.
+ * Loose on purpose — Rollins' "A Eb A E A" and "A E A D A" are one riff.
+ */
+export function sameFigure(a: Note[], b: Note[]): boolean {
+  if (a.length < 2 || b.length < 2) return false
+  if (((a[0].midi - b[0].midi) % 12 + 12) % 12 !== 0) return false
+  const ratio = a[0].duration / b[0].duration
+  if (ratio > 2 || ratio < 0.5) return false
+  const n = Math.min(3, a.length - 1, b.length - 1)
+  let moves = 0
+  for (let k = 0; k < n; k++) {
+    const da = Math.sign(a[k + 1].midi - a[k].midi)
+    if (da !== Math.sign(b[k + 1].midi - b[k].midi)) return false
+    if (da !== 0) moves++
+  }
+  return moves > 0
 }
 
 /** GPR 1: dissolve the weaker edge of any group below the minimum size. */
@@ -322,6 +349,20 @@ export function segment(
       all.push({ at: i + 1, strength: STRUCTURAL_CONFIDENCE, kind: 'structural' })
     } else if (cue.gap >= o.ideaRest) {
       all.push({ at: i + 1, strength: cue.total, kind: 'arrival' })
+    }
+  }
+
+  // Riff binding: a rest between two statements of one figure is inside
+  // the phrase. Groups are taken between phrase-level boundaries.
+  if (o.riffMaxGap > 0) {
+    const edges = all.filter((b) => b.kind !== 'arrival')
+    for (let k = 0; k < edges.length; k++) {
+      const b = edges[k]
+      if (b.kind !== 'rest') continue
+      const start = k > 0 ? edges[k - 1].at : 0
+      const end = k + 1 < edges.length ? edges[k + 1].at : notes.length
+      if (cues[b.at - 1].gap > o.riffMaxGap) continue
+      if (sameFigure(notes.slice(start, b.at), notes.slice(b.at, end))) b.kind = 'arrival'
     }
   }
 

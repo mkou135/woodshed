@@ -37,6 +37,7 @@ Boundary strength per gap = min(1, wRest·rest + wLength·length + wLeap·leap):
 | rhythmWindow | 4 | notes each side for the rhythm-change cue |
 | ideaThreshold | 0.45 | idea profile (wIdeaRest·rest + wLength·length + wLeap·leap + wRhythm·rhythm) ≥ this opens an idea |
 | pickupHeld | 3 × median | pickup gesture: note held ≥ this, then a lone note in the bar's last half-beat landing on the next downbeat → **idea** opens at the pickup (owner's ear on Blake 69→70, 70→71; costs 0.3 WJD idea F1) |
+| riffMaxGap | 3 beats | riff binding: a rest ≤ this between two statements of the same figure (`sameFigure`: ≥ 2 notes each, same first pitch class, same contour over the first 3 intervals with at least one move, opening durations within 2×) ends an **idea**, not a phrase (owner: St Thomas printed 33–41 is one phrase; costs 1.4 WJD phrase F1) |
 | peakMin / peakRatio / peakWindow | 0.35 / 2.5 / 4 | local peak: a gap ≥ peakMin that is the strongest within ±peakWindow gaps and ≥ peakRatio × their mean opens an **idea** (never a phrase) |
 
 Two levels: phrase-profile total ≥ threshold with rest > 0 (or structural,
@@ -46,7 +47,7 @@ or a local peak, or the pickup gesture, ends an **idea** within the
 phrase. `segment()` takes beats per bar (from `timeSig`) for the pickup test. A phrase whose
 first note is off the eighth grid starts on its quarter-note beat
 (`Phrase.onset`). Scores vs Weimar Jazz Database (456 solos,
-`npm run eval:wjd`): phrases P 80.7 / R 87.1 / F1 **83.8** (human ceiling
+`npm run eval:wjd`): phrases P 80.9 / R 84.0 / F1 **82.4** (83.8 with riffMaxGap 0) (human ceiling
 .83); ideas 82.7 / 73.4 / **77.8**. Excluding gaps that are
 also phrase boundaries, only ~25% of WJD idea boundaries are found; the
 rest carry no surface cue (see DECISIONS 2026-08-24).

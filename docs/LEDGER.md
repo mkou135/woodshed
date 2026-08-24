@@ -110,3 +110,6 @@ out.png file.mxl` (unsandboxed). 262 tests.
 57–76 (old-build ticks were the 16-bar offset). Fixed rest-bounded tiny
 group exemption and pickup-into-chorus forced cut; 8/8 match, WJD ideas
 77.8. 266 tests.
+2026-08-24 · session 4 · Riff binding (`sameFigure`, riffMaxGap 3 beats):
+St Thomas 33–41 one phrase / 7 ideas; WJD phrases 82.4 (−1.4, owner's
+call), ideas 77.8. 270 tests.

@@ -36,7 +36,7 @@ describe('segment', () => {
 
   it('splits on a rest of a quarter or longer', () => {
     const q = [60, 0.5, 0] as [number, number, number]
-    const notes = notesFrom([q, q, q, [62, 0.5, 1], q, q, q, [65, 0.5, 0]])
+    const notes = notesFrom([q, q, q, [62, 0.5, 1], [67, 0.5, 0], [65, 0.5, 0], [64, 0.5, 0], [62, 0.5, 0]])
     const phrases = segment(notes)
     expect(phrases.map((p) => p.notes.length)).toEqual([4, 4])
     expect(phrases[0].confidence).toBe(1)
@@ -199,5 +199,35 @@ describe('chorus start after a pickup', () => {
   it('still cuts at the chorus start when the line runs straight through', () => {
     const notes = notesFrom(Array.from({ length: 16 }, (_, i) => e(60 + (i % 5))))
     expect(segment(notes, [2])).toHaveLength(2)
+  })
+})
+
+describe('riff binding', () => {
+  const e = (m: number, gap = 0): [number, number, number] => [m, 0.5, gap]
+  // St Thomas printed 33-41: a riff stated, a rest, the riff again with a
+  // note or two changed. The owner hears the chain as one phrase; each
+  // statement is an idea.
+  const riff = (last: number, gap: number) => [e(69), e(64), e(69), e(last, gap)]
+
+  it('binds repeated statements of a figure across rests into one phrase', () => {
+    const notes = notesFrom([...riff(62, 1.5), ...riff(63, 1.5), ...riff(62, 1.5), e(60), e(62), e(64)])
+    const phrases = segment(notes)
+    expect(phrases.map((p) => p.notes.length)).toEqual([12, 3])
+    expect(phrases[0].ideas.map((i) => i.notes.length)).toEqual([4, 4, 4])
+  })
+
+  it('does not bind a different figure after the rest', () => {
+    const notes = notesFrom([...riff(62, 1.5), e(60), e(62), e(64), e(65)])
+    expect(segment(notes)).toHaveLength(2)
+  })
+
+  it('does not bind across a rest longer than a bar', () => {
+    const notes = notesFrom([...riff(62, 5), ...riff(62, 0)])
+    expect(segment(notes)).toHaveLength(2)
+  })
+
+  it('is off when riffMaxGap is 0', () => {
+    const notes = notesFrom([...riff(62, 1.5), ...riff(62, 0)])
+    expect(segment(notes, [], { riffMaxGap: 0 })).toHaveLength(2)
   })
 })
