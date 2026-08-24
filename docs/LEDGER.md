@@ -96,3 +96,8 @@ ideas 77.3 (−0.3), phrases 83.8. 253 tests.
 repeat-endings, `Score.repeats`, `repeat-unrolled` info adjustment). St
 Thomas (Rollins) from ~/Downloads now runs: 273 bars, 16-bar form ×17, 31
 findings; copied to ~/dev/woodshed-data/peers. 256 tests.
+2026-08-24 · session 4 · St Thomas review: 72% was an empty "this solo"
+tune from the chordless intro → `tuneFromScore` picks the first chorus
+with chords (88% vs book); chordName gets '6'; riff-across-rest measured on
+WJD (78% still a phrase) → no change; long even-eighth lines stay one idea
+(known ceiling). diag:wjd gains riffRepeat. 257 tests.

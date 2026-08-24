@@ -45,7 +45,7 @@ const NOTE_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 
 
 export function chordName(chord: Chord): string {
   const q: Record<string, string> = {
-    'major': '', 'minor': 'm', 'dominant': '7', 'major-seventh': 'maj7',
+    'major': '', 'major-sixth': '6', 'minor': 'm', 'dominant': '7', 'major-seventh': 'maj7',
     'minor-seventh': 'm7', 'half-diminished': 'm7b5', 'diminished': 'dim',
     'diminished-seventh': 'dim7', 'minor-major': 'm(maj7)', 'augmented': '+',
     'augmented-seventh': '7#5', 'suspended-fourth': 'sus4', 'unknown': '',

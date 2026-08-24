@@ -221,3 +221,20 @@ segno/coda still rejected · owner hit it on St Thomas (Rollins, head
 written 17–32 with a repeat; 257 → 273 played bars, head = choruses 1–2) ·
 owner asked, engine · reverse if a score with nested or `times` > 2
 repeats needs more than two passes (then extend, not reject).
+
+2026-08-24 · **Riff repeats across rests stay separate phrases** · Owner
+felt St Thomas's calypso riffs (A E A Eb A D … rest … again) were split
+too finely. WJD: where the notes after a rest repeat the three intervals
+that opened the previous phrase, annotators still mark a phrase 78% of the
+time (83% for other rests) · `LEVEL=phrase npm run diag:wjd` (riffRepeat)
+· engine keeps rests as phrase ends · reverse if the owner, on hearing the
+record, wants riff statements grouped — then as a display grouping, not a
+segmentation change.
+
+2026-08-24 · **This solo's changes come from the first chorus with chords** ·
+St Thomas has a 16-bar chordless intro that the double-bar phase counts as
+chorus 1; `tuneFromScore` returned an empty tune and the book vote had
+nothing to compare. Now the first chorus with symbols under ≥ half its
+bars. Book match St. Thomas 88% (the two differing bars: a tritone-sub
+first chord in bar 11, a D before the A7 in bar 15); 6/9 chords are
+irrelevant to the vote, which compares roots only · owner's report, engine.

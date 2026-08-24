@@ -21,8 +21,18 @@ export function barTicks(timeSig: [number, number]): number {
 export function tuneFromScore(score: Score, chorusStarts: number[] = []): Tune {
   const chords = score.chordTracks[0]?.chords ?? []
   const ticks = barTicks(score.timeSig)
-  const from = chorusStarts[0] ?? 1
-  const to = chorusStarts[1] !== undefined ? chorusStarts[1] - 1 : score.barCount
+  // The first chorus with chords under at least half its bars: a chordless
+  // intro (St Thomas: 16 empty bars, then the head) is not the changes.
+  const starts = chorusStarts.length ? chorusStarts : [1]
+  let pick = 0
+  for (let k = 0; k < starts.length; k++) {
+    const a = starts[k]
+    const b = starts[k + 1] !== undefined ? starts[k + 1] - 1 : score.barCount
+    const withChord = new Set(chords.filter((c) => c.bar >= a && c.bar <= b).map((c) => c.bar)).size
+    if (withChord * 2 >= b - a + 1) { pick = k; break }
+  }
+  const from = starts[pick]
+  const to = starts[pick + 1] !== undefined ? starts[pick + 1] - 1 : score.barCount
   const bars: TuneBar[] = []
   let carried: Chord | null = null
   for (let bar = from; bar <= to; bar++) {

@@ -181,6 +181,13 @@ jazz standards parse.
 - Corpus (9 files): 6 identified from the title alone, every correct match
   confident (79–100%), no wrong match confident (≤ 29%).
 
+## This solo's changes (`practice/tune.ts` `tuneFromScore`)
+
+One chorus: the first chorus (from `chorusStarts`) with chord symbols under
+at least half its bars, else the last examined; a chordless intro counted
+as a chorus (St Thomas bars 1–16) is skipped. Bars without a symbol carry
+the previous chord.
+
 ## Repeats (`ingest/parseScore.ts` `playedMeasures`)
 
 Written order → played order before either parser walks the measures. A

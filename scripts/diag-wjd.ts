@@ -28,6 +28,7 @@ function add(cls: string, f: F) {
 }
 function median(xs: number[]) { const s = [...xs].sort((a, b) => a - b); return s[Math.floor(s.length / 2)] }
 let CTX: NoteContext[] = []
+let PRED = new Set<number>()
 let BEATS = 4
 let FAM_START = new Set<number>(), FAM_END = new Set<number>(), FAM_START4 = new Set<number>(), FAM_VAR = new Set<number>()
 function feats(notes: Note[], i: number, med: number): F {
@@ -74,6 +75,14 @@ function feats(notes: Note[], i: number, med: number): F {
     pickupHeld: n.beat >= BEATS - 0.5 && notes[i + 2]?.bar === n.bar + 1 && notes[i + 2].beat === 0 && h.duration >= 2 * med ? 1 : 0,
     pickupHeld3: n.beat >= BEATS - 0.5 && notes[i + 2]?.bar === n.bar + 1 && notes[i + 2].beat === 0 && h.duration >= 3 * med ? 1 : 0,
     pickupHeldChord: n.beat >= BEATS - 0.5 && notes[i + 2]?.bar === n.bar + 1 && notes[i + 2].beat === 0 && h.duration >= 2 * med && ch?.chord && CTX[i + 2]?.chord && ch.chord !== CTX[i + 2].chord ? 1 : 0,
+    riffRepeat: (() => {
+      // the 3 intervals after the gap equal the 3 that opened the preceding predicted group
+      let prev = 0
+      for (const p of PRED) if (p <= i && p > prev) prev = p
+      if (i + 4 >= notes.length || prev + 3 > i) return 0
+      for (let k = 0; k < 3; k++) if (notes[i + 2 + k].midi - notes[i + 1 + k].midi !== notes[prev + 1 + k].midi - notes[prev + k].midi) return 0
+      return 1
+    })(),
     famStart: FAM_START.has(i + 1) ? 1 : 0,
     famStart4: FAM_START4.has(i + 1) ? 1 : 0,
     famEnd: FAM_END.has(i + 1) ? 1 : 0,
@@ -100,6 +109,7 @@ for (const solo of solos) {
   const notes = sc.notes
   const med = median(notes.map((n) => n.duration))
   const pred = new Set<number>(); let ix = 0
+  PRED = pred
   const PH = process.env.LEVEL === 'phrase'
   for (const p of segment(notes)) { if (PH) { if (ix > 0) pred.add(ix); ix += p.notes.length; continue } for (const d of p.ideas) { if (ix > 0) pred.add(ix); ix += d.notes.length } }
   if (PH) { id.clear(); for (const x of ph) id.add(x); ph.clear() }
@@ -164,6 +174,14 @@ for (const cls of ['FN', 'TP', 'FP', 'none']) {
   console.log(cls.padEnd(6), String(a.n).padStart(6), ...keys.map((k) => ((a.sum[k] / a.n) * 100).toFixed(0).padStart(10)))
 }
 
+{
+  // among predicted boundaries: does a riff repeat across the gap change the odds it is real?
+  for (const flag of [1, 0]) {
+    let tp = 0, fp = 0
+    for (const { cls, f } of rows2) { if (f.riffRepeat !== flag) continue; if (cls === 'TP') tp++; else if (cls === 'FP') fp++ }
+    console.log(`predicted boundaries with riffRepeat=${flag}: real ${tp}, not ${fp}, precision ${((tp / Math.max(1, tp + fp)) * 100).toFixed(0)}%`)
+  }
+}
 console.log('\nrule (over gaps not currently predicted): hits = idea boundaries, fires = total, precision')
 for (const [name, r] of Object.entries(rules)) {
   let hit = 0, fires = 0
