@@ -58,3 +58,7 @@ confident. Fixture form-pickup-bar · 230 tests.
 2026-08-24 · session 3 · WJD ingester (`ingest/wjd.ts`) + `npm run
 corpus:wjd`: 453/456 solos through the full pipeline; slash chords parsed;
 mixed meter rejected; eval:wjd reuses the converter · 236 tests.
+2026-08-24 · session 3 · Close. Pushed through 944e12d. Next candidates:
+`eval:omnibook` script + golden counts for corpus:wjd; vamp-as-form (34 WJD
+solos); vote over period×phase for weak tune matches; peers' files via a
+Dropbox file request into ~/dev/woodshed-data/peers.
