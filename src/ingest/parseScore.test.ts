@@ -90,3 +90,13 @@ describe('final double bar', () => {
     expect(bars).toEqual([10])
   })
 })
+
+describe('title', () => {
+  it('reads the work title', () => {
+    const xml = load('form-8bar-x3.musicxml').replace('<part-list>', '<work><work-title>Hey Lock!</work-title></work><part-list>')
+    expect(parseScore(xml).title).toBe('Hey Lock!')
+  })
+  it('is undefined when the score has none', () => {
+    expect(parseScore(load('form-8bar-x3.musicxml')).title).toBeUndefined()
+  })
+})

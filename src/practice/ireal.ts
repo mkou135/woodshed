@@ -256,3 +256,23 @@ export function parseIReal(link: string): IRealSong[] {
   if (songs.length === 0) throw new UnsupportedChartError('no songs in link')
   return songs
 }
+
+/**
+ * Parse a whole book, keeping what parses. Each chart is a separate link
+ * body, so an unsupported one is skipped rather than failing the book.
+ */
+export function parseIRealBook(link: string): { songs: IRealSong[]; skipped: string[] } {
+  const trimmed = link.trim()
+  const body = decodeURIComponent(trimmed.slice('irealb://'.length))
+  const songs: IRealSong[] = []
+  const skipped: string[] = []
+  for (const entry of body.split('===')) {
+    if (entry.split('=').length < 7) continue
+    try {
+      songs.push(...parseIReal('irealb://' + encodeURIComponent(entry)))
+    } catch {
+      skipped.push(entry.split('=')[0])
+    }
+  }
+  return { songs, skipped }
+}

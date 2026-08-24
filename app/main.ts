@@ -1,7 +1,9 @@
+import bookLink from './data/jazz1460.irealb.txt?raw'
 import { OpenSheetMusicDisplay } from 'opensheetmusicdisplay'
 import {
   run, readScoreXml, exerciseToMusicXml, UnsupportedScoreError, TICKS_PER_QUARTER,
-  parseIReal, practiseOver, transposeTune, checkWriting, chordName, noteName,
+  parseIReal, parseIRealBook, practiseOver, transposeTune, tuneFromScore, checkWriting, chordName, noteName,
+  guessTitle, searchTunes, inferTransposition,
 } from '../src/index.ts'
 import type {
   Adjustment, Exercise, Instrument, PipelineResult, PracticeUnit, Step, IRealSong,
@@ -424,57 +426,110 @@ async function stepPanels(unit: PracticeUnit, result: PipelineResult, host: HTML
 
 const TUNE_KEY = 'woodshed.tune'
 
+let bookCache: IRealSong[] | null = null
+/** The 1,460-standard forum book, parsed on first use (about a second). */
+function book(): IRealSong[] {
+  if (!bookCache) bookCache = parseIRealBook(bookLink).songs
+  return bookCache
+}
+
 function tuneControl(
   result: PipelineResult,
+  filename: string,
   onChange: (units: PracticeUnit[]) => void,
 ): HTMLElement {
   const box = el('div', 'tune')
-  const select = el('select')
-  const own = el('option', undefined, 'this solo')
-  own.value = 'solo'
-  select.appendChild(own)
+  const search = el('input')
+  search.type = 'search'
+  search.placeholder = 'which tune is this?'
+  search.setAttribute('aria-label', 'Search for the tune')
+  const results = el('ul', 'tune-results')
   const paste = el('input')
   paste.type = 'text'
-  paste.placeholder = 'paste an irealb:// link'
+  paste.placeholder = 'not in the book? paste an irealb:// link'
   const note = el('span', 'faint')
+  const own = el('button', 'linkish', 'this solo\u2019s changes')
+  own.type = 'button'
 
-  let songs: IRealSong[] = []
-  const apply = (): void => {
-    if (select.value === 'solo') { onChange(result.units); return }
-    const song = songs[Number(select.value)]
-    if (!song) return
-    // Charts are concert pitch; the player reads written pitch.
-    const written = transposeTune(song.tune, -result.score.instrument.transpose.chromatic)
-    onChange(practiseOver(result, written, song.title))
+  let pasted: IRealSong[] = []
+  const chartShift = -result.score.instrument.transpose.chromatic
+  const starts = result.report.form?.chorusStarts ?? []
+  const soloTune = tuneFromScore(result.score, starts.length ? [starts[0]] : [])
+
+  const choose = (song: IRealSong): void => {
+    // Charts are concert pitch; the player reads written pitch. The solo's
+    // own changes say which instrument this is better than the file does —
+    // a bar-by-bar vote, so substitutions and alterations cost votes, not
+    // the match.
+    const vote = inferTransposition(soloTune, song.tune)
+    const shift = vote?.confident ? vote.chromatic : chartShift
+    const pct = vote ? `${Math.round(vote.agreement * 100)}% of bars agree` : 'no chords to compare'
+    note.textContent = vote?.confident
+      ? `${song.title} — ${pct}${shift === chartShift ? '' : ' (overriding the file\u2019s instrument)'}`
+      : `${song.title} — ${pct}; using the file\u2019s instrument. Right tune?`
+    search.value = song.title
+    results.replaceChildren()
+    onChange(practiseOver(result, transposeTune(song.tune, shift), song.title))
   }
-  const load = (link: string): void => {
+
+  const show = (): void => {
+    const hits = searchTunes(search.value, [...pasted, ...book()], 6)
+    results.replaceChildren(
+      ...hits.map((h) => {
+        const li = el('li')
+        const b = el('button', undefined, `${h.song.title} (${h.song.key})`)
+        b.type = 'button'
+        b.addEventListener('click', () => choose(h.song))
+        li.appendChild(b)
+        return li
+      }),
+    )
+  }
+
+  search.addEventListener('input', show)
+  search.addEventListener('focus', show)
+  search.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') { results.querySelector('button')?.click() }
+    if (event.key === 'Escape') results.replaceChildren()
+  })
+  own.addEventListener('click', () => {
+    search.value = ''
+    results.replaceChildren()
+    note.textContent = ''
+    onChange(result.units)
+  })
+  paste.addEventListener('change', () => {
+    const link = paste.value.trim()
+    if (!link) return
     try {
-      songs = parseIReal(link)
-      for (const o of [...select.options]) if (o.value !== 'solo') o.remove()
-      songs.forEach((s, i) => {
-        const o = el('option', undefined, `${s.title} (${s.key})`)
-        o.value = String(i)
-        select.appendChild(o)
-      })
-      select.value = '0'
-      note.textContent = songs.length > 1 ? `${songs.length} tunes loaded` : ''
+      pasted = parseIReal(link)
       try { localStorage.setItem(TUNE_KEY, link) } catch { /* private mode */ }
-      apply()
+      choose(pasted[0])
     } catch (error) {
       note.textContent = (error as Error).message
     }
-  }
-  paste.addEventListener('change', () => { if (paste.value.trim()) load(paste.value) })
-  select.addEventListener('change', apply)
-  box.append(el('span', undefined, 'Take it through: '), select, paste, note)
+  })
   try {
     const saved = localStorage.getItem(TUNE_KEY)
-    if (saved) { paste.value = saved; load(saved) }
-  } catch { /* no storage */ }
+    if (saved) { paste.value = saved; pasted = parseIReal(saved) }
+  } catch { /* no storage, or a stale link */ }
+
+  box.append(el('span', undefined, 'Take it through: '), search, own, results, paste, note)
+
+  // Guess from the title (or file name) and take it if the changes agree.
+  const guess = searchTunes(guessTitle(result.score, filename), [...pasted, ...book()], 1)[0]
+  if (guess) {
+    const vote = inferTransposition(soloTune, guess.song.tune)
+    if (vote?.confident) choose(guess.song)
+    else {
+      search.value = guessTitle(result.score, filename)
+      note.textContent = 'Which tune? Type to search the book.'
+    }
+  }
   return box
 }
 
-async function annotatedSolo(result: PipelineResult, xml: string): Promise<HTMLElement> {
+async function annotatedSolo(result: PipelineResult, xml: string, filename: string): Promise<HTMLElement> {
   const section = el('section', 'workspace')
   const aside = el('aside', 'menu')
   const scoreBox = el('div', 'solo')
@@ -517,7 +572,7 @@ async function annotatedSolo(result: PipelineResult, xml: string): Promise<HTMLE
     await stepPanels(unit, result, panels)
   }
 
-  const control = tuneControl(result, (next) => {
+  const control = tuneControl(result, filename, (next) => {
     units = next
     fill()
     if (selected) void select(selected, false)
@@ -549,14 +604,14 @@ async function annotatedSolo(result: PipelineResult, xml: string): Promise<HTMLE
   return section
 }
 
-async function renderResult(result: PipelineResult, xml: string): Promise<void> {
+async function renderResult(result: PipelineResult, xml: string, filename: string): Promise<void> {
   resultBox.replaceChildren()
   resultBox.hidden = false
 
   resultBox.appendChild(summarySection(result))
   for (const node of adjustmentSections(result.report.adjustments)) resultBox.appendChild(node)
   resultBox.appendChild(profileSection(result))
-  await annotatedSolo(result, xml)
+  await annotatedSolo(result, xml, filename)
 }
 
 async function handleFile(file: File): Promise<void> {
@@ -568,7 +623,7 @@ async function handleFile(file: File): Promise<void> {
     const bytes = new Uint8Array(await file.arrayBuffer())
     const result = run(bytes)
     setStatus(`${file.name} — analysed.`)
-    await renderResult(result, readScoreXml(bytes))
+    await renderResult(result, readScoreXml(bytes), file.name)
   } catch (error) {
     setStatus(null)
     if (error instanceof UnsupportedScoreError) {

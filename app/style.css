@@ -234,6 +234,13 @@ button:hover { background: #17493c; }
 .tune { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin: 0 0 0.75rem; font-size: 0.9rem; }
 .tune select, .tune input { font: inherit; padding: 0.25rem 0.4rem; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
 .tune input { flex: 1 1 10rem; min-width: 8rem; }
+.tune input[type="search"] { flex: 1 1 14rem; }
+.tune .tune-results { flex-basis: 100%; list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.tune .tune-results:empty { display: none; }
+.tune .tune-results button { font: inherit; font-size: 0.85rem; padding: 0.2rem 0.6rem; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); cursor: pointer; }
+.tune .tune-results button:hover { background: #e4efe9; border-color: var(--accent); color: var(--accent); }
+.tune .linkish { font: inherit; font-size: 0.85rem; background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; }
+.tune input[type="text"] { flex-basis: 100%; font-size: 0.85rem; }
 .faint { color: var(--muted); font-size: 0.85rem; }
 
 .unit .chips { display: flex; flex-wrap: wrap; gap: 0.3rem; }

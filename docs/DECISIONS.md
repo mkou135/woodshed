@@ -116,3 +116,21 @@ stays blocking.
 (Trane, 84 bars, has more notes than Sonny).
 **Who.** Claude. **Would reverse it.** Owner preferring "first named" or a
 page control that makes the default moot.
+
+## 2026-08-24 — The player names the tune; the changes name the instrument
+
+**Question.** Charts without `<transpose>`/part-name read as C
+instruments; the iReal tune then lands in the wrong key. And "paste a
+link" was the only way to pick a tune.
+**Decision.** Bundle the 1,460-tune book; a type-ahead search prefilled
+from the score title / file name. Once a tune is chosen, a bar-by-bar
+root vote between the solo's changes and the concert chart gives the
+transposition, overriding the file when confident. Owner's caveat honoured:
+comping substitutions and alterations only cost votes.
+**Evidence.** Corpus run: 6/9 identified from title; votes 79–100% on
+correct tunes, ≤ 29% on wrong ones, recovering −2/−9 (tenor/alto) from
+changes alone.
+**Who.** Owner (search, not a dropdown; "there is only so much we can do"
+about substitutions); Claude for the vote.
+**Would reverse it.** A chart whose comping diverges on most bars, or a
+book chart in a different form length from the solo.

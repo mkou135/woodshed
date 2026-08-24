@@ -67,6 +67,8 @@ export interface Mark {
 }
 
 export interface Score {
+  /** <work-title>, else <movement-title>; verbatim, may be a placeholder like 'Title'. */
+  title?: string
   notes: Note[]
   chordTracks: ChordTrack[]
   instrument: Instrument

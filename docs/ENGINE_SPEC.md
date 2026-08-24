@@ -135,6 +135,26 @@ table + stripped tensions; `7`+`#5` → augmented-seventh, `-7`+`b5` →
 half-diminished. Unknown suffix throws with the token. 1,458/1,460 forum
 jazz standards parse.
 
+## Tune identification (`practice/tuneSearch.ts`, `practice/tuneMatch.ts`)
+
+- Book: the 1,460-standard forum playlist bundled at
+  `app/data/jazz1460.irealb.txt`; `parseIRealBook` keeps what parses
+  (1,458; skips "Martha's Prize", "You Taught My Heart To Sing").
+- Query: `guessTitle` = `<work-title>` (else `<movement-title>`; a
+  placeholder like "Title" → file name) minus NOISE words (solo,
+  transcription, instrument names, articles …).
+- Ranking: exact title 4 > title prefix 3 > title wholly inside query 2.5
+  > every query word matches (prefix) 2 > fraction of words matched.
+  Top 6 shown, top 1 auto-taken if the vote is confident.
+- Transposition vote: for each solo bar (from the first chorus start,
+  cycling the chart) the first roots' difference mod 12 votes; winner
+  wins if agreement ≥ **0.5** and ≥ **2×** the runner-up
+  (`MIN_AGREEMENT`, `MIN_MARGIN`). Confident → its shift overrides the
+  file's `<transpose>`; else the file's instrument is used and the page
+  asks "Right tune?".
+- Corpus (9 files): 6 identified from the title alone, every correct match
+  confident (79–100%), no wrong match confident (≤ 29%).
+
 ## Verification targets
 
 Blake (`npm run solo`): form 56 bars, chorus starts **9 and 65** (8-bar

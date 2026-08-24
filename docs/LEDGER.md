@@ -48,3 +48,7 @@ out first). Found: letters inside/only-on-solo broke phase → residue-class
 rule with walk-back; final double bar → no mark; first-named soloist was a
 1-bar tag → most-notes rule. Autumn Leaves 0 → 28 findings. Fixtures
 form-letters-in-chorus, soloist-tag-first · 217 tests.
+2026-08-24 · session 3 · Tune search over the bundled 1,460-tune book,
+title guess from `<work-title>`/file name, transposition by bar-root vote
+(overrides file instrument when confident); page: search box + pills,
+verified in Chrome on Autumn Leaves · 229 tests.

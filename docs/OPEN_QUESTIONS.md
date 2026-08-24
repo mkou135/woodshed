@@ -10,10 +10,12 @@ moving its resolution into DECISIONS.md.
   parsed at 0.7 confidence) and a pickup numbered bar 0; a single chorus,
   so no form. Resolve: check the text-chord degrees look right on the page;
   decide whether bar 0 should be renumbered at ingest.
-- **Mintzer "Blues in all keys"** has no part-name and transpose 0, so it
-  reads as a C instrument; absolute root matching still reports 87% on a
-  12-bar period, which a tune that changes key every chorus should not
-  give. Resolve: inspect the chord track; maybe the chart repeats keys.
+- **Tunes not in the book** ("Blues in all keys", "Rhythm Changes", "Hey
+  Lock") only get "paste a link". Resolve: aliases (rhythm changes → I Got
+  Rhythm; blues → a 12-bar template) and, later, ranking the book by how
+  well each chart's changes vote against the solo.
+- **Blues in all keys reports 87% on a 12-bar period by absolute roots**,
+  which a key-changing blues should not. Resolve: inspect the chord track.
 - **Charts with neither letters nor double bars** fall back to bar 1 with
   no warning. Resolve: when `phaseFrom` is 'none' and the solo starts
   mid-period, raise a warning adjustment; test on such a chart when one

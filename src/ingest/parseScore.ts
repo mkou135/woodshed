@@ -88,6 +88,9 @@ export function parseScore(xml: string): Score {
 
   const measures = childrenOf(part).filter((m) => tagOf(m) === 'measure')
 
+  const titleNode = findDeep(doc, 'work-title') ?? findDeep(doc, 'movement-title')
+  const title = titleNode ? textOf(titleNode).trim() || undefined : undefined
+
   let divisions = 1
   let timeSig: [number, number] = [4, 4]
   let instrument = instrumentFromTranspose(0, 0)
@@ -198,6 +201,7 @@ export function parseScore(xml: string): Score {
   if (!sawTranspose) instrument = instrumentFromTranspose(0, 0)
 
   return {
+    title,
     notes,
     chordTracks: [],
     instrument,
