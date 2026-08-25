@@ -118,3 +118,12 @@ describe('throughStep', () => {
     expect(resolutionChord(heldUnit, heldScore)).toBeNull()
   })
 })
+
+describe('cell drill provenance', () => {
+  it('says which notes of the line the cell is, and why isolating it matters', () => {
+    const [step] = throughStep(unit, tune, score, tune.title)
+    const drill = step.exercises.find((e) => e.id.endsWith('-cell'))!
+    expect(drill.rationale).toContain('notes 1–4 of the line (bar 1)')
+    expect(step.prompt).toContain('transferable')
+  })
+})

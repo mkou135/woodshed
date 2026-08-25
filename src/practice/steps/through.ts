@@ -103,7 +103,11 @@ export function throughStep(
       over.id = `${unit.id}-${finding.id}-cell`
       const family = qualityFamily(finding.quality!)
       over.title = `The cell alone on every ${family} chord`
-      over.rationale = 'Bergonzi’s drill: the named cell alone, one compatible chord at a time.'
+      const inUnit = finding.spans.find((s) => s.startIndex >= unit.startIndex && s.endIndex <= unit.endIndex)
+      const from = inUnit
+        ? ` This is notes ${inUnit.startIndex - unit.startIndex + 1}–${inUnit.endIndex - unit.startIndex + 1} of the line (bar ${inUnit.bar}): the cell isolated from its approach.`
+        : ''
+      over.rationale = `Bergonzi’s drill: the named cell alone, one compatible chord at a time.${from}`
       exercises.push(over)
       const bars = chords
         .filter((c) => qualityFamily(c.quality) === family)
@@ -120,7 +124,11 @@ export function throughStep(
 
   lines.push(...nowhere.map((n) => `No chord in ${tuneName} fits ${n}; the cycle of fourths stands in.`))
   lines.push('Learn it by ear, then play it slowly in each place with a play-along.')
-  if (cells.length > 0) lines.push('The cell drill and cycle are separate ways to generalise the vocabulary.')
+  if (cells.length > 0) {
+    lines.push(
+      'The cell is the transferable part of the line: the drill installs it under every compatible chord so it stops belonging to one tune.',
+    )
+  }
 
   return [{
     kind: 'through',
