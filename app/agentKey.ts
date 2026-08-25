@@ -13,7 +13,9 @@ export function agentKeyRow(): HTMLElement {
   try {
     input.value = localStorage.getItem(KEY) ?? ''
   } catch { /* storage unavailable: the field still works for this load */ }
-  input.addEventListener('change', () => {
+  // 'input', not 'change': the key must be saved even if the next act is
+  // dropping a file without ever blurring the field.
+  input.addEventListener('input', () => {
     try {
       if (input.value) localStorage.setItem(KEY, input.value)
       else localStorage.removeItem(KEY)

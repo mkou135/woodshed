@@ -121,7 +121,11 @@ function agentSection(agent: AgentOutput): HTMLElement {
   const list = el('ul')
   for (const l of agent.narration?.lookFors ?? []) list.append(el('li', undefined, `${l.unitId} — ${l.text}`))
   if (list.childElementCount) box.append(list)
-  if (agent.degraded.length) box.append(el('small', undefined, `deterministic path stood for: ${agent.degraded.join(', ')}`))
+  if (agent.degraded.length === 4) {
+    box.append(el('p', undefined, 'The agent could not be reached — every job fell back to the engine. Check the key, and the browser console for the reason.'))
+  } else if (agent.degraded.length) {
+    box.append(el('small', undefined, `deterministic path stood for: ${agent.degraded.join(', ')}`))
+  }
   return box
 }
 
@@ -174,7 +178,7 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
 
   const { button: detailsButton, drawer: detailsBox } = detailsDrawer(result)
   const agent = (result as PipelineResult & { agent?: AgentOutput | null }).agent ?? null
-  const agentBox = agent?.narration ? agentSection(agent) : null
+  const agentBox = agent ? agentSection(agent) : null
   // The desk first: the exercises are the work, the transcription the reference.
   resultBox.append(detailsBox, ...blocking(result), ...(agentBox ? [agentBox] : []), deskHost, drawer, sheet)
 
