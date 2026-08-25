@@ -129,26 +129,14 @@ also rejected, 3% precision — idea recall is at its ceiling. Still open:
   after, which reads as the composed head pooled with the solo. Decides
   whether that corpus can be scored as improvised vocabulary. Resolve:
   compare chorus 1 against the known melody for a few tunes.
-- **Is blocked or interleaved better for transfer to *unfamiliar changes*?**
-  The new evidence is about reproducing notated excerpts;
-  woodshed's goal is playing a cell over changes it was never learned on,
-  which no study addressed. Thürer 2019 hints variable practice helps only
-  when multiple variants are retested — arguably the THROUGH step's case.
-  Resolve: nothing cheap; treat blocked-by-default as provisional and keep
-  interleaving a toggle. See `docs/research/practice-evidence.md` §1.1.
-- **Which transforms do working musicians endorse vs dismiss as gimmicks?**
-  The transformation space is enumerable (≤ ~3,840 per five-interval cell)
-  but nothing verified says which to rank highly — every claim that would
-  have settled it was refuted. Without this, ranking generated exercises has
-  no external basis. Resolve: owner's own judgement on the horn, or direct
-  reading of Crook/Coker/Galper rather than trade blogs.
 - **Does 12-key drilling transfer, given vocabulary is partly motor-encoded?**
-  Cognition (2023) doi 10.1016/j.cognition.2022.105308 finds recurring
-  patterns carry linked timing/velocity motor programs, so transposition is
-  not a free operation on an abstract cell. Bears directly on the existing
-  cycle-exercise question (twelve keys printed vs one key + "take it through
-  the cycle"). Resolve: owner tries both; note the motor argument cuts
-  against printing twelve.
+  Norgaard, Bales & Hansen, *Cognition* 230:105308 (2023) — ~100,000 notes
+  from one artist-level pianist across 11 live performances against a
+  24-pianist control — find recurring 5-tone patterns carry linked timing
+  and velocity motor programs, so transposition is not a free operation on
+  an abstract cell. Bears directly on the cycle-exercise question above
+  (twelve keys printed vs one key + "take it through the cycle"). Resolve:
+  owner tries both; the motor argument cuts against printing twelve.
 
 ## From the jazz pedagogy literature (2026-08-24)
 
