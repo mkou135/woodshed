@@ -1,5 +1,5 @@
 import type { AgentClient } from '../client.ts'
-import { NARRATE_INSTRUCTION } from '../prompts.ts'
+import { JADED_INSTRUCTION, NARRATE_INSTRUCTION } from '../prompts.ts'
 import { Narration } from '../verdicts.ts'
 
 export interface EngineIds {
@@ -7,9 +7,12 @@ export interface EngineIds {
   units: Set<string>
 }
 
+export type Persona = 'teacher' | 'jaded'
+
 /** Two-paragraph overview, teacher names, look-fors — ids the engine never issued are discarded, not patched. */
-export async function narrate(client: AgentClient, document: string, ids: EngineIds): Promise<Narration | null> {
-  const verdict = await client.complete('narrate', { document, instruction: NARRATE_INSTRUCTION }, Narration)
+export async function narrate(client: AgentClient, document: string, ids: EngineIds, persona: Persona = 'teacher'): Promise<Narration | null> {
+  const instruction = persona === 'jaded' ? JADED_INSTRUCTION : NARRATE_INSTRUCTION
+  const verdict = await client.complete('narrate', { document, instruction }, Narration)
   if (!verdict) return null
   const overview =
     verdict.overview.length > 2

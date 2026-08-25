@@ -17,9 +17,10 @@ const note = (midi: number): string => `${pc(midi)}${Math.floor(midi / 12) - 1}`
 
 const args = process.argv.slice(2)
 const noAgent = args.includes('--no-agent')
+const persona = args.includes('--jaded') ? 'jaded' as const : 'teacher' as const
 const path = args.find((a) => !a.startsWith('--'))
 if (!path) {
-  console.error('usage: npm run solo -- <file.mxl> [--no-agent]')
+  console.error('usage: npm run solo -- <file.mxl> [--no-agent] [--jaded]')
   process.exit(1)
 }
 
@@ -38,7 +39,7 @@ function chooseClient(): AgentClient | null {
 
 const client = chooseClient()
 const bytes = new Uint8Array(readFileSync(path))
-const result = client ? await runWithAgent(bytes, client) : { ...run(bytes), agent: null }
+const result = client ? await runWithAgent(bytes, client, undefined, persona) : { ...run(bytes), agent: null }
 const { score, report, analysis, exercises } = result
 
 console.log(`${score.instrument.name}; ${score.barCount} bars, ${score.notes.length} notes`)

@@ -10,6 +10,7 @@ import { analysisDocument } from './evidence.ts'
 import { adjudicate } from './jobs/adjudicate.ts'
 import { construct } from './jobs/construct.ts'
 import { narrate } from './jobs/narrate.ts'
+import type { Persona } from './jobs/narrate.ts'
 import { rank } from './jobs/rank.ts'
 import type { Narration, RankVerdict, SessionPlan } from './verdicts.ts'
 
@@ -42,6 +43,7 @@ export async function runAgent(
   report: CleanupReport,
   buildOptions: BuildOptions,
   onStage?: (stage: string) => void,
+  persona: Persona = 'teacher',
 ): Promise<AgentResult> {
   const degraded: string[] = []
 
@@ -63,7 +65,7 @@ export async function runAgent(
   if (!ranking) degraded.push('rank')
 
   onStage?.('writing the narration')
-  const narration = await narrate(client, document, { findings: findingIds, units: unitIds })
+  const narration = await narrate(client, document, { findings: findingIds, units: unitIds }, persona)
   if (!narration) degraded.push('narrate')
 
   onStage?.('assembling the practice session — the long one')

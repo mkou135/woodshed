@@ -1,6 +1,6 @@
 import { run, runWithAgent, liveClient, readScoreXml, UnsupportedScoreError } from '../src/index.ts'
 import type { AgentOutput, PipelineResult, PracticeUnit } from '../src/index.ts'
-import { agentKey, agentKeyRow } from './agentKey.ts'
+import { agentKey, agentKeyRow, agentPersona } from './agentKey.ts'
 import { button, el } from './dom.ts'
 import { renderScore } from './score.ts'
 import type { ScaleMode } from './score.ts'
@@ -291,7 +291,7 @@ async function handleFile(file: File): Promise<void> {
       progress.stage(AGENT_STAGES[0])
     }
     const result = key
-      ? await runWithAgent(bytes, liveClient(key, { browser: true }), (stage) => progress?.stage(stage))
+      ? await runWithAgent(bytes, liveClient(key, { browser: true }), (stage) => progress?.stage(stage), agentPersona())
       : run(bytes)
     progress?.done()
     setStatus(null)

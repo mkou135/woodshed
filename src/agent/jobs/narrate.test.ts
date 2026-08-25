@@ -46,3 +46,22 @@ describe('narrate', () => {
     expect(await narrate(replayClient({}), doc, ids)).toBeNull()
   })
 })
+
+describe('persona', () => {
+  it('swaps the instruction, never the schema or the rails', async () => {
+    const seen: string[] = []
+    const client = {
+      complete: async (_job: string, prompt: { instruction: string }) => {
+        seen.push(prompt.instruction)
+        return null
+      },
+      runTools: async () => null,
+      usage: [],
+    } as unknown as import('../client.ts').AgentClient
+    await narrate(client, doc, ids, 'jaded')
+    await narrate(client, doc, ids)
+    expect(seen[0]).toContain('washed-up')
+    expect(seen[0]).toContain('reference real bars')
+    expect(seen[1]).not.toContain('washed-up')
+  })
+})

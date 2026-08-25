@@ -97,12 +97,13 @@ export async function runWithAgent(
   bytes: Uint8Array,
   client: AgentClient,
   onStage?: (stage: string) => void,
+  persona: 'teacher' | 'jaded' = 'teacher',
 ): Promise<PipelineResult & { agent: AgentOutput }> {
   onStage?.('reading the score')
   const score = ingest(bytes)
   const report = prepare(score)
   const tune = tuneFromScore(score, report.form?.chorusStarts ?? [])
-  const { analysis, units, agent } = await runAgent(client, score, report, { tune }, onStage)
+  const { analysis, units, agent } = await runAgent(client, score, report, { tune }, onStage, persona)
   const exercises = generateExercises(analysis, score)
 
   return {
