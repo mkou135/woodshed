@@ -1,5 +1,5 @@
 import { chooseSoloist } from '../prepare/soloists.ts'
-import type { Quality, Score } from '../core/types.ts'
+import type { Note, Quality, Score } from '../core/types.ts'
 import type { CleanupReport } from '../prepare/index.ts'
 import { segment } from './segment.ts'
 import type { Phrase } from './segment.ts'
@@ -66,18 +66,27 @@ const CHORD_WEIGHT = 0.15
  */
 const MIN_CONFIDENCE = 0.4
 
-export function analyse(score: Score, report: CleanupReport): Analysis {
-  const region = chooseSoloist(score, report.soloists)
+export interface AnalyseOptions {
+  /** Agent boundary verdicts for `segment`; absent means the thresholds decide alone. */
+  overrides?: Map<number, boolean>
+}
 
-  const notes = region
+/** The notes `analyse` will segment: the chosen soloist's region. */
+export function soloistNotes(score: Score, report: CleanupReport): Note[] {
+  const region = chooseSoloist(score, report.soloists)
+  return region
     ? score.notes.filter((n) => n.bar >= region.startBar && n.bar <= region.endBar)
     : score.notes
+}
+
+export function analyse(score: Score, report: CleanupReport, options: AnalyseOptions = {}): Analysis {
+  const notes = soloistNotes(score, report)
 
   const chordTrack = score.chordTracks[0]
   const contexts = contextualise(notes, chordTrack?.chords ?? [])
 
   const forced = report.form?.chorusStarts ?? []
-  const phrases = segment(notes, forced, {}, score.timeSig[0])
+  const phrases = segment(notes, forced, { overrides: options.overrides }, score.timeSig[0])
   // Detectors look inside phrases: a figure that straddles a phrase boundary
   // is two gestures, not one piece of vocabulary.
   let index = 0

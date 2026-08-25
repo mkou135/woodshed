@@ -10,6 +10,9 @@ import type { Exercise } from './generate/index.ts'
 import { buildUnits } from './practice/unit.ts'
 import type { PracticeUnit } from './practice/unit.ts'
 import { tuneFromScore } from './practice/tune.ts'
+import { runAgent } from './agent/run.ts'
+import type { AgentClient } from './agent/client.ts'
+import type { AgentOutput } from './agent/run.ts'
 import type { Tune } from './practice/tune.ts'
 
 export interface FindingView {
@@ -82,6 +85,30 @@ export function run(bytes: Uint8Array): PipelineResult {
     findingViews: analysis.findings.map((f) => describeFinding(f, score)),
     tune,
     units,
+  }
+}
+
+/**
+ * The pipeline with the agent stage: boundary adjudication feeds the analysis
+ * everything downstream sees; ranking, narration and the session plan ride
+ * alongside. Degraded jobs fall back to the deterministic result above.
+ */
+export async function runWithAgent(bytes: Uint8Array, client: AgentClient): Promise<PipelineResult & { agent: AgentOutput }> {
+  const score = ingest(bytes)
+  const report = prepare(score)
+  const tune = tuneFromScore(score, report.form?.chorusStarts ?? [])
+  const { analysis, units, agent } = await runAgent(client, score, report, { tune })
+  const exercises = generateExercises(analysis, score)
+
+  return {
+    score,
+    report,
+    analysis,
+    exercises,
+    findingViews: analysis.findings.map((f) => describeFinding(f, score)),
+    tune,
+    units,
+    agent,
   }
 }
 
