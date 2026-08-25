@@ -10,6 +10,8 @@ import { detectTargets } from './detectors/targets.ts'
 import { findRecurring } from './detectors/recurring.ts'
 import type { Variant } from './detectors/recurring.ts'
 import { qualityFamily } from '../core/pitch.ts'
+import { chordScales } from './chordScale.ts'
+import type { ScaleSpan } from './chordScale.ts'
 import { profile } from './profile.ts'
 import type { SoloProfile } from './profile.ts'
 
@@ -45,6 +47,8 @@ export interface Analysis {
   contexts: NoteContext[]
   findings: Finding[]
   profile: SoloProfile
+  /** The scale each chord is played on; never inferred from the notes. */
+  scaleSpans: ScaleSpan[]
 }
 
 const MAX_DETECTOR_CREDIT = 0.6
@@ -179,6 +183,7 @@ export function analyse(score: Score, report: CleanupReport): Analysis {
     contexts,
     findings,
     profile: profile({ contexts, phrases, findings, timeSig: score.timeSig, chorusStarts: forced }),
+    scaleSpans: chordScales(chordTrack?.chords ?? [], score.keyFifths ?? 0),
   }
 }
 

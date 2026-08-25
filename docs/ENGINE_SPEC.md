@@ -6,7 +6,7 @@ the code. Each section names the file that implements it — if this file and
 the code disagree, that is a bug to fix immediately, in whichever direction
 the DECISIONS log supports.
 
-Last updated: 2026-08-25 (session 9).
+Last updated: 2026-08-25 (session 10).
 
 ## Units
 
@@ -95,6 +95,42 @@ returning. `npm run solo` prints every adjustment under the header.
 - Chords compared by rootPc + quality, never object identity.
 - Detectors never match a window that crosses an idea boundary
   (`samePhrase`, which checks `NoteContext.idea`).
+
+## Chord scales (`analyse/chordScale.ts`)
+
+`Analysis.scaleSpans` — one `ScaleSpan` per chord, in order, naming the scale
+that chord is played on. **Never inferred from the played notes.** Four
+formulations that tried to infer a departure from pitch content were measured
+against null models on the WJD and all fired at or below chance (0.66/0.87/0.90/
+0.84x); see DECISIONS 2026-08-25 and docs/research/scale-analysis.md §4.
+
+Two rules, in order:
+
+1. **The chart wins** (`declared: true`, because `'the chart says so'`). From
+   `Chord.tensions`, which comes from `<kind>`: a dominant or sus carrying ≥ 2 of
+   {b9, #9, b13, #5, b5}, or b13 alone → **altered**; else #11 → **Lydian b7**.
+   A major or maj7 with #11 → **Lydian**. A minor or m7 with b13 → **Aeolian**.
+2. **Otherwise function, not quality** (Nettles & Graf p.92). A **dominant**
+   resolving **down a perfect fifth** (the next chord of a different root or
+   quality is +5 semitones) → **Mixolydian**; resolving anywhere else, or last in
+   the track → **Lydian b7**. Every other quality takes its default: maj/maj7
+   Ionian, min/m7 Dorian, minor-major melodic minor, half-diminished Locrian,
+   diminished(-seventh) whole-half diminished, augmented(-seventh) whole-tone,
+   suspended-fourth Mixolydian. `unknown` produces no span rather than a guess.
+
+Parent collections: major `0 2 4 5 7 9 11`, melodic minor `0 2 3 5 7 9 11`,
+whole-tone `0 2 4 6 8 10`, diminished `0 2 3 5 6 8 9 11`. `ScaleSpan.pcs` is the
+parent built from `rootPc − mode.offset`; offsets Ionian 0, Dorian 2, Phrygian 4,
+Lydian 5, Mixolydian 7, Aeolian 9, Locrian 11, melodic minor 0, Lydian b7 5,
+altered 11.
+
+Spelling comes from `Score.keyFifths` — sharps when fifths > 0, flats otherwise,
+the same rule the exercise renderer uses, because `Note.midi` carries pitch
+classes only.
+
+Blake: 113 spans, **15 declared by the chart** (≈0.12 marks/bar against the
+≈0.19 implied-harmony marks/bar counted in Coker). `npm run solo` prints the
+first 24.
 
 ## Shape dictionary (`analyse/detectors/shapes.ts`)
 

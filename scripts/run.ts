@@ -72,6 +72,17 @@ for (const f of analysis.findings) {
 }
 
 console.log()
+const declared = analysis.scaleSpans.filter((s) => s.declared)
+console.log(`chord scales: ${analysis.scaleSpans.length} spans, ${declared.length} declared by the chart`)
+for (const s of analysis.scaleSpans.slice(0, 24)) {
+  console.log(
+    `  bar ${barLabel(score, s.bar).padEnd(6)} ${(s.declared ? '*' : ' ')} ` +
+    `${s.name.padEnd(20)} ${s.because}`,
+  )
+}
+if (analysis.scaleSpans.length > 24) console.log(`  ... ${analysis.scaleSpans.length - 24} more`)
+
+console.log()
 console.log(`exercises: ${exercises.length}`)
 for (const e of exercises) {
   console.log(`  ${e.title}`)
