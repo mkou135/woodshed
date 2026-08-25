@@ -386,3 +386,63 @@ rhythm and shape are what the cell drill throws away.
 **Evidence.** Owner, asked directly.
 **Who.** Owner. **Would reverse it.** The owner finding at the horn that
 these read as filler next to the multi-chord slots.
+
+## 2026-08-25 — Departure detection by chord-relative pitch content: rejected
+
+**Question.** The owner asked for annotations naming "the interesting different
+scales being played — for example imposing a scale which suggests another
+chord", with a toggle for the full every-span view. Can a departure from the
+default chord scale be detected from the notes?
+
+**Decision.** No. Four formulations were built and measured against null models
+on the Weimar Jazz Database; all four fire at or below chance. Do not build a
+pitch-content departure detector. Build the full-coverage chord-scale layer
+(which is well founded) and, for "spicy", report only what the chart itself
+declares via `Chord.tensions`.
+
+**Evidence.** Ratios of real to null firing rate: witness sets over a chord
+span **0.66x**; the same requiring consecutive notes **0.87x** (four window
+lengths, all below null); degree-based character notes **0.90x**; metric and
+durational weighting **0.84–0.97x** across six schemes and ~130 cells, using a
+LIFT statistic against a within-span weight-permutation null that is 1.000–1.002
+by construction. The effect is monotone in how hard a scheme leans on placement,
+and tightening any threshold makes it monotonically worse (0.83 → 0.38), which
+also rules out "a real rare event that aggregates miss". Baker's rule is
+confirmed — chord tones take the downbeats — and that is *why* it fails: the
+idiom places chromatic notes exactly where weight is lowest. What is real: lines
+fit the default chord scale on 37.6% of spans vs 16.4% under the null (2.3x).
+Full detail in docs/research/scale-analysis.md §4.
+
+**Who.** Claude, from the corpus measurements; brought to the owner as a scope
+change before any design.
+
+**Would reverse it.** A different *evidence class* rather than another gate on
+pitch content — voice-leading behaviour is the strongest candidate, since an
+approach note and a colour note differ in what follows them, not in what they
+are. Or human-labelled departures to score against, replacing the null-model
+framing: a null answers "better than chance", not "finds the six spots a teacher
+would circle". Or a corpus of deliberately outside playing rather than the WJD's
+mainstream weighting.
+
+## 2026-08-25 — The default chord scale is chosen by function, not quality
+
+**Question.** For the full-coverage layer, what scale does a chord get?
+
+**Decision.** Follow Nettles & Graf p.92: a diatonic root takes the diatonic
+non-chord tones; a dominant resolving **down a perfect 5th** takes Mixolydian; a
+dominant resolving **otherwise** takes Lydian b7; a nondiatonic root needs a
+specific justification. Not a quality-keyed lookup table.
+
+**Evidence.** Nettles & Graf, *The Chord Scale Theory & Jazz Harmony* p.92, and
+glossary p.177 "The appropriate scale for a given chord is determined by the
+function of the chord". This is also what makes the layer worth building: the
+same symbol C7 takes a different scale depending on where it resolves, so the
+annotation is not a restatement of what is already printed above the staff.
+
+**Who.** Claude, from the source; not yet implemented.
+
+**Would reverse it.** Nettles p.166/169 notes that in non-functional passages
+(contiguous dominants, constant structures) there is no controlling tonic and
+Lydian is appropriate — a function-driven default will misfire exactly there.
+If that proves common in real transcriptions, the rule needs a non-functional
+escape.

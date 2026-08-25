@@ -224,3 +224,27 @@ worktree-lit-review before deleting it; the review itself stays local-only
 worktree-datasets-research, codex/through-vary-production, worktree-lit-review,
 through-slot-refinements. Worktrees removed: /private/tmp/woodshed-through-vary,
 .claude/worktrees/lit-review.
+2026-08-25 · session 10 · Starting: research pass for a scale/mode
+annotation feature. Owner's call — annotate the *departure* (a scale that
+implies a chord other than the one written), silent on the plain chord
+scale, with a toggle for full coverage. No scaffolding exists; substrate is
+`NoteContext` + `core/pitch.ts` degree tables. Research first, five parts:
+device taxonomy from the books, naming conventions, what counts as a
+departure, WJD frequency measurement, and how analysts mark up a page.
+Design follows, then a spec.
+2026-08-25 · session 10 · Scale-annotation research. Owner's framing: annotate
+the departure, silent on the plain chord scale, toggle for full coverage.
+Result: **the departure half does not survive measurement** — four formulations
+(witness sets; +contiguity; degree-based character notes; metric/durational
+weight) all fire at or below chance against null models on the WJD, ratios
+0.66/0.87/0.90/0.84x. Baker's rule confirmed and it is the reason: the idiom
+hides chromatic notes on weak positions. What is real: lines fit the default
+chord scale 2.3x above chance, and the default is chosen by *function* (Nettles
+p.92), so a full-coverage layer carries genuine content. Annotation convention
+surveyed across Coker/Owens/Ligon/Larson: solid span line with down-ticks
+*above* the staff, dashed reserved for inferred, density ~0.2 implied-harmony
+marks per bar (one per 4-5 bars) by two independent counts. docs/research/
+scale-analysis.md + two DECISIONS entries. Books in ~/Downloads renamed from
+verified title pages (Bergonzi "Vol 3 Pentatonics" was Vol 2; Ron Miller is Vol
+1 only; a 6pp Nettles promo replaced by the real 184pp book). No code written —
+design deferred pending the owner's call on the scope change.
