@@ -216,6 +216,19 @@ export function boundaryStrength(notes: Note[], i: number, medianDuration: numbe
   return boundaryCue(notes, i, medianDuration).total
 }
 
+/**
+ * A gap whose phrase cue lands near the threshold: the engine cannot call it
+ * with confidence, so it is put to the agent (spec 2026-08-25, job 3).
+ */
+export interface BoundaryCandidate {
+  /** 'b' + note index of the gap's left note. */
+  id: string
+  index: number
+  bar: number
+  beat: number
+  cue: Cue
+}
+
 interface Boundary {
   /** Index of the first note of the new group. */
   at: number

@@ -1,0 +1,68 @@
+import { describe, expect, it } from 'vitest'
+import type { Analysis } from '../analyse/index.ts'
+import type { PracticeUnit } from '../practice/unit.ts'
+import type { Score } from '../core/types.ts'
+import { analysisDocument, segmentDocument } from './evidence.ts'
+import type { BoundaryCandidate } from '../analyse/segment.ts'
+
+const score = { repeats: [] } as unknown as Score
+
+const analysis = {
+  phrases: [],
+  contexts: [],
+  findings: [
+    {
+      id: 'f1', kind: 'cell', name: 'major-seventh arpeggio from the b3',
+      spans: [{ startIndex: 0, endIndex: 3, bar: 73, beat: 1 }],
+      degrees: ['b3', '5', 'b7', '9'], detectedBy: ['shape', 'recurring'],
+      weights: { shape: 1 }, confidence: 0.97,
+    },
+  ],
+  profile: {
+    bars: [],
+    choruses: [],
+    overall: {
+      startBar: 63, endBar: 130, notes: 420, notesPerBar: 6.2, silence: 0.31,
+      phrases: 18, meanPhraseNotes: 12, register: { lo: 55, hi: 84, mean: 70 },
+      chromaticRatio: 0.14, findingIds: ['f1'],
+    },
+    phraseChromaticism: { start: 0.16, end: 0.13 },
+  },
+  scaleSpans: [],
+} as unknown as Analysis
+
+const units = [
+  {
+    id: 'u1', phrase: 3, idea: 1, notes: [], startIndex: 0, endIndex: 3,
+    harmony: [{ onset: 0, bar: 76, rootPc: 0, quality: 'minor-seventh', tensions: [] }],
+    degrees: [], findings: analysis.findings,
+    arrival: { degree: '9', chordTone: false }, stock: 0.1, rank: 2.5,
+    header: 'x', summary: { bars: 'Bars 76–77', chords: ['Cm7'], cells: [], landing: null, alsoAt: [], stock: false },
+    steps: [],
+  },
+] as unknown as PracticeUnit[]
+
+describe('analysisDocument', () => {
+  it('names findings and units by id with their evidence', () => {
+    const doc = analysisDocument(analysis, units, score)
+    expect(doc).toContain('f1')
+    expect(doc).toContain('major-seventh arpeggio from the b3')
+    expect(doc).toContain('u1')
+    expect(doc).toContain('Bars 76–77')
+  })
+
+  it('is deterministic', () => {
+    expect(analysisDocument(analysis, units, score)).toBe(analysisDocument(analysis, units, score))
+  })
+})
+
+describe('segmentDocument', () => {
+  it('renders one line per candidate with its cue numbers', () => {
+    const candidates = [
+      { id: 'b12', index: 12, bar: 68, beat: 3, cue: { rest: 0.2, length: 0.1, leap: 0.05, rhythm: 0, gap: 240, total: 0.38, idea: 0.2 } },
+    ] as BoundaryCandidate[]
+    const doc = segmentDocument(candidates, [4, 4])
+    expect(doc).toContain('b12')
+    expect(doc).toContain('0.38')
+  })
+})
