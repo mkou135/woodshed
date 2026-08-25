@@ -1,0 +1,10 @@
+{
+  "order": [
+    { "unitId": "u1", "keep": true, "reason": "the signature figure, all three detectors agree, recurs at 73 and 77" },
+    { "unitId": "u2", "keep": true, "reason": "the enclosure that sets the figure up; drill the approach with the arrival" },
+    { "unitId": "u3", "keep": true, "reason": "same vocabulary in the upper register — proves the idea travels" },
+    { "unitId": "u5", "keep": true, "reason": "the enclosure into the 1 from above at a phrase end" },
+    { "unitId": "u6", "keep": true, "reason": "triad colour over the turnaround" },
+    { "unitId": "u4", "keep": false, "reason": "mostly a stock run; the cell inside it is already covered by u1" }
+  ]
+}

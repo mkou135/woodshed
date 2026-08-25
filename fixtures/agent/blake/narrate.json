@@ -1,0 +1,18 @@
+{
+  "overview": [
+    "Blake takes one short first chorus to breathe and then builds the second across its full 56 bars: around six notes a bar with almost a quarter of the time silent, phrases averaging twenty-plus notes that arc from the middle of the horn up into altissimo by bars 101-116. The line keeps returning to one sound — a bright major-seventh colour played off the minor chord — and phrase starts lean chromatic (19%) while endings resolve clean (13%): tension going in, arrival coming out.",
+    "Listen for how the enclosures do the steering: the 3 and the 5 get bracketed from below, the 1 from above, and the maj7-off-the-b3 figure at bars 73 and 77 is the payoff each time. Before drilling any of this, play bars 63-122 with the record until the phrasing is in your ears — the page came from the sound, not the other way round."
+  ],
+  "findingNames": [
+    { "id": "f1", "name": "the relative-major maj7 arpeggio off the b3 — a bright colour over the minor chord, landing on the 9" },
+    { "id": "f11", "name": "a chromatic enclosure that leans on the 1 from above — a sigh onto the root at phrase ends" },
+    { "id": "f8", "name": "an enclosure that walks up to the 5 from below — the classic bebop approach note pair" },
+    { "id": "f9", "name": "an enclosure into the 3 from below — the sound of the changes without spelling them" },
+    { "id": "f2", "name": "the minor triad tumbled 5-3-1 — a falling answer to the rising arpeggios" }
+  ],
+  "lookFors": [
+    { "unitId": "u1", "text": "Bars 76-77: the signature line — the maj7 colour off the b3, straight into the recurring cell. Sing it before you finger it." },
+    { "unitId": "u2", "text": "Bars 74-76: the approach into the figure — the enclosure into the 3 sets up everything that follows." },
+    { "unitId": "u3", "text": "Bars 103-105: the same vocabulary moved up the horn — hear that it is one idea, not a new one." }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "units": [
+    { "unitId": "u1", "steps": ["loop", "through", "write"], "note": "sing it with the record first; write comes last, after it is in the ear" },
+    { "unitId": "u2", "steps": ["loop", "displace"], "note": "displacing the pickup shows whether the enclosure survives the bar line" },
+    { "unitId": "u3", "steps": ["loop", "through"] }
+  ],
+  "interleave": "Rotate the three units in five-minute blocks rather than finishing one before the next; end each sitting by playing bars 74-77 with the record."
+}

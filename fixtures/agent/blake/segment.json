@@ -1,0 +1,7 @@
+{
+  "verdicts": [
+    { "candidateId": "b10", "boundary": true, "cue": "rest" },
+    { "candidateId": "b131", "boundary": true, "cue": "rest" },
+    { "candidateId": "b137", "boundary": true, "cue": "length" }
+  ]
+}

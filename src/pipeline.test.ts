@@ -114,3 +114,28 @@ describe('run: the Blake solo, read as a player would', () => {
     }
   })
 })
+
+describe('runWithAgent: the Blake solo through replay fixtures', () => {
+  it('carries all four verdicts with nothing degraded', async () => {
+    const { runWithAgent } = await import('./pipeline.ts')
+    const { replayClient } = await import('./agent/client.ts')
+    const { loadFixtures } = await import('./agent/fixtures.ts')
+    const bytes = new Uint8Array(readFileSync(BLAKE))
+    const result = await runWithAgent(bytes, replayClient(loadFixtures('fixtures/agent/blake')))
+
+    expect(result.agent.degraded).toEqual([])
+    // The adjudicated boundaries confirm the engine here, so the pinned
+    // deterministic reading must be unchanged.
+    expect(result.analysis.findings[0].name).toBe('major-seventh arpeggio from the b3')
+    expect(result.agent.narration?.findingNames.find((f) => f.id === 'f1')?.name).toContain('maj7')
+    expect(result.agent.narration?.overview[1]).toContain('record')
+    const kept = result.agent.ranking?.order.filter((o) => o.keep) ?? []
+    expect(kept[0]?.unitId).toBe('u1')
+    expect(result.agent.sessionPlan?.units[0]).toEqual({
+      unitId: 'u1',
+      steps: ['loop', 'through', 'write'],
+      note: 'sing it with the record first; write comes last, after it is in the ear',
+    })
+    expect(result.agent.boundaries?.size).toBe(3)
+  })
+})
