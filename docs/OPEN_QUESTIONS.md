@@ -129,3 +129,109 @@ also rejected, 3% precision — idea recall is at its ceiling. Still open:
   after, which reads as the composed head pooled with the solo. Decides
   whether that corpus can be scored as improvised vocabulary. Resolve:
   compare chorus 1 against the known melody for a few tunes.
+- **Is blocked or interleaved better for transfer to *unfamiliar changes*?**
+  The new evidence is about reproducing notated excerpts;
+  woodshed's goal is playing a cell over changes it was never learned on,
+  which no study addressed. Thürer 2019 hints variable practice helps only
+  when multiple variants are retested — arguably the THROUGH step's case.
+  Resolve: nothing cheap; treat blocked-by-default as provisional and keep
+  interleaving a toggle. See `docs/research/practice-evidence.md` §1.1.
+- **Which transforms do working musicians endorse vs dismiss as gimmicks?**
+  The transformation space is enumerable (≤ ~3,840 per five-interval cell)
+  but nothing verified says which to rank highly — every claim that would
+  have settled it was refuted. Without this, ranking generated exercises has
+  no external basis. Resolve: owner's own judgement on the horn, or direct
+  reading of Crook/Coker/Galper rather than trade blogs.
+- **Does 12-key drilling transfer, given vocabulary is partly motor-encoded?**
+  Cognition (2023) doi 10.1016/j.cognition.2022.105308 finds recurring
+  patterns carry linked timing/velocity motor programs, so transposition is
+  not a free operation on an abstract cell. Bears directly on the existing
+  cycle-exercise question (twelve keys printed vs one key + "take it through
+  the cycle"). Resolve: owner tries both; note the motor argument cuts
+  against printing twelve.
+
+## From the jazz pedagogy literature (2026-08-24)
+
+Full write-up and citations in `docs/research/jazz-pedagogy-literature.md`
+— **local only**, gitignored because it summarises copyrighted method
+books; ask the owner for a copy.
+All of these are proposals; none is implemented.
+
+- **7-3 resolution is undetected** (b7 of II-7 → 3 of V7; also V7 → I).
+  Coker gives it a whole chapter; Ligon and Owens arrive at it
+  independently. It is the only device on Coker's list that looks *across*
+  a chord change, which no detector of ours does. Resolve: build it from
+  the chord track and `NoteContext` degrees, and decide deliberately
+  whether it may cross an idea boundary (`samePhrase` currently forbids
+  that for every detector).
+- **Phrase boundaries carry a metric and formal position we ignore.**
+  Baker: phrases mostly end on the upbeat of beat 1 or 3. Owens: Parker's
+  phrase endings cluster in bars 7–8 of each 8-bar section. Bergonzi and
+  Ligon both tell students to attend to exactly this. `segment()` uses only
+  rest, length and leap. Resolve: try (a) a metric-position term and (b) a
+  form-position bonus at bars 7–8 of each section, scored against
+  `eval:wjd` and `npm run brackets`. This is the most promising lead on
+  "Idea recall is 68%", since a form prior helps precisely the boundaries
+  that have no surface cue.
+- **We never report where the player's phrases start and end.** `Phrase.onset`
+  exists; the profile says nothing about it. Resolve: add a metric-position
+  summary to `SoloProfile` ("phrases mostly begin on the and-of-4").
+- **A bebop scale and a random scale run score the same.** Baker's rule for
+  the bebop scale is entirely metric — the added chromatic note exists so
+  that chord tones land on downbeats. `stockShare` penalises any run of ≥ 4
+  same-direction steps regardless of placement. Resolve: measure the
+  chord-tone-on-downbeat share of a run, and decide whether it earns a
+  detector of its own or a term that lifts the stock penalty.
+- **A note that fits the next chord is still called chromatic.**
+  `analyse/context.ts` judges each note against the current chord only.
+  Coker's rule is to look at the chords before *and* after before drawing a
+  conclusion, and he names the phenomenon (bar-line shift). Resolve: test
+  the note against neighbouring chords; see whether this explains the 8 of
+  18 Blake phrase ends that are non-chord-tones.
+- **Variant families do not say what the variation is.** Ligon's taxonomy
+  has thirteen devices (sequencing, fragmentation, augmentation,
+  diminution, retrograde, displacement, interpolation …); `variantOf`
+  implements two. Fragmentation is actively discarded by the swallow rule.
+  Resolve: name the relation between a variant and its family head, and
+  surface it — it is what turns a repeat count into motivic development.
+- **Coker's list of the jazz language is two-thirds unimplemented.**
+  Missing: change running, harmonic generalization, CESH, quotes, bar-line
+  shifts, side-slipping, the bebop lick, named licks. Resolve: decide which
+  are worth detecting and in what order; harmonic generalization is
+  interesting because it explains the *absence* of change running.
+- **The shape dictionary hand-lists orderings.** Bergonzi's system is one
+  four-note set (1-2-3-5 major/dominant, 1-3-4-5 minor — both already ours)
+  times its 24 permutations. Resolve: consider restating entries as
+  set + permutation, which would collapse the six triad entries into one
+  and generate a "play it in another order" practice step.
+- **Four practice steps the sources have and we do not**: visualise (away
+  from the horn — Bergonzi; answers the faculty consensus that memorising
+  beats notating), edit (omit notes for rhythmic variety), permutation, and
+  connect-by-step into the next chord. Resolve: owner tries them; visualise
+  is nearly free since it renders no exercise.
+- **A pentatonic run may escape the stock penalty.** `stockShare` matches
+  a run of ≥ 4 notes moving one way by steps of 1–2 semitones *or* by
+  3–5 semitones. A major (1-2-3-5-6) or minor (1-b3-4-5-b7) pentatonic run
+  mixes 2s and 3s, so it matches neither bucket — while being exactly the
+  stock material the penalty exists to demote. Resolve: check whether such
+  runs occur in the corpus and currently score as non-stock; if so, add a
+  "stays inside one pentatonic collection" predicate.
+- **Ligon's three melodic outlines are two-thirds already in the
+  dictionary, without their resolutions.** Outline 2 opens with our `1357`
+  and outline 3 with our `5321`; both are defined by the 7th that follows
+  falling to the 3rd of the next chord. Resolve: with the 7-3 detector
+  (above), decide whether an outline is a finding in its own right or a
+  property attached to an existing cell finding — the latter would let a
+  finding say what it is *for*, which is what the summariser needs.
+- **We have no concept of a break** — the 2, 4 or 8 unaccompanied bars that
+  often open a solo (Levine's glossary). It sits exactly where our pickup
+  and intro handling already gets delicate. Resolve: check whether any
+  corpus solo starts with one and how `prepare/form.ts` currently treats it.
+- **"head" is used in the profile without saying which sense.** Levine
+  gives three. Resolve: pick one (probably "the first pass through the
+  melody") and use it consistently on the page and in the CLI.
+- **The app can be used without ever listening.** The faculty surveyed are
+  split on transcription software, and the dissenting view is that students
+  who lean on it do worst. Resolve: make "play it with the record" a
+  standing rule in the AI summariser's output, and decide whether the page
+  should say it too.
