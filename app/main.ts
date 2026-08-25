@@ -1,5 +1,6 @@
-import { run, readScoreXml, UnsupportedScoreError } from '../src/index.ts'
-import type { PipelineResult, PracticeUnit } from '../src/index.ts'
+import { run, runWithAgent, liveClient, readScoreXml, UnsupportedScoreError } from '../src/index.ts'
+import type { AgentOutput, PipelineResult, PracticeUnit } from '../src/index.ts'
+import { agentKey, agentKeyRow } from './agentKey.ts'
 import { button, el } from './dom.ts'
 import { renderScore } from './score.ts'
 import type { ScaleMode } from './score.ts'
@@ -99,6 +100,31 @@ function ideaTable(units: PracticeUnit[], selectedId: string | null, onPick: (id
   return table
 }
 
+/** The agent's menu: kept units in its order, the rest behind them, untouched on failure. */
+function agentOrder(units: PracticeUnit[], agent: AgentOutput): PracticeUnit[] {
+  const order = agent.ranking?.order ?? []
+  const position = new Map(order.filter((o) => o.keep).map((o, i) => [o.unitId, i]))
+  const cut = new Set(order.filter((o) => !o.keep).map((o) => o.unitId))
+  const kept = units.filter((u) => position.has(u.id)).sort((a, b) => position.get(a.id)! - position.get(b.id)!)
+  const rest = units.filter((u) => !position.has(u.id) && !cut.has(u.id))
+  const cuts = units.filter((u) => cut.has(u.id))
+  return [...kept, ...rest, ...cuts]
+}
+
+/** Everything model-written is marked agent-sourced; the engine's numbers never move. */
+function agentSection(agent: AgentOutput): HTMLElement {
+  const box = el('section', 'agent agent-sourced')
+  const head = el('div', 'dh')
+  head.append(el('h2', undefined, 'What the agent hears'), el('span', undefined, 'model-written; every number is the engine\u2019s'))
+  box.append(head)
+  for (const p of agent.narration?.overview ?? []) box.append(el('p', undefined, p))
+  const list = el('ul')
+  for (const l of agent.narration?.lookFors ?? []) list.append(el('li', undefined, `${l.unitId} — ${l.text}`))
+  if (list.childElementCount) box.append(list)
+  if (agent.degraded.length) box.append(el('small', undefined, `deterministic path stood for: ${agent.degraded.join(', ')}`))
+  return box
+}
+
 async function renderResult(result: PipelineResult, xml: string, filename: string): Promise<void> {
   resultBox.replaceChildren()
   resultBox.hidden = false
@@ -147,8 +173,10 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
   drawer.append(drawerHead, drawerScroll)
 
   const { button: detailsButton, drawer: detailsBox } = detailsDrawer(result)
+  const agent = (result as PipelineResult & { agent?: AgentOutput | null }).agent ?? null
+  const agentBox = agent?.narration ? agentSection(agent) : null
   // The desk first: the exercises are the work, the transcription the reference.
-  resultBox.append(detailsBox, ...blocking(result), deskHost, drawer, sheet)
+  resultBox.append(detailsBox, ...blocking(result), ...(agentBox ? [agentBox] : []), deskHost, drawer, sheet)
 
   const view = await renderScore(solo, result, xml)
   gotoInput.addEventListener('change', () => { const n = Number(gotoInput.value); if (n > 0) view.goTo(n) })
@@ -165,7 +193,7 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
   })
 
   const desk = practiceDesk(deskHost, result, view, done)
-  let units = result.units
+  let units = agent?.ranking ? agentOrder(result.units, agent) : result.units
   let selectedId: string | null = null
   let strip: HTMLElement | null = null
 
@@ -210,13 +238,17 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
   }
 }
 
+landing.append(agentKeyRow())
+
 async function handleFile(file: File): Promise<void> {
   errorBox.hidden = true
   resultBox.hidden = true
   setStatus(`Reading ${file.name}…`)
   try {
     const bytes = new Uint8Array(await file.arrayBuffer())
-    const result = run(bytes)
+    const key = agentKey()
+    if (key) setStatus(`Reading ${file.name}\u2026 agent on`)
+    const result = key ? await runWithAgent(bytes, liveClient(key, { browser: true })) : run(bytes)
     setStatus(null)
     await renderResult(result, readScoreXml(bytes), file.name)
   } catch (error) {

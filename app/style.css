@@ -310,3 +310,11 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
 .details ul { margin: 0; padding-left: 1.1rem }
 
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto } }
+
+/* ---- agent layer ---- */
+.agent-key { display: flex; flex-direction: column; gap: 0.3rem; margin-top: 1.2rem; max-width: 28rem; }
+.agent-key input { font: inherit; padding: 0.35rem 0.5rem; }
+.agent-key small { opacity: 0.7; }
+.agent { border-left: 3px solid #b58a3c; padding: 0.4rem 1rem; margin: 0.6rem 0; }
+.agent-sourced { position: relative; }
+.agent .dh span { opacity: 0.6; font-size: 0.85em; }
