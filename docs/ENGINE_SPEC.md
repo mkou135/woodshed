@@ -355,6 +355,26 @@ omitted (6,482 of 7,742). Regenerate after any ingest change.
   JSON array of `<unit id>:<step kind>`; a unit opens at its first undone
   step; "Reset ticks" clears the solo's set. `woodshed.tune` keeps a pasted
   irealb link (as before).
+- **Scale band** (`score.ts` `scaleBand`, toggle in `main.ts`): one span per
+  chord from `Analysis.scaleSpans`, drawn **above** the staff — a solid line
+  with `BAND_TICK` 5px ticks pointing *down*, x-aligned to the first and last
+  notehead, terse label at the left edge. Convention from Coker/Owens/Ligon,
+  not Levine (docs/research/scale-analysis.md §5); dashed is reserved for
+  inferred and nothing here is inferred. `.declared` spans (the chart's own)
+  draw in `--ink` at 1.8px and bold; the rest in `--pencil` at 1.2px.
+  - The y is **measured, not fixed**: `bandY` scans every non-band `<text>` in
+    the gap above that staff (within `BAND_SEARCH` 130px) and clears the
+    highest by `BAND_CLEAR` 7px. A fixed offset lands on the chord symbols —
+    which is why the phrase ticks put their labels below the staff instead.
+  - Which system a notehead belongs to comes from **its own printed bar**
+    (`map.staves`), never from its y: a high note with ledger lines reaches
+    into the staff above and geometry-matching drew bands across the staff.
+  - A span crossing a system break draws once per system, Coker's way: no
+    terminal tick at the right margin, none where it resumes, label hyphenated.
+  - Toggle `woodshed.scales` in `localStorage`: `declared` (default, 10 bands
+    drawn on Blake), `all` (57), `off`. The default is the quiet one because
+    three of the four sources say in print that marking every bar is the
+    failure mode.
 - Scrolling to an SVG note group must be instant and deferred with
   `setTimeout`, not `requestAnimationFrame` (never fires in a background
   tab) and not `smooth` (Chrome ignores it on SVG groups).

@@ -201,6 +201,8 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
 .legend .ph i { background: var(--phrase) }
 .legend .id i { background: var(--idea) }
 .legend .hl i { width: 14px; height: 10px; background: var(--marker) }
+.legend .scales { display: inline-flex; gap: 0.4rem; align-items: center; letter-spacing: 0.04em }
+.legend .scales select { font: 0.85rem var(--mono); padding: 0.2rem 0.3rem; border: 1px solid var(--rule); background: none; color: inherit }
 .legend .goto { margin-left: auto; display: inline-flex; gap: 0.4rem; align-items: center; letter-spacing: 0.04em }
 .legend .goto input { width: 4rem; font: 0.85rem var(--mono); padding: 0.2rem 0.4rem; border: 1px solid var(--rule) }
 .solo { overflow-x: auto }
@@ -211,6 +213,11 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
 .phrase-tick.weak rect, .phrase-tick.weak text { opacity: 0.5 }
 .idea-tick rect { fill: var(--idea) }
 .idea-tick text { fill: var(--idea); font: 600 12px var(--disp) }
+.scale-band path { fill: none; stroke: var(--pencil); stroke-width: 1.2 }
+.scale-band text { fill: var(--pencil); font: 500 11px var(--disp); letter-spacing: 0.02em }
+/* The chart asked for this one by name: it is the news, so it reads darker. */
+.scale-band.declared path { stroke: var(--ink); stroke-width: 1.8 }
+.scale-band.declared text { fill: var(--ink); font-weight: 700 }
 .empty { color: var(--pencil) }
 
 /* ---- desk ---- */

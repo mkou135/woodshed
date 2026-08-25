@@ -257,3 +257,12 @@ band above the staff in `app/score.ts` (convention in scale-analysis.md §5:
 solid line, down-ticks at first and last notehead, label at the left edge,
 dashed reserved for inferred). Research cut short for budget; the modal/
 pentatonic read and the voice-leading experiment were stopped mid-run.
+2026-08-25 · session 10 · Scale band on the page. `ScoreView.showScales` draws
+one span per chord above the staff (solid line, down-ticks at first and last
+notehead, label at the left edge — Coker/Owens convention, §5), with a legend
+toggle: chart-declared only (default, 10 on Blake), every chord (57), or off.
+Two bugs found by looking at it rather than by tests: a fixed offset landed the
+band on top of the chord symbols, so `bandY` now measures what OSMD drew above
+each staff and clears it; and picking a note's system from its y drew bands
+across the staff, so the system now comes from the note's printed bar. 325
+tests, typecheck, build clean; browser-checked in both modes, no console errors.

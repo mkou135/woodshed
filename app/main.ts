@@ -2,6 +2,7 @@ import { run, readScoreXml, UnsupportedScoreError } from '../src/index.ts'
 import type { PipelineResult, PracticeUnit } from '../src/index.ts'
 import { button, el } from './dom.ts'
 import { renderScore } from './score.ts'
+import type { ScaleMode } from './score.ts'
 import { tuneChip } from './tune.ts'
 import { detailsDrawer, whereOf } from './details.ts'
 import { doneStore } from './done.ts'
@@ -37,6 +38,9 @@ function soloTitle(result: PipelineResult, filename: string): string {
   if (t && t.toLowerCase() !== 'title') return t
   return filename.replace(/\.[a-z0-9]+$/i, '')
 }
+
+/** Which scales the band shows; one setting for the browser, not per solo. */
+const SCALES_KEY = 'woodshed.scales'
 
 function header(result: PipelineResult, filename: string, chip: HTMLElement, picker: HTMLElement, details: HTMLElement): void {
   const title = el('span', 'solo-title', soloTitle(result, filename))
@@ -115,7 +119,21 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
   const ph = el('span', 'ph'); ph.append(el('i'), document.createTextNode('Phrase'))
   const id = el('span', 'id'); id.append(el('i'), document.createTextNode('Idea'))
   const hl = el('span', 'hl'); hl.append(el('i'), document.createTextNode('Now practising'))
-  legend.append(ph, id, hl, goto)
+  const scales = el('label', 'scales')
+  const scalesSelect = document.createElement('select')
+  for (const [value, label] of [
+    ['declared', 'where the chart says'],
+    ['all', 'every chord'],
+    ['off', 'off'],
+  ] as const) {
+    const option = document.createElement('option')
+    option.value = value
+    option.textContent = label
+    scalesSelect.appendChild(option)
+  }
+  scalesSelect.setAttribute('aria-label', 'Which scales to show')
+  scales.append(el('span', undefined, 'scales'), scalesSelect)
+  legend.append(ph, id, hl, scales, goto)
   const solo = el('div', 'solo')
   sheet.append(legend, solo)
 
@@ -134,6 +152,17 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
 
   const view = await renderScore(solo, result, xml)
   gotoInput.addEventListener('change', () => { const n = Number(gotoInput.value); if (n > 0) view.goTo(n) })
+
+  // Marking every bar is the failure mode the sources warn about, so the
+  // chart-declared handful is the default; the choice sticks per browser.
+  const scaleMode = (localStorage.getItem(SCALES_KEY) as ScaleMode | null) ?? 'declared'
+  scalesSelect.value = scaleMode
+  view.showScales(scaleMode)
+  scalesSelect.addEventListener('change', () => {
+    const mode = scalesSelect.value as ScaleMode
+    localStorage.setItem(SCALES_KEY, mode)
+    view.showScales(mode)
+  })
 
   const desk = practiceDesk(deskHost, result, view, done)
   let units = result.units

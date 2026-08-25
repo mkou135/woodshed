@@ -13,7 +13,16 @@ import { el, svgEl } from './dom.ts'
 export interface ScoreView {
   highlight(unit: PracticeUnit | null): void
   goTo(printedBar: number): void
+  showScales(mode: ScaleMode): void
 }
+
+/**
+ * How much of the scale band to draw. Three of the four sources surveyed say
+ * in print that marking every bar is the failure mode (docs/research/
+ * scale-analysis.md §5), so 'declared' — the handful the chart itself asked
+ * for — is the default and 'all' is opt-in.
+ */
+export type ScaleMode = 'declared' | 'all' | 'off'
 
 /** `bar:beat` for a note, the key both the engine and OSMD can produce. */
 const noteKey = (bar: number, beat: number): string => `${bar}:${beat.toFixed(3)}`
@@ -99,6 +108,107 @@ function tick(anchor: SVGGElement, staff: StaffSpan, className: string, label: s
   text.textContent = label
   g.append(line, text)
   svg.appendChild(g)
+}
+
+/**
+ * The scale band: one span per chord, above the staff.
+ *
+ * The convention is Coker's and Owens's rather than Levine's (docs/research/
+ * scale-analysis.md §5) — a solid line with short ticks pointing *down* at the
+ * staff, aligned to the first and last notehead rather than the barline, and a
+ * terse label at the left edge. Dashed is reserved for inferred, which nothing
+ * here is: every span is either what the chart declared or what the chord's
+ * function says.
+ *
+ * A span that crosses a system break is drawn once per system, and Coker's
+ * rule is followed at the join: no terminal tick at the right margin, no
+ * opening tick where it resumes, and the label is hyphenated.
+ */
+const BAND_TICK = 5
+/** Clearance between the band and the chord symbols it sits above. */
+const BAND_CLEAR = 7
+/** How far above a staff to look for the things already drawn there. */
+const BAND_SEARCH = 130
+
+/**
+ * The y for the band above one system. A fixed offset does not work: chord
+ * symbols and rehearsal letters already occupy the space above the staff and
+ * their height varies, which is why the phrase ticks put their labels below
+ * (see `tick`). So find whatever OSMD drew in the gap above this staff and go
+ * above the highest of it.
+ */
+function bandY(svg: SVGSVGElement, top: number, cache: Map<number, number>): number {
+  const hit = cache.get(top)
+  if (hit !== undefined) return hit
+  let highest = top - BAND_CLEAR
+  for (const node of svg.querySelectorAll('text')) {
+    if (node.closest('g.scale-band')) continue
+    const box = (node as SVGGraphicsElement).getBBox()
+    if (box.y + box.height > top || box.y < top - BAND_SEARCH) continue
+    highest = Math.min(highest, box.y - BAND_CLEAR)
+  }
+  cache.set(top, highest)
+  return highest
+}
+
+function scaleBand(result: PipelineResult, map: SoloMap, mode: ScaleMode): void {
+  const svg = map.anchors.values().next().value?.ownerSVGElement
+  if (!svg) return
+  for (const old of svg.querySelectorAll('g.scale-band')) old.remove()
+  if (mode === 'off') return
+  const tops = new Map<number, number>()
+
+  const spans = mode === 'declared'
+    ? result.analysis.scaleSpans.filter((s) => s.declared)
+    : result.analysis.scaleSpans
+
+  for (const span of spans) {
+    // The notes this chord actually carries, by onset rather than identity,
+    // grouped by system. Which system a notehead is on comes from its own
+    // measure, never from its y — a high note with ledger lines reaches into
+    // the staff above, and guessing from geometry drew bands across the staff.
+    const bySystem = new Map<number, SVGGElement[]>()
+    for (const ctx of result.analysis.contexts) {
+      if (ctx.chord?.onset !== span.chord.onset) continue
+      const w = writtenBar(result.score, ctx.note.bar)
+      if (w.pass === 2) continue
+      const staff = map.staves.get(w.bar)
+      if (!staff) continue
+      const found = map.notes.get(noteKey(w.bar, ctx.note.beat)) ?? []
+      if (found.length === 0) continue
+      bySystem.set(staff.top, [...(bySystem.get(staff.top) ?? []), ...found])
+    }
+    if (bySystem.size === 0) continue
+
+    const runs = [...bySystem.entries()].sort((a, b) => a[0] - b[0])
+    runs.forEach(([top, run], i) => {
+      const boxes = run.map((n) => n.getBBox())
+      const x0 = Math.min(...boxes.map((b) => b.x)) - 3
+      const x1 = Math.max(...boxes.map((b) => b.x + b.width)) + 3
+      const y = bandY(svg, top, tops)
+      const g = svgEl('g')
+      g.setAttribute('class', `scale-band${span.declared ? ' declared' : ''}`)
+
+      const path = svgEl('path')
+      const opens = i === 0
+      const closes = i === runs.length - 1
+      path.setAttribute('d', [
+        opens ? `M ${x0} ${y + BAND_TICK} L ${x0} ${y}` : `M ${x0} ${y}`,
+        `L ${x1} ${y}`,
+        closes ? `L ${x1} ${y + BAND_TICK}` : '',
+      ].join(' '))
+      g.appendChild(path)
+
+      const text = svgEl('text')
+      text.setAttribute('x', String(x0 + 2))
+      text.setAttribute('y', String(y - 4))
+      // Hyphenated across a break, the way Coker carries a label over a system.
+      text.textContent = opens ? (closes ? span.name : `${span.name} —`) : `— ${span.name}`
+      g.appendChild(text)
+
+      svg.appendChild(g)
+    })
+  }
 }
 
 /** Phrases numbered in amber; ideas within a phrase (2.2, 2.3 …) in blue. */
@@ -191,5 +301,9 @@ export async function renderScore(container: HTMLElement, result: PipelineResult
     map?.anchors.get(printedBar)?.scrollIntoView({ block: 'center' })
   }
 
-  return { highlight, goTo }
+  const showScales = (mode: ScaleMode): void => {
+    if (map) scaleBand(result, map, mode)
+  }
+
+  return { highlight, goTo, showScales }
 }
