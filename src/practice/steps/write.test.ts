@@ -5,7 +5,7 @@ import { instrumentFromTranspose } from '../../core/instrument.ts'
 import { TICKS_PER_QUARTER as Q } from '../../core/types.ts'
 import type { Chord } from '../../core/types.ts'
 import type { Finding } from '../../analyse/index.ts'
-import type { PracticeUnit } from '../unit.ts'
+import type { PracticeUnit, Step } from '../unit.ts'
 import type { Tune } from '../tune.ts'
 
 const BLAKE = '/Users/michaelkourkov/Documents/MuseScore4/Scores/Hey Lock! - Seamus Blake Solo Transcription.mxl'
@@ -53,5 +53,42 @@ describe('checkWriting', () => {
     const other: Finding = { ...cell, id: 'f9', name: 'minor cell 1345', degrees: ['1', '3', '4', '5'] }
     const result = checkWriting(new Uint8Array(readFileSync(BLAKE)), { findings: [other] })
     expect(result.missing).toEqual(['minor cell 1345'])
+  })
+})
+
+describe('worked examples', () => {
+  const dm: Chord = c(1, 2, 'minor-seventh')
+  const eighth = Q / 2
+  // Cell = the first four notes (3 5 7 2 over Dm7); four more notes follow.
+  const midis = [65, 69, 72, 76, 74, 72, 69, 65]
+  const rich = {
+    ...unit,
+    notes: midis.map((midi, i) => ({ midi, onset: i * eighth, duration: eighth, bar: 1, beat: i / 2 })),
+    endIndex: 7,
+    harmony: [dm],
+  } as Omit<PracticeUnit, 'steps'>
+
+  const [step] = writeTemplate(rich, tune, tenor, 'test') as Extract<Step, { kind: 'write' }>[]
+
+  it('opens with device-labelled examples that keep the cell intact', () => {
+    const titles = step.examples.map((e) => e.title)
+    expect(titles.some((t) => t.startsWith('Fragmented'))).toBe(true)
+    expect(titles.some((t) => t.startsWith('Diminished') || t.startsWith('Augmented'))).toBe(true)
+  })
+
+  it('drops a fragmentation that would cut the cell', () => {
+    // Six notes: the fragment halves are three notes, the cell needs four.
+    const cut = {
+      ...rich,
+      notes: rich.notes.slice(0, 6),
+      endIndex: 5,
+    } as Omit<PracticeUnit, 'steps'>
+    const [short] = writeTemplate(cut, tune, tenor, 'test') as Extract<Step, { kind: 'write' }>[]
+    expect(short.examples.map((e) => e.title).some((t) => t.startsWith('Fragmented'))).toBe(false)
+  })
+
+  it('keeps the template and prompt', () => {
+    expect(step.template).toContain('cue')
+    expect(step.prompt).toContain('now write a fourth')
   })
 })

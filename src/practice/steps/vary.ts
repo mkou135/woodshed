@@ -2,7 +2,7 @@ import { TICKS_PER_QUARTER } from '../../core/types.ts'
 import type { Chord, Note, Score } from '../../core/types.ts'
 import { chordTonePcs, degreeOf, pitchClass } from '../../core/pitch.ts'
 import type { Exercise } from '../../generate/index.ts'
-import { isValid } from '../../generate/validity.ts'
+import { lineContains } from '../../generate/validity.ts'
 import type { PracticeUnit, Step } from '../unit.ts'
 import { barTicks } from '../tune.ts'
 import { excerpt } from './loop.ts'
@@ -82,7 +82,7 @@ export function varyStep(unit: Omit<PracticeUnit, 'steps'>, score: Score): Extra
       }
       // The line must still be itself: every named cell survives re-detection,
       // and the arrival keeps its degree against its chord.
-      if (gateable.some((f) => !isValid(exercise, f))) continue
+      if (gateable.some((f) => !lineContains(notes, unit.harmony, f))) continue
       const arrivalChord = [...unit.harmony].reverse().find((c) => c.onset <= last.onset)
       if (arrivalChord && unit.arrival && degreeOf(last.midi, arrivalChord) !== unit.arrival.degree) continue
       exercises.push(exercise)

@@ -19,7 +19,7 @@ export type Step =
   | { kind: 'loop'; exercise: Exercise; prompt: string }
   | { kind: 'through'; tune: string; exercises: Exercise[]; prompt: string }
   | { kind: 'vary'; exercises: Exercise[]; prompt: string }
-  | { kind: 'write'; template: string; prompt: string }
+  | { kind: 'write'; template: string; examples: Exercise[]; prompt: string }
 
 export interface PracticeUnit {
   id: string

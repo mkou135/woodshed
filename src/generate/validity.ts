@@ -35,6 +35,19 @@ export function barContains(bar: ExerciseBar, finding: Finding): boolean {
 }
 
 /**
+ * Re-detect a finding over an actual note line with its chords — the check
+ * for excerpt-shaped exercises (vary on-ramps, worked examples), whose bars
+ * carry events rather than one cell per bar.
+ */
+export function lineContains(notes: Note[], chords: Chord[], finding: Finding): boolean {
+  if (!finding.degrees || finding.degrees.length === 0) return false
+  const ctx = contextualise(notes, chords)
+  return matchShapes(ctx).some(
+    (hit) => hit.name === finding.name && hit.degrees.join(',') === finding.degrees!.join(','),
+  )
+}
+
+/**
  * A transformation is valid for a finding if re-running detection on its
  * output still finds the same finding in every bar.
  *

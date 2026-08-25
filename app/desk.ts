@@ -169,7 +169,7 @@ export function practiceDesk(host: HTMLElement, result: PipelineResult, view: Sc
       const body = el('div')
       const build = (): void => {
         body.appendChild(el('p', 'prompt', s.prompt))
-        const exercises = s.kind === 'loop' ? [s.exercise] : s.kind === 'write' ? [] : s.exercises
+        const exercises = s.kind === 'loop' ? [s.exercise] : s.kind === 'write' ? s.examples : s.exercises
         pending = []
         for (const ex of exercises) {
           // The loop step's one exercise says what the head already said.

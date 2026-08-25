@@ -1,10 +1,14 @@
-import type { Instrument } from '../../core/types.ts'
+import { TICKS_PER_QUARTER } from '../../core/types.ts'
+import type { Instrument, Note } from '../../core/types.ts'
 import type { Exercise, ExerciseBar } from '../../generate/index.ts'
 import { exerciseToMusicXml } from '../../render/musicxml.ts'
 import { semitonesOfDegree, qualityFamily } from '../../core/pitch.ts'
 import { barTicks } from '../tune.ts'
 import type { Tune } from '../tune.ts'
 import type { PracticeUnit, Step } from '../unit.ts'
+import { lineContains } from '../../generate/validity.ts'
+import { augment, edit, fragment } from '../variations.ts'
+import { excerpt } from './loop.ts'
 import { ingest } from '../../ingest/index.ts'
 import { prepare } from '../../prepare/index.ts'
 import { analyse } from '../../analyse/index.ts'
@@ -67,10 +71,51 @@ export function writeTemplate(
     rationale: 'Small notes are targets. Write a line into each one.',
     timeSig: tune.timeSig,
   }
+  // Worked examples: the line varied by a compositional device, as models of
+  // what "write your own" means. Only device outputs the cell survives are
+  // shown (Ligon's taxonomy; Bergonzi's editing).
+  const examples: Exercise[] = []
+  const survives = (line: Note[]): boolean => cells.some((f) => lineContains(line, unit.harmony, f))
+  const example = (title: string, cue: string, line: Note[]): Exercise => ({
+    id: `${unit.id}-device-${examples.length + 1}`,
+    title,
+    findingId: cells[0].id,
+    findingName: cells[0].name,
+    transformation: 'device',
+    bars: excerpt(line, unit.harmony, tune.timeSig, line[0].onset % barTicks(tune.timeSig)),
+    sourceBar: unit.notes[0].bar,
+    rationale: cue,
+    timeSig: tune.timeSig,
+  })
+  if (unit.notes.length >= 4 && unit.harmony.length > 0) {
+    for (const take of ['prefix', 'suffix'] as const) {
+      const f = fragment(unit.notes, take)
+      if (f && survives(f)) {
+        examples.push(example(`Fragmented: the ${take === 'prefix' ? 'opening' : 'closing'} ${f.length} notes alone`, 'A riff you can place anywhere — the fragment is a line of its own.', f))
+        break
+      }
+    }
+    const median = [...unit.notes].map((n) => n.duration).sort((a, b) => a - b)[Math.floor(unit.notes.length / 2)]
+    const factor = median >= TICKS_PER_QUARTER ? 0.5 : 2
+    const a = augment(unit.notes, factor)
+    if (survives(a)) {
+      examples.push(example(factor === 2 ? 'Augmented ×2' : 'Diminished ÷2', 'Same line at half or double speed against the same bar — the shape survives the tempo of its own notes.', a))
+    }
+    const e = edit(unit.notes, true)
+    if (e) {
+      const kept = e.notes.filter((n): n is Note => n !== null)
+      if (survives(kept)) {
+        examples.push(example('Edited: notes removed', 'Bergonzi: listen for the spaces they leave — the silence is a solo unto itself.', kept))
+      }
+    }
+  }
+
   return [{
     kind: 'write',
     template: exerciseToMusicXml(exercise, instrument),
+    examples,
     prompt:
+      `${examples.length > 0 ? `${examples.length === 1 ? 'One way' : `${examples.length} ways`} the line already knows how to change — now write a fourth. ` : ''}` +
       `Write three lines of your own using ${names.join(' and ')}, landing on the small notes. ` +
       'Then drop the file back here to check the device is really in them.',
   }]
