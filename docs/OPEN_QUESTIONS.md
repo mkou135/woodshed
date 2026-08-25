@@ -235,3 +235,9 @@ All of these are proposals; none is implemented.
   who lean on it do worst. Resolve: make "play it with the record" a
   standing rule in the AI summariser's output, and decide whether the page
   should say it too.
+- **Does a machine transcription of the player's own playing count as "note
+  data" under the non-negotiable?** Blocks any audio-in feature that analyses
+  a played solo (not one that only grades reps against expected notes).
+  Resolve: a DECISIONS entry ruling whether a self-transcription is a
+  different object that shares detectors — own confidence track, never a
+  fixture, never feeds the goldens. Background: docs/research/audio-and-intent.md.

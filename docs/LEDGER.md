@@ -226,3 +226,9 @@ worktree-lit-review before deleting it; the review itself stays local-only
 worktree-datasets-research, codex/through-vary-production, worktree-lit-review,
 through-slot-refinements. Worktrees removed: /private/tmp/woodshed-through-vary,
 .claude/worktrees/lit-review.
+2026-08-25 · session 4 · Brainstormed audio input from cadenceplayground (no
+code). Idea store at docs/research/audio-and-intent.md: intent-relative
+feedback (declared or inferred near-miss), superimposition chord algebra,
+rut/transfer/time-feel measures. Key finding: the pure-DSP detectors need no
+AudioContext or model weights, and the intelligence layer is deterministic and
+buildable on notation before any DSP. Nothing scheduled.
