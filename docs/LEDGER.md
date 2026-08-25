@@ -318,3 +318,10 @@ examples gated out — augmentation drifts across the changes, correctly).
 Known gap: augment/diminish keep chords fixed, so cross-change lines rarely
 survive the gate; moving the chords with the line is future work. Browser
 check of markers/tooltips still pending (extension not connected).
+2026-08-25 · session 11 · Jaded joke persona (owner request, for friends): a
+washed-up-rival narrator for the narration job only — mood dropdown on the
+page, --jaded on the CLI, teacher default, rank/session/boundaries straight.
+Comedy rails in JADED_INSTRUCTION: every jab anchored to document evidence,
+roast targets the narrator's jealousy and the notes, never invented
+biography. Live-verified on Blake ("a chord played as itself"; "bookkeeping
+with a mouthpiece") — jabs cited real bars and percentages. 370 tests.
