@@ -11,10 +11,11 @@ describe('verdict schemas', () => {
     expect(v.findingNames[0].id).toBe('f1')
   })
 
-  it('rejects a three-paragraph overview', () => {
-    expect(() =>
-      Narration.parse({ overview: ['a', 'b', 'c'], findingNames: [], lookFors: [] }),
-    ).toThrow()
+  it('accepts one to four paragraphs but rejects an empty overview', () => {
+    // The API does not enforce exact array lengths, so the schema tolerates
+    // what a good verdict may return; narrate() collapses to two.
+    expect(Narration.parse({ overview: ['a', 'b', 'c'], findingNames: [], lookFors: [] }).overview).toHaveLength(3)
+    expect(() => Narration.parse({ overview: [], findingNames: [], lookFors: [] })).toThrow()
   })
 
   it('rejects a session-plan step outside the four', () => {

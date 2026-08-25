@@ -8,8 +8,12 @@ import { z } from 'zod'
  */
 
 export const Narration = z.object({
-  /** Two paragraphs: the solo's architecture over time, then what to listen for. */
-  overview: z.array(z.string()).length(2),
+  /**
+   * The architecture-over-time overview. Asked for as two paragraphs; the
+   * API does not enforce exact array lengths, so the schema tolerates up to
+   * four and `narrate()` collapses to two.
+   */
+  overview: z.array(z.string()).min(1).max(4),
   /** Teacher-language display names; the dictionary string stays the stable id. */
   findingNames: z.array(z.object({ id: z.string(), name: z.string() }).strict()),
   lookFors: z.array(z.object({ unitId: z.string(), text: z.string() }).strict()),

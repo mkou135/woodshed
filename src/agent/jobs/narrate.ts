@@ -11,8 +11,12 @@ export interface EngineIds {
 export async function narrate(client: AgentClient, document: string, ids: EngineIds): Promise<Narration | null> {
   const verdict = await client.complete('narrate', { document, instruction: NARRATE_INSTRUCTION }, Narration)
   if (!verdict) return null
+  const overview =
+    verdict.overview.length > 2
+      ? [verdict.overview[0], verdict.overview.slice(1).join(' ')]
+      : verdict.overview
   return {
-    overview: verdict.overview,
+    overview,
     findingNames: verdict.findingNames.filter((f) => ids.findings.has(f.id)),
     lookFors: verdict.lookFors.filter((l) => ids.units.has(l.unitId)),
   }

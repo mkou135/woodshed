@@ -34,6 +34,14 @@ describe('narrate', () => {
     expect(v?.lookFors).toEqual([])
   })
 
+  it('collapses a long overview to two paragraphs', async () => {
+    const client = replayClient({
+      narrate: { overview: ['One.', 'Two.', 'Three.'], findingNames: [], lookFors: [] },
+    })
+    const v = await narrate(client, doc, ids)
+    expect(v?.overview).toEqual(['One.', 'Two. Three.'])
+  })
+
   it('degrades to null with no fixture', async () => {
     expect(await narrate(replayClient({}), doc, ids)).toBeNull()
   })
