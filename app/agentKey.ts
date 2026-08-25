@@ -2,6 +2,11 @@ import { el } from './dom.ts'
 
 const KEY = 'woodshed.anthropicKey'
 
+/** Pastes arrive with newlines, spaces or the quotes from a shell export line. */
+function clean(raw: string): string {
+  return raw.trim().replace(/^["']|["']$/g, '').trim()
+}
+
 /** The bring-your-own-key row: the key lives in this browser only. */
 export function agentKeyRow(): HTMLElement {
   const row = el('label', 'agent-key')
@@ -17,7 +22,8 @@ export function agentKeyRow(): HTMLElement {
   // dropping a file without ever blurring the field.
   input.addEventListener('input', () => {
     try {
-      if (input.value) localStorage.setItem(KEY, input.value)
+      const key = clean(input.value)
+      if (key) localStorage.setItem(KEY, key)
       else localStorage.removeItem(KEY)
     } catch { /* ignore */ }
   })
@@ -31,7 +37,8 @@ export function agentKeyRow(): HTMLElement {
 
 export function agentKey(): string | null {
   try {
-    return localStorage.getItem(KEY) || null
+    const key = clean(localStorage.getItem(KEY) ?? '')
+    return key || null
   } catch {
     return null
   }
