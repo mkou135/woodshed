@@ -205,3 +205,24 @@ free) — 50/50 parse, 9–29 findings each, form on 42/50; in
 `~/dev/woodshed-data/omnibook/`, not vendored. Filosax/FiloBass/QMUL gated;
 WJD has no MusicXML export; Effendi is lead sheets · docs/research/
 datasets.md · two new open questions (form on 8 files, head+solo).
+2026-08-25 · session 4 · Fact-checked the practice methodology (5 angles, 23
+sources, 102 claims, top 25 adversarially verified 3-votes-each: 16 confirmed,
+9 killed). Puts `practice-methodology.md` §7.4 in contention (not reversed) —
+blocked beat interleaved at 24h retention in Mathias & Goldman 2025 and
+applied CI transfer is SMD 0.34 n.s., but that is a wash against the
+clarinet studies already cited; the "feels worse, works better" line goes. Spacing is weakest for the pitch component, no optimal ISI 2d–1wk → fixed
+ladder, not SRS. Progress = next-session retest, not end-of-session. Rhythm is
+the documented gap in the pattern-book literature; interval-exact
+inversion/retrograde deprioritised. Keller 2005 gives the lick-dictionary spec
+(store once, index licks by chord sequence, tiered quality match). Killed:
+Slonimsky→Coltrane, deliberate-practice variance figures, SMD 0.55 interleaving
+· docs/research/practice-evidence.md · 3 new open questions.
+2026-08-25 · session 9 · Workspace tidy. Codex's uncommitted renderer work
+(rest splitting + triplet tuplet marks) verified and landed from the
+/private/tmp worktree — 91 of 384 Blake rests were durations no single rest
+symbol expresses. Literature-review open questions carried onto main from
+worktree-lit-review before deleting it; the review itself stays local-only
+(gitignored) at docs/research/jazz-pedagogy-literature.md. Branches deleted:
+worktree-datasets-research, codex/through-vary-production, worktree-lit-review,
+through-slot-refinements. Worktrees removed: /private/tmp/woodshed-through-vary,
+.claude/worktrees/lit-review.
