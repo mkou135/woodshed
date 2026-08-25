@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { segment } from './segment.ts'
+import { boundaryCandidates, segment } from './segment.ts'
 import { TICKS_PER_QUARTER as Q } from '../core/types.ts'
 import type { Note } from '../core/types.ts'
 
@@ -245,5 +245,43 @@ describe('riff binding', () => {
   it('is off when riffMaxGap is 0', () => {
     const notes = notesFrom([...riff(62, 1.5), ...riff(62, 0)])
     expect(segment(notes, [], { riffMaxGap: 0 })).toHaveLength(2)
+  })
+})
+
+describe('boundary candidates and overrides', () => {
+  // A line with one clear mid-strength gap: enough rest to be a candidate,
+  // near the threshold rather than far past it.
+  const ambiguous = (): Note[] =>
+    notesFrom([[60, 1, 0], [62, 1, 0], [64, 1, 0.75], [65, 1, 0], [67, 1, 0], [69, 1, 0], [72, 1, 0], [74, 1, 0]])
+
+  it('surfaces near-threshold gaps as candidates, and only those', () => {
+    const candidates = boundaryCandidates(ambiguous())
+    expect(candidates.length).toBeGreaterThan(0)
+    for (const c of candidates) {
+      expect(Math.abs(c.cue.total - 0.45)).toBeLessThanOrEqual(0.15)
+      expect(c.cue.rest).toBeGreaterThan(0)
+      expect(c.id).toBe(`b${c.index}`)
+    }
+  })
+
+  it('an override true opens a phrase the threshold alone would not', () => {
+    const notes = ambiguous()
+    const below = boundaryCandidates(notes).filter((c) => c.cue.total < 0.45)
+    if (below.length === 0) return
+    const plain = segment(notes).length
+    const forced = segment(notes, [], { overrides: new Map([[below[0].index, true]]) }).length
+    expect(forced).toBeGreaterThan(plain)
+  })
+
+  it('an override false suppresses a phrase boundary the threshold would open', () => {
+    const notes = notesFrom([[60, 1, 0], [62, 1, 0], [64, 1, 2], [65, 1, 0], [67, 1, 0], [69, 1, 0]])
+    expect(segment(notes).length).toBeGreaterThan(1)
+    const suppressed = segment(notes, [], { overrides: new Map([[2, false]]) })
+    expect(suppressed.length).toBe(1)
+  })
+
+  it('no overrides changes nothing', () => {
+    const notes = ambiguous()
+    expect(segment(notes, [], { overrides: new Map() })).toEqual(segment(notes))
   })
 })

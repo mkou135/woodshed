@@ -56,6 +56,12 @@ export interface SegmentOptions {
   wLeap: number
   threshold: number
   /**
+   * Agent boundary verdicts, keyed by the left note's index: true forces a
+   * phrase boundary at that gap, false suppresses one. Empty means the
+   * thresholds decide alone, byte-identical to the un-adjudicated engine.
+   */
+  overrides?: Map<number, boolean>
+  /**
    * A held note starts to count at `lengthFrom` times the median duration
    * and counts fully at `lengthFull` times. The earlier corpus probe used a
    * hard rule at 2x and it shattered phrases; a quarter among eighths is not
@@ -314,6 +320,32 @@ function group<T extends { notes: Note[] }>(
   return out
 }
 
+/** The band around the phrase threshold inside which the engine defers to the agent. */
+export const CANDIDATE_BAND = 0.15
+
+/**
+ * The gaps the engine cannot call: rest present, phrase cue within the band
+ * of the threshold. These go to the agent for adjudication; everything else
+ * stays the engine's alone.
+ */
+export function boundaryCandidates(
+  notes: Note[],
+  options: Partial<SegmentOptions> = {},
+  band = CANDIDATE_BAND,
+): BoundaryCandidate[] {
+  if (notes.length === 0) return []
+  const o = { ...DEFAULTS, ...options }
+  const medianDuration = median(notes.map((n) => n.duration))
+  const out: BoundaryCandidate[] = []
+  for (let i = 0; i < notes.length - 1; i++) {
+    const cue = boundaryCue(notes, i, medianDuration, o)
+    if (cue.rest > 0 && Math.abs(cue.total - o.threshold) <= band) {
+      out.push({ id: `b${i}`, index: i, bar: notes[i].bar, beat: notes[i].beat, cue })
+    }
+  }
+  return out
+}
+
 export function segment(
   notes: Note[],
   forcedBoundaryBars: number[] = [],
@@ -363,7 +395,10 @@ export function segment(
   for (let i = 0; i < notes.length - 1; i++) {
     const next = notes[i + 1]
     const cue = cues[i]
-    if (cue.total >= o.threshold && cue.rest > 0) {
+    const override = o.overrides?.get(i)
+    if (override === true && cue.rest > 0) {
+      all.push({ at: i + 1, strength: Math.max(cue.total, o.threshold), kind: 'rest', rest: cue.rest })
+    } else if (override !== false && cue.total >= o.threshold && cue.rest > 0) {
       all.push({ at: i + 1, strength: cue.total, kind: 'rest', rest: cue.rest })
     } else if (cue.idea >= o.ideaThreshold || isPeak(i) || isPickup(i)) {
       all.push({ at: i + 1, strength: cue.idea, kind: 'arrival' })
