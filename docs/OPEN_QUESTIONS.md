@@ -44,11 +44,14 @@ moving its resolution into DECISIONS.md.
   motivic repetition with no duration cue (14% have no surface cue at all).
   Resolve: a "same contour or rhythm as the previous unit" detector, scored
   against WJD IDEA sections.
-- **AI summariser** (SoloProfile → two-paragraph overview + one line per
-  finding). Blocked: owner has no API key yet; and where should the call
-  run (CLI with env key vs local proxy for the page)? Resolve: owner gets a
-  key and picks; build the deterministic SoloProfile prompt around
-  `analysis.profile`.
+- **BYOK on the public page** (from the agent-layer design, 2026-08-25).
+  Two checks before job 1 ships on Pages: confirm browser-direct calls with
+  `anthropic-dangerous-direct-browser-access` work from a GitHub Pages
+  origin, and settle the wording next to the key field (key stays in the
+  visitor's localStorage). Resolve: a 20-line probe page + owner reads the
+  copy. The old "AI summariser blocked on key/where it runs" question is
+  closed by the design spec (runs wherever a key is; replay fixtures until
+  the owner has one).
 - **Cycle exercise: twelve keys printed, or one key + "take it through the
   cycle"?** Coker says the latter; code prints twelve (as a non-default
   now). Resolve: owner tries both on the horn.

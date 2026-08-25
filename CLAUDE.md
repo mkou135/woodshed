@@ -41,8 +41,10 @@ npm run build
 - `src/` is DOM-free. Only `app/` may touch the DOM.
 - Chord quality comes from MusicXML `<kind>`, never the `text` attribute.
 - `Score` is immutable; `prepare/` emits `Adjustment[]` and never edits.
-- Any future model layer never produces or reasons about note data — every
-  count, interval and generated note comes from deterministic code.
+- The agent layer judges, never generates: it may weigh engine-computed
+  evidence and cast judgments (rank, adjudicate, name, narrate), but every
+  note, count and interval comes from deterministic code. Verdicts reference
+  engine objects by id. See DECISIONS 2026-08-25 "Agent layer scope".
 - Never modify `fixtures/`; tests assert their exact values.
 - `src/practice/` consumes `Analysis`; it never changes detection. Chord
   quality in iReal charts comes from the explicit core table, never guessed.

@@ -278,3 +278,14 @@ playing corpus), not another detector. Also validated the shipped function rule
 along the way — 27,527 of 63,231 dominant notes (44%) take Lydian b7 rather
 than Mixolydian, so the function-aware default is materially different from a
 quality lookup, not a distinction without a difference.
+2026-08-25 · session 11 · Agent layer designed, not yet built. Brainstormed
+scope with the owner and wrote
+`docs/superpowers/specs/2026-08-25-agent-layer-design.md`: judge-yes-
+generate-never (CLAUDE.md non-negotiable reworded), required-where-keyed,
+four jobs (narrate+name, rank, segmentation adjudication, exercise
+construction), hybrid staged-calls + one tool-runner loop, replay fixtures
+from day one (owner has no API key yet), public Pages build is
+bring-your-own-key so the owner's key is never chargeable. DECISIONS
+"Agent layer scope"; OPEN_QUESTIONS swaps the blocked-summariser entry for
+a BYOK/CORS probe. Next: owner reviews the spec, then a writing-plans pass
+for job 1 (narrate + name).

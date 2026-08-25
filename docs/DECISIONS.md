@@ -482,3 +482,21 @@ non-resolving outsiders are 12% of all notes, not a detector that stays silent.
 **Would reverse it.** As above: change the target, not the detector — score
 against human-labelled departures, or against a corpus of deliberately outside
 playing.
+
+2026-08-25 · **Agent layer scope** · The AI layer is designed
+(`docs/superpowers/specs/2026-08-25-agent-layer-design.md`), settling five
+questions. (1) The note-data non-negotiable is amended to *judge yes,
+generate never*: the model may weigh engine-computed evidence and cast
+judgments, never produce a note, count or interval; CLAUDE.md reworded in
+the same commit. (2) The agent is a required stage wherever a key is
+present; keyless contexts degrade to the deterministic engine. (3) Four
+jobs, build order narrate+name → rank → segmentation adjudication →
+exercise construction; runtime order 3→2→1→4. (4) Hybrid interaction:
+staged evidence→verdict calls, with a tool-runner loop only for exercise
+construction. (5) The public GitHub Pages build is bring-your-own-key —
+the bundle carries no secret and the owner's key can never be charged by
+visitors; the owner's key lives only in the shell env for CLI and local
+Vite proxy. Segmentation adjudication ships only if `eval:agent` beats
+68% idea recall on recorded runs · owner + Claude, brainstormed ·
+reverse: (1) only if agent judgments prove untestable in replay; (2) by
+owner if cost per solo exceeds tolerance; (3–5) normal design revision.
