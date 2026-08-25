@@ -248,3 +248,12 @@ scale-analysis.md + two DECISIONS entries. Books in ~/Downloads renamed from
 verified title pages (Bergonzi "Vol 3 Pentatonics" was Vol 2; Ron Miller is Vol
 1 only; a 6pp Nettles promo replaced by the real 184pp book). No code written —
 design deferred pending the owner's call on the scope change.
+2026-08-25 · session 10 · Implemented the engine half: `analyse/chordScale.ts`,
+`Analysis.scaleSpans`, printed by `npm run solo`. Chart-declared scales from
+`Chord.tensions` (unused until now), else function-aware defaults. 11 new tests,
+325 total, typecheck and build clean. Blake 113 spans / 15 declared. **The page
+layer is not built** — the visual annotation the owner asked for still needs a
+band above the staff in `app/score.ts` (convention in scale-analysis.md §5:
+solid line, down-ticks at first and last notehead, label at the left edge,
+dashed reserved for inferred). Research cut short for budget; the modal/
+pentatonic read and the voice-leading experiment were stopped mid-run.
