@@ -25,7 +25,7 @@ const notes = notesFrom([
 const score = {
   notes,
   chordTracks: [],
-  instrument: { name: 'test', transpose: 0, range: null },
+  instrument: { name: 'test', transpose: 0, writtenRange: { lo: 0, hi: 127 } },
   timeSig: [4, 4],
   keyFifths: 0,
   marks: [],

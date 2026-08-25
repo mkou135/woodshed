@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { displaceStep } from './displace.ts'
+import { varyStep } from './vary.ts'
 import { excerpt } from './loop.ts'
 import { instrumentFromTranspose } from '../../core/instrument.ts'
 import { TICKS_PER_QUARTER as Q } from '../../core/types.ts'
@@ -37,33 +37,63 @@ describe('excerpt', () => {
   })
 })
 
-describe('displaceStep', () => {
-  const step = displaceStep(unit, score)
+describe('varyStep', () => {
+  const step = varyStep(unit, score)
+  const onramps = step.exercises.filter((e) => e.transformation === 'vary-approach')
+  const displaced = step.exercises.filter((e) => e.transformation === 'displace')
 
-  it('keeps pitches and relative rhythm in every variant', () => {
-    for (const ex of step.exercises) {
+  it('is the vary step', () => {
+    expect(step.kind).toBe('vary')
+  })
+
+  it('every on-ramp lands exactly as the player did', () => {
+    expect(onramps.length).toBeGreaterThan(0)
+    for (const ex of onramps) {
+      const played = ex.bars.flatMap((b) => b.events!).filter((e) => e.midi !== null)
+      expect(played[played.length - 1].midi).toBe(79)
+      // The body is intact after the approach.
+      expect(played.slice(-4).map((e) => e.midi)).toEqual([68, 72, 75, 79])
+    }
+  })
+
+  it('the chord-tone-below ramp starts on a chord tone below the original start', () => {
+    const below = onramps.find((e) => e.title.startsWith('From the chord tone below'))!
+    const firstPlayed = below.bars.flatMap((b) => b.events!).find((e) => e.midi !== null)!
+    expect(firstPlayed.midi).toBeLessThan(68)
+    expect([5, 8, 0, 3].includes(((firstPlayed.midi! % 12) + 12) % 12)).toBe(true)
+  })
+
+  it('the enclosure ramp adds two approach notes', () => {
+    const enc = onramps.find((e) => e.title.startsWith('Enclosed'))!
+    const played = enc.bars.flatMap((b) => b.events!).filter((e) => e.midi !== null)
+    expect(played).toHaveLength(6)
+    expect(played[0].midi).toBe(69)
+    expect(played[1].midi).toBe(67)
+  })
+
+  it('keeps pitches and relative rhythm in every displaced variant', () => {
+    expect(displaced.length).toBeGreaterThan(0)
+    for (const ex of displaced) {
       const played = ex.bars.flatMap((b) => b.events!).filter((e) => e.midi !== null)
       expect(played.map((e) => e.midi)).toEqual([68, 72, 75, 79])
       expect(played.map((e) => e.duration)).toEqual([Q / 2, Q / 2, Q / 2, Q / 2])
     }
   })
 
-  it('offers every placement except the original', () => {
-    expect(step.exercises.map((e) => e.title)).toEqual([
-      'Start it on beat 1', 'Start it on the "and" of 1', 'Start it on beat 2', 'Start it as a pickup into beat 1',
+  it('offers the two displaced placements, titled as displacement', () => {
+    expect(displaced.map((e) => e.title)).toEqual([
+      'Displaced: start it on the "and" of 1', 'Displaced: start it as a pickup into beat 1',
     ])
   })
 
-  it('puts the first note where the title says', () => {
+  it('puts the displaced first note where the title says', () => {
     const leadingRest = (ex: typeof step.exercises[0]): number =>
       ex.bars[0].events![0].midi === null ? ex.bars[0].events![0].duration : 0
-    expect(leadingRest(step.exercises[0])).toBe(0)
-    expect(leadingRest(step.exercises[1])).toBe(Q / 2)
-    expect(leadingRest(step.exercises[2])).toBe(Q)
-    expect(leadingRest(step.exercises[3])).toBe(Q * 3.5)
+    expect(leadingRest(displaced[0])).toBe(Q / 2)
+    expect(leadingRest(displaced[1])).toBe(Q * 3.5)
   })
 
-  it('moves the harmonic frame with the line instead of dropping placements that clash with the old frame', () => {
+  it('moves the harmonic frame with the displaced line', () => {
     const changes = [
       { ...chord, rootPc: 0, quality: 'major' as const, onset: 0 },
       { ...chord, rootPc: 7, quality: 'dominant' as const, onset: 3 * Q },
@@ -78,12 +108,8 @@ describe('displaceStep', () => {
       arrival: { degree: 'b7', chordTone: true },
     }
 
-    const varied = displaceStep(resolving, { ...score, notes: line, chordTracks: [{ chords: changes, provenance: 'file', confidence: 1 }] })
-
-    expect(varied.exercises.map((exercise) => exercise.title)).toEqual([
-      'Start it on beat 1', 'Start it on the "and" of 1', 'Start it on beat 2', 'Start it as a pickup into beat 1',
-    ])
-    const pickup = varied.exercises[3]
+    const varied = varyStep(resolving, { ...score, notes: line, chordTracks: [{ chords: changes, provenance: 'file', confidence: 1 }] })
+    const pickup = varied.exercises.find((e) => e.title === 'Displaced: start it as a pickup into beat 1')!
     const chordPositions = pickup.bars.flatMap((bar, i) =>
       (bar.chords ?? []).map((change) => i * 4 * Q + change.onset))
     expect(chordPositions).toEqual([2 * Q, 5 * Q])

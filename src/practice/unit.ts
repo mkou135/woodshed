@@ -6,7 +6,7 @@ import type { Exercise } from '../generate/index.ts'
 import type { Tune } from './tune.ts'
 import { loopStep } from './steps/loop.ts'
 import { throughStep } from './steps/through.ts'
-import { displaceStep } from './steps/displace.ts'
+import { varyStep } from './steps/vary.ts'
 import { writeTemplate } from './steps/write.ts'
 
 /**
@@ -18,7 +18,7 @@ import { writeTemplate } from './steps/write.ts'
 export type Step =
   | { kind: 'loop'; exercise: Exercise; prompt: string }
   | { kind: 'through'; tune: string; exercises: Exercise[]; prompt: string }
-  | { kind: 'displace'; exercises: Exercise[]; prompt: string }
+  | { kind: 'vary'; exercises: Exercise[]; prompt: string }
   | { kind: 'write'; template: string; prompt: string }
 
 export interface PracticeUnit {
@@ -263,7 +263,7 @@ export function buildUnits(analysis: Analysis, score: Score, options: BuildOptio
     unit.steps = [
       loopStep(unit, score),
       ...throughStep(unit, options.tune, score, options.tuneName ?? options.tune.title),
-      displaceStep(unit, score),
+      varyStep(unit, score),
       ...writeTemplate(unit, options.tune, score.instrument, options.tuneName ?? options.tune.title),
     ]
   }

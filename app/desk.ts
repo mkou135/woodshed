@@ -23,7 +23,7 @@ export interface Desk {
 const TITLES: Record<Step['kind'], string> = {
   loop: 'Loop it as played',
   through: 'Through the tune',
-  displace: 'Vary it',
+  vary: 'Vary it',
   write: 'Write your own',
 }
 
@@ -31,7 +31,7 @@ function intent(step: Step, unit: PracticeUnit, result: PipelineResult): string 
   switch (step.kind) {
     case 'loop': return `Sing it, then play along with the record from bar ${barLabel(result.score, unit.notes[0].bar)}.`
     case 'through': return `The whole line over every matching progression in ${step.tune}; cell and cycle drills follow.`
-    case 'displace': return 'The line and changes move together; hear the new metric feel.'
+    case 'vary': return 'New ways into the same arrival; the landing never moves.'
     case 'write': return 'Three lines into the targets; drop the file back to check.'
   }
 }

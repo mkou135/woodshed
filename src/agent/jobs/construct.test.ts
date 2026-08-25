@@ -4,7 +4,7 @@ import { replayClient } from '../client.ts'
 import { construct, type ConstructContext } from './construct.ts'
 
 const units = [
-  { id: 'u1', header: 'h1', steps: [{ kind: 'loop' }, { kind: 'displace' }] },
+  { id: 'u1', header: 'h1', steps: [{ kind: 'loop' }, { kind: 'vary' }] },
   { id: 'u2', header: 'h2', steps: [{ kind: 'loop' }, { kind: 'through' }] },
 ] as unknown as PracticeUnit[]
 const ctx = { units, analysis: {}, score: {} } as unknown as ConstructContext

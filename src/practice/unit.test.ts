@@ -40,7 +40,7 @@ describe('buildUnits on the Blake solo', () => {
   it('makes the maj7-from-the-b3 line the first unit, with all four steps', () => {
     const top = result.units[0]
     expect(top.findings.map((f) => f.name)).toContain('major-seventh arpeggio from the b3')
-    expect(top.steps.map((s) => s.kind)).toEqual(['loop', 'through', 'displace', 'write'])
+    expect(top.steps.map((s) => s.kind)).toEqual(['loop', 'through', 'vary', 'write'])
   })
 
   it('keeps every unit within two bars', () => {

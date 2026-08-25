@@ -55,6 +55,11 @@ export function degreeOf(midi: number, chord: Chord): string {
   return table[semis]
 }
 
+/** The chord-tone pitch classes of a quality, relative to the root. */
+export function chordTonePcs(quality: Quality): number[] {
+  return CHORD_TONES[quality]
+}
+
 export function isChordTone(midi: number, chord: Chord): boolean {
   return CHORD_TONES[chord.quality].includes(pitchClass(midi - chord.rootPc))
 }
