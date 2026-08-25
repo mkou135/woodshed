@@ -289,3 +289,19 @@ bring-your-own-key so the owner's key is never chargeable. DECISIONS
 "Agent layer scope"; OPEN_QUESTIONS swaps the blocked-summariser entry for
 a BYOK/CORS probe. Next: owner reviews the spec, then a writing-plans pass
 for job 1 (narrate + name).
+2026-08-25 · session 11 · Agent layer built, all four jobs, offline. `src/agent/`:
+strict zod verdicts (ids only, note data structurally impossible), one
+SDK-aware client (live claude-opus-5 with structured outputs + cached analysis
+document; replay from fixtures), evidence documents, jobs narrate/rank/
+adjudicate/construct (construct is the one tool loop, ceiling 15), orchestrator
+`runAgent` and `runWithAgent(bytes, client)`. `segment()` gained
+`boundaryCandidates` (band 0.15 around the threshold) and `overrides` — no
+overrides is byte-identical, old tests unchanged. CLI: agent sections +
+--no-agent/AGENT_FIXTURES/AGENT_RECORD; page: BYOK key field (localStorage,
+browser-direct), agent overview + menu reorder marked agent-sourced.
+`eval:agent` scores recorded adjudications vs WJD, graceful without
+recordings. Blake replay fixtures committed (hand-written, real ids);
+pipeline.test.ts pins the agent-enhanced run next to the deterministic one.
+354 tests, typecheck, build green. Not verified: the page live path (no key
+yet — everything model-touching ran through replay), and the browser check of
+the key row (extension not connected; build green, keyless path unchanged).

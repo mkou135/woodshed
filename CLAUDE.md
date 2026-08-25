@@ -27,10 +27,12 @@ longer authoritative.
 
 ```bash
 npm run dev        # Vite dev server; drop a .mxl on the page
-npm run solo -- <file.mxl>   # print findings and exercises for a real solo
+npm run solo -- <file.mxl>   # findings + exercises; agent runs if ANTHROPIC_API_KEY is set
+                             # --no-agent forces the engine; AGENT_FIXTURES=<dir> replays verdicts
 npm run eval:wjd   # score phrase/idea boundaries against the Weimar Jazz Database
 npm run corpus:freq # regenerate src/data/corpusFrequency.ts (aggregate WJD pattern shares)
 npm run brackets   # score phrase starts against the owner's brackets (scripts/brackets.json)
+npm run eval:agent # score agent-adjudicated boundaries from recordings (never live)
 npm run test:run   # NEVER bare `npm test` — watch mode, hangs tool calls
 npm run typecheck
 npm run build

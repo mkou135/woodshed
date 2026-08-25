@@ -388,6 +388,35 @@ displaced start within 2 beats. Exit 1 on any other miss or false start.
 Sets: Mintzer written 3–34 (13 owner starts, 22.1 known), St Thomas
 printed 57–76 (7, frozen from the engine in session 6 — see OPEN_QUESTIONS).
 
+## Agent layer (`src/agent/`, spec docs/superpowers/specs/2026-08-25-agent-layer-design.md)
+
+Judge yes, generate never: verdicts are strict zod schemas referencing engine
+ids; no pitch, count or interval can ride in one. Runs whenever a key is
+present (CLI env `ANTHROPIC_API_KEY`; page BYOK from localStorage,
+browser-direct); keyless runs are byte-identical to the engine alone.
+
+- Model `claude-opus-5`, `max_tokens` 16000, structured outputs on every
+  call, analysis document cached (`cache_control` ephemeral on the system
+  block, identical prefix across jobs).
+- Jobs, runtime order: **segment** (batch-adjudicate `boundaryCandidates` —
+  rest > 0 and |total − threshold| ≤ `CANDIDATE_BAND` 0.15 — into
+  `SegmentOptions.overrides`, keyed by left-note index) → re-analyse →
+  **rank** (menu order; a verdict keeping nothing degrades) → **narrate**
+  (2-paragraph overview + names + look-fors; must send the player to the
+  record) → **construct** (the one tool loop: `list_steps`, `unit_detail`;
+  ceiling 15 turns; only engine-generated steps survive).
+- Degrade rule: any failure → null verdict → deterministic path stands,
+  job listed in `AgentOutput.degraded`, one warning line, never a crash.
+  Ids a verdict invents are discarded, not patched.
+- Replay: `replayClient` + `fixtures/agent/<solo>/<job>.json`
+  (`narrate`/`rank`/`segment`/`construct`). Committed fixtures are
+  Blake-derived or hand-written only; WJD recordings live in
+  `~/dev/woodshed-data/agent-fixtures/<melid>/`. `AGENT_FIXTURES=<dir>`
+  replays in the CLI; `AGENT_RECORD=<dir>` records live verdicts.
+- `npm run eval:agent`: idea recall on the first 20 WJD solos, engine vs
+  adjudicated, recordings only. Ship rule: job 3 does not run live by
+  default until the adjudicated number beats the engine's.
+
 ## Verification targets
 
 Blake (`npm run solo`): form 56 bars, chorus starts **9 and 65** (8-bar
