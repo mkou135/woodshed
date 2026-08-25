@@ -223,9 +223,27 @@ vector); pass 2 by overlap adds detectedBy/weights only, never spans.
     (`chordRunStart`). Only when `Tune.startBar` is set — `tuneFromScore`
     sets it to the chorus it took the changes from; a chart from elsewhere
     leaves it undefined and every occurrence stands.
-- Vary (`practice/steps/displace.ts`): placements beat 1, and-of-1, beat 2,
-  pickup; smallest shift modulo the bar. Notes and chord changes move by the
-  same offset, preserving harmonic function while changing metric feel.
+- Vary (`practice/steps/vary.ts`, step kind `vary`): the arrival is fixed,
+  the way in varies (Ligon goal notes; Bergonzi ex. A–H; design
+  2026-08-25-practice-variations). Four prepended eighth-note **on-ramps**
+  — chord tone below the first note, chord tone above, chromatic step
+  below, enclosure above-then-below — deduped, range-clamped, and kept
+  only when every degree-bearing finding re-detects over the new line
+  (`lineContains`) and the arrival keeps its degree. Then **displacement**
+  demoted to two placements (and-of-1, pickup), smallest shift modulo the
+  bar, notes and chord changes moving together.
+- Worked examples in Write (`practice/steps/write.ts`): the step opens
+  with device variations of the line — fragmentation (strict half ≥ 3
+  notes, prefix else suffix), augmentation ×2 / diminution ÷2 (median
+  duration ≥ quarter picks diminution), Bergonzi editing (1–2 middle
+  notes removed, arrival kept) — each gated by `lineContains`, so an
+  augmented line that drifts across the changes is dropped rather than
+  shown. Transforms live in `practice/variations.ts`.
+- Cell-drill provenance in Through: each Bergonzi drill's rationale names
+  the notes of the line the cell is ("notes 1–4 of the line (bar 76)").
+- Agent look-fors render as amber markers at each unit's first notehead
+  with a hover/click tooltip (`ScoreView.showLookFors`); the section text
+  points at them instead of listing them.
 
 ## Exercise rendering (`render/musicxml.ts`)
 

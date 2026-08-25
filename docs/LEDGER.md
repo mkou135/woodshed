@@ -305,3 +305,16 @@ pipeline.test.ts pins the agent-enhanced run next to the deterministic one.
 354 tests, typecheck, build green. Not verified: the page live path (no key
 yet — everything model-touching ran through replay), and the browser check of
 the key row (extension not connected; build green, keyless path unchanged).
+2026-08-25 · session 11 · Practice steps 2–4 rebuilt per the owner's read of
+the output (spec 2026-08-25-practice-variations-design.md): `vary` replaces
+displace (on-ramps into a fixed arrival + demoted displacement), Through
+cell drills carry provenance, Write opens with gated device examples
+(`practice/variations.ts`), agent look-fors are now amber tooltip markers on
+the score. New `lineContains` in generate/validity.ts because `isValid`
+reads `bar.midis` and cannot certify excerpt bars. Agent enum and Blake
+construct fixture renamed displace→vary. 369 tests, typecheck, build green;
+Blake read: u1 vary has 6 exercises, write example counts honest (u1's own
+examples gated out — augmentation drifts across the changes, correctly).
+Known gap: augment/diminish keep chords fixed, so cross-change lines rarely
+survive the gate; moving the chords with the line is future work. Browser
+check of markers/tooltips still pending (extension not connected).

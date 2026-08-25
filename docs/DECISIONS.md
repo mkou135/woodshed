@@ -500,3 +500,19 @@ Vite proxy. Segmentation adjudication ships only if `eval:agent` beats
 68% idea recall on recorded runs · owner + Claude, brainstormed ·
 reverse: (1) only if agent judgments prove untestable in replay; (2) by
 owner if cost per solo exceeds tolerance; (3–5) normal design revision.
+
+2026-08-25 · **Practice steps 2–4 redesigned around the fixed arrival** ·
+The owner read the Blake practice output: the Bergonzi cell drill read as
+generic changes-running, displace was opaque, write unseeded. Decided:
+(1) Through keeps its generation and gains provenance — each cell drill
+says which notes of the line it is. (2) Displace becomes `vary`: four
+prepended on-ramps into the unchanged arrival (chord tone below/above,
+chromatic below, enclosure), validity-gated by re-detection over the
+actual line (`lineContains` — the old `isValid` reads `bar.midis` and
+cannot certify excerpt-shaped bars), displacement demoted to two
+placements with practising instructions. (3) Write opens with gated
+worked examples from Ligon's device taxonomy (fragment, augment/diminish,
+edit). (4) Agent look-fors moved onto the score as amber tooltip markers.
+Evidence class: owner reading + literature (Ligon p.483, Bergonzi pp.26–27,
+39, Gonzalez) · owner + Claude · reverse: owner finds the on-ramps
+unmusical on the horn, or gating starves the examples on most solos.
