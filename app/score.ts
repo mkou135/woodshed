@@ -14,6 +14,8 @@ export interface ScoreView {
   highlight(unit: PracticeUnit | null): void
   goTo(printedBar: number): void
   showScales(mode: ScaleMode): void
+  /** Agent look-fors as markers with tooltips, anchored at each unit's first notehead. */
+  showLookFors(lookFors: { unitId: string; text: string }[], units: PracticeUnit[]): void
 }
 
 /**
@@ -305,5 +307,62 @@ export async function renderScore(container: HTMLElement, result: PipelineResult
     if (map) scaleBand(result, map, mode)
   }
 
-  return { highlight, goTo, showScales }
+  // One tooltip for all markers; fixed-positioned, closed by leave, outside
+  // click or Escape. The text is model-written, so the marker and tip carry
+  // agent-sourced for the amber treatment.
+  let tip: HTMLDivElement | null = null
+  let markers: SVGGElement[] = []
+  const hideTip = (): void => { if (tip) tip.hidden = true }
+  const ensureTip = (): HTMLDivElement => {
+    if (tip) return tip
+    tip = document.createElement('div')
+    tip.className = 'agent-tip agent-sourced'
+    tip.hidden = true
+    document.body.appendChild(tip)
+    document.addEventListener('click', (e) => {
+      if (!(e.target instanceof Element) || !e.target.closest('.agent-marker')) hideTip()
+    })
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hideTip() })
+    return tip
+  }
+
+  const showLookFors = (lookFors: { unitId: string; text: string }[], units: PracticeUnit[]): void => {
+    for (const m of markers) m.remove()
+    markers = []
+    hideTip()
+    if (!map) return
+    for (const lookFor of lookFors) {
+      const unit = units.find((u) => u.id === lookFor.unitId)
+      const note = unit ? result.analysis.contexts[unit.startIndex]?.note : undefined
+      if (!unit || !note) continue
+      const bar = writtenBar(result.score, note.bar).bar
+      const anchor = (map.notes.get(noteKey(bar, note.beat)) ?? [])[0]
+      const staff = map.staves.get(bar)
+      const svg = anchor?.ownerSVGElement
+      if (!anchor || !staff || !svg) continue
+      const box = anchor.getBBox()
+      const g = svgEl('g')
+      g.setAttribute('class', 'agent-marker agent-sourced')
+      const dot = svgEl('circle')
+      dot.setAttribute('cx', String(box.x + box.width / 2))
+      dot.setAttribute('cy', String(Math.min(box.y, staff.top) - 9))
+      dot.setAttribute('r', '5')
+      g.appendChild(dot)
+      const open = (): void => {
+        const t = ensureTip()
+        t.textContent = lookFor.text
+        t.hidden = false
+        const rect = g.getBoundingClientRect()
+        t.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - 340))}px`
+        t.style.top = `${rect.bottom + 8}px`
+      }
+      g.addEventListener('click', (e) => { e.stopPropagation(); open() })
+      g.addEventListener('mouseenter', open)
+      g.addEventListener('mouseleave', hideTip)
+      svg.appendChild(g)
+      markers.push(g)
+    }
+  }
+
+  return { highlight, goTo, showScales, showLookFors }
 }

@@ -149,9 +149,9 @@ function agentSection(agent: AgentOutput): HTMLElement {
   head.append(el('h2', undefined, 'What the agent hears'), el('span', undefined, 'model-written; every number is the engine\u2019s'))
   box.append(head)
   for (const p of agent.narration?.overview ?? []) box.append(el('p', undefined, p))
-  const list = el('ul')
-  for (const l of agent.narration?.lookFors ?? []) list.append(el('li', undefined, `${l.unitId} — ${l.text}`))
-  if (list.childElementCount) box.append(list)
+  if (agent.narration?.lookFors.length) {
+    box.append(el('small', undefined, 'Look-fors are marked on the score — the amber dots.'))
+  }
   if (agent.degraded.length === 4) {
     box.append(el('p', undefined, 'The agent could not be reached — every job fell back to the engine. Check the key, and the browser console for the reason.'))
   } else if (agent.degraded.length) {
@@ -214,6 +214,7 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
   resultBox.append(detailsBox, ...blocking(result), ...(agentBox ? [agentBox] : []), deskHost, drawer, sheet)
 
   const view = await renderScore(solo, result, xml)
+  if (agent?.narration?.lookFors.length) view.showLookFors(agent.narration.lookFors, result.units)
   gotoInput.addEventListener('change', () => { const n = Number(gotoInput.value); if (n > 0) view.goTo(n) })
 
   // Marking every bar is the failure mode the sources warn about, so the
