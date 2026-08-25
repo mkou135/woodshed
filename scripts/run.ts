@@ -7,19 +7,38 @@
  */
 import { barLabel } from '../src/core/bars.ts'
 import { readFileSync } from 'node:fs'
-import { run } from '../src/index.ts'
+import { run, runWithAgent, liveClient, replayClient } from '../src/index.ts'
+import { loadFixtures } from '../src/agent/fixtures.ts'
+import type { AgentClient } from '../src/index.ts'
 
 const NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
 const pc = (n: number): string => NAMES[((n % 12) + 12) % 12]
 const note = (midi: number): string => `${pc(midi)}${Math.floor(midi / 12) - 1}`
 
-const path = process.argv[2]
+const args = process.argv.slice(2)
+const noAgent = args.includes('--no-agent')
+const path = args.find((a) => !a.startsWith('--'))
 if (!path) {
-  console.error('usage: npm run solo -- <file.mxl>')
+  console.error('usage: npm run solo -- <file.mxl> [--no-agent]')
   process.exit(1)
 }
 
-const result = run(new Uint8Array(readFileSync(path)))
+// Key sources, in order: --no-agent wins; AGENT_FIXTURES replays recorded
+// verdicts; ANTHROPIC_API_KEY goes live (AGENT_RECORD saves the verdicts).
+// No key: deterministic output, exactly as before the agent existed.
+function chooseClient(): AgentClient | null {
+  if (noAgent) return null
+  if (process.env.AGENT_FIXTURES) return replayClient(loadFixtures(process.env.AGENT_FIXTURES))
+  if (process.env.ANTHROPIC_API_KEY) {
+    return liveClient(process.env.ANTHROPIC_API_KEY, { recordDir: process.env.AGENT_RECORD })
+  }
+  console.log('agent: no ANTHROPIC_API_KEY — deterministic output (docs/superpowers/specs/2026-08-25-agent-layer-design.md)')
+  return null
+}
+
+const client = chooseClient()
+const bytes = new Uint8Array(readFileSync(path))
+const result = client ? await runWithAgent(bytes, client) : { ...run(bytes), agent: null }
 const { score, report, analysis, exercises } = result
 
 console.log(`${score.instrument.name}; ${score.barCount} bars, ${score.notes.length} notes`)
@@ -100,4 +119,30 @@ for (const u of result.units.slice(0, 6)) {
     const n = s.kind === 'loop' ? 1 : s.kind === 'write' ? 1 : s.exercises.length
     console.log(`      ${s.kind.padEnd(9)} ${n} exercise(s)  ${s.prompt.slice(0, 90)}…`)
   }
+}
+
+if (result.agent) {
+  const { narration, ranking, sessionPlan, boundaries, usage, degraded } = result.agent
+  console.log()
+  console.log('agent')
+  if (boundaries) console.log(`  boundaries adjudicated: ${boundaries.size}`)
+  if (narration) {
+    console.log()
+    for (const p of narration.overview) console.log(`  ${p}`)
+    for (const f of narration.findingNames) console.log(`  ${f.id}: ${f.name}`)
+    for (const l of narration.lookFors) console.log(`  ${l.unitId}: ${l.text}`)
+  }
+  if (ranking) {
+    console.log()
+    console.log('  menu (agent order)')
+    for (const o of ranking.order) console.log(`    ${o.keep ? 'keep' : 'cut '} ${o.unitId}  ${o.reason}`)
+  }
+  if (sessionPlan) {
+    console.log()
+    console.log('  session')
+    for (const u of sessionPlan.units) console.log(`    ${u.unitId}: ${u.steps.join(' → ')}${u.note ? `  (${u.note})` : ''}`)
+    console.log(`    interleave: ${sessionPlan.interleave}`)
+  }
+  if (degraded.length) console.log(`  degraded to the deterministic path: ${degraded.join(', ')}`)
+  for (const u of usage) console.log(`  agent tokens: ${u.job} ${u.inputTokens} in / ${u.outputTokens} out`)
 }
