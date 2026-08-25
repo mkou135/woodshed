@@ -41,13 +41,16 @@ export async function runAgent(
   score: Score,
   report: CleanupReport,
   buildOptions: BuildOptions,
+  onStage?: (stage: string) => void,
 ): Promise<AgentResult> {
   const degraded: string[] = []
 
+  onStage?.('judging the ambiguous phrase boundaries')
   const candidates = boundaryCandidates(soloistNotes(score, report))
   const boundaries = await adjudicate(client, candidates, score.timeSig)
   if (!boundaries) degraded.push('segment')
 
+  onStage?.('re-reading the solo with the adjudicated phrases')
   const analysis = analyse(score, report, { overrides: boundaries ?? undefined })
   const units = buildUnits(analysis, score, buildOptions)
 
@@ -55,12 +58,15 @@ export async function runAgent(
   const unitIds = new Set(units.map((u) => u.id))
   const findingIds = new Set(analysis.findings.map((f) => f.id))
 
+  onStage?.('ordering the practice menu')
   const ranking = await rank(client, document, unitIds)
   if (!ranking) degraded.push('rank')
 
+  onStage?.('writing the narration')
   const narration = await narrate(client, document, { findings: findingIds, units: unitIds })
   if (!narration) degraded.push('narrate')
 
+  onStage?.('assembling the practice session — the long one')
   const sessionPlan = await construct(client, { units, analysis, score }, document)
   if (!sessionPlan) degraded.push('construct')
 

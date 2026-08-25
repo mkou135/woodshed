@@ -29,6 +29,37 @@ function setStatus(text: string | null): void {
   statusLine.hidden = text === null
 }
 
+/**
+ * The agent phase is four model calls and can take a minute; a silent page
+ * reads as a stalled one. One bar, one line of what is happening now.
+ */
+const AGENT_STAGES = [
+  'reading the score',
+  'judging the ambiguous phrase boundaries',
+  're-reading the solo with the adjudicated phrases',
+  'ordering the practice menu',
+  'writing the narration',
+  'assembling the practice session — the long one',
+]
+
+function progressLine(): { element: HTMLElement; stage: (text: string) => void; done: () => void } {
+  const box = el('div', 'progress')
+  const bar = document.createElement('progress')
+  bar.max = AGENT_STAGES.length + 1
+  bar.value = 0
+  const label = el('span')
+  box.append(bar, label)
+  return {
+    element: box,
+    stage: (text) => {
+      const at = AGENT_STAGES.indexOf(text)
+      bar.value = at === -1 ? bar.value : at + 1
+      label.textContent = `${text}…`
+    },
+    done: () => box.remove(),
+  }
+}
+
 function showError(title: string, detail: string): void {
   errorBox.replaceChildren(el('strong', undefined, title), el('span', undefined, detail))
   errorBox.hidden = false
@@ -251,12 +282,22 @@ async function handleFile(file: File): Promise<void> {
   try {
     const bytes = new Uint8Array(await file.arrayBuffer())
     const key = agentKey()
-    if (key) setStatus(`Reading ${file.name}\u2026 agent on`)
-    const result = key ? await runWithAgent(bytes, liveClient(key, { browser: true })) : run(bytes)
+    let progress: ReturnType<typeof progressLine> | null = null
+    if (key) {
+      setStatus(null)
+      progress = progressLine()
+      statusLine.after(progress.element)
+      progress.stage(AGENT_STAGES[0])
+    }
+    const result = key
+      ? await runWithAgent(bytes, liveClient(key, { browser: true }), (stage) => progress?.stage(stage))
+      : run(bytes)
+    progress?.done()
     setStatus(null)
     await renderResult(result, readScoreXml(bytes), file.name)
   } catch (error) {
     setStatus(null)
+    document.querySelector('.progress')?.remove()
     if (error instanceof UnsupportedScoreError) {
       showError('This transcription cannot be analysed yet', (error as Error).message)
     } else {

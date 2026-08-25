@@ -93,11 +93,16 @@ export function run(bytes: Uint8Array): PipelineResult {
  * everything downstream sees; ranking, narration and the session plan ride
  * alongside. Degraded jobs fall back to the deterministic result above.
  */
-export async function runWithAgent(bytes: Uint8Array, client: AgentClient): Promise<PipelineResult & { agent: AgentOutput }> {
+export async function runWithAgent(
+  bytes: Uint8Array,
+  client: AgentClient,
+  onStage?: (stage: string) => void,
+): Promise<PipelineResult & { agent: AgentOutput }> {
+  onStage?.('reading the score')
   const score = ingest(bytes)
   const report = prepare(score)
   const tune = tuneFromScore(score, report.form?.chorusStarts ?? [])
-  const { analysis, units, agent } = await runAgent(client, score, report, { tune })
+  const { analysis, units, agent } = await runAgent(client, score, report, { tune }, onStage)
   const exercises = generateExercises(analysis, score)
 
   return {

@@ -318,3 +318,6 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
 .agent { border-left: 3px solid #b58a3c; padding: 0.4rem 1rem; margin: 0.6rem 0; }
 .agent-sourced { position: relative; }
 .agent .dh span { opacity: 0.6; font-size: 0.85em; }
+.progress { display: flex; flex-direction: column; gap: 0.35rem; margin: 1rem 0; max-width: 28rem; }
+.progress progress { width: 100%; height: 0.5rem; accent-color: #b58a3c; }
+.progress span { font-size: 0.9em; opacity: 0.8; }
