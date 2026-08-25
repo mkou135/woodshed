@@ -128,6 +128,47 @@ function typeXml(ticks: number): string {
   return `<type>${type}</type>`
 }
 
+/** Split a compacted rest into exact written values, largest first. */
+function writtenRests(ticks: number): number[] {
+  if (notatedType(ticks).triplet || PLAIN_TYPES.some(([plain]) => ticks === plain || ticks === plain * 1.5)) {
+    return [ticks]
+  }
+  const values = [...new Set(PLAIN_TYPES.flatMap(([plain]) => [plain, plain * 1.5, plain * 2 / 3]))]
+    .filter(Number.isInteger)
+    .sort((a, b) => b - a)
+  const parts: number[] = []
+  let remaining = ticks
+  for (const value of values) {
+    while (value <= remaining) {
+      parts.push(value)
+      remaining -= value
+    }
+  }
+  if (remaining > 0) parts.push(remaining)
+  return parts
+}
+
+function expandRests(events: ExerciseEvent[]): ExerciseEvent[] {
+  return events.flatMap((event) => event.midi === null
+    ? writtenRests(event.duration).map((duration) => ({ ...event, duration }))
+    : [event])
+}
+
+/** MusicXML needs explicit start/stop notation to draw the triplet number. */
+function tupletMarks(events: ExerciseEvent[]): string[] {
+  const marks = events.map(() => '')
+  for (let i = 0; i + 2 < events.length;) {
+    const duration = events[i].duration
+    const isCompleteTriplet = notatedType(duration).triplet
+      && events.slice(i, i + 3).every((event) => event.duration === duration && notatedType(event.duration).triplet)
+    if (!isCompleteTriplet) { i++; continue }
+    marks[i] = '<notations><tuplet type="start" bracket="yes" show-number="actual"/></notations>'
+    marks[i + 2] = '<notations><tuplet type="stop"/></notations>'
+    i += 3
+  }
+  return marks
+}
+
 /**
  * Beam marks for a bar's events, one entry per event ('' for none). Flagged
  * notes (eighth or shorter by type) beam within a beat; a rest, a longer note or the
@@ -172,11 +213,11 @@ function beamMarks(events: ExerciseEvent[]): string[] {
   return marks
 }
 
-function eventXml(event: ExerciseEvent, beam: string, sharps: boolean): string {
+function eventXml(event: ExerciseEvent, beam: string, tuplet: string, sharps: boolean): string {
   const divisions = Math.max(1, Math.round(event.duration / TICKS_PER_DIVISION))
   const body = event.midi === null ? '<rest/>' : pitchXml(event.midi, sharps)
   const cue = event.cue ? '<cue/>' : ''
-  return `<note>${cue}${body}<duration>${divisions}</duration>${typeXml(event.duration)}${beam}</note>`
+  return `<note>${cue}${body}<duration>${divisions}</duration>${typeXml(event.duration)}${beam}${tuplet}</note>`
 }
 
 /** A bar with real rhythm: chords at their offsets, events in order. */
@@ -187,11 +228,12 @@ function rhythmicMeasureXml(
   timeSig: [number, number],
   options: RenderOptions,
 ): string {
-  const events = bar.events ?? []
+  const events = expandRests(bar.events ?? [])
   const chords: BarChord[] = bar.chords ?? [{ onset: 0, rootPc: bar.rootPc, quality: bar.quality }]
   const head = number === 1 ? attributesXml(instrument, FINE_DIVISIONS, timeSig, options) : ''
   let out = `<measure number="${number}">${head}`
   const beams = beamMarks(events)
+  const tuplets = tupletMarks(events)
   let position = 0
   let chordIndex = 0
   events.forEach((event, i) => {
@@ -199,7 +241,7 @@ function rhythmicMeasureXml(
       out += harmonyXml(chords[chordIndex])
       chordIndex++
     }
-    out += eventXml(event, beams[i], (options.keyFifths ?? 0) > 0)
+    out += eventXml(event, beams[i], tuplets[i], (options.keyFifths ?? 0) > 0)
     position += event.duration
   })
   while (chordIndex < chords.length) out += harmonyXml(chords[chordIndex++])

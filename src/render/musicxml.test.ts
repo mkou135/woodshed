@@ -95,6 +95,30 @@ describe('exerciseToMusicXml', () => {
     expect(xml).toContain('<type>quarter</type><time-modification>')
   })
 
+  it('prints a triplet group when its first member is inside a leading rest', () => {
+    const Q = 960
+    const tripletPickup: Exercise = {
+      ...exercise,
+      bars: [{
+        rootPc: 7, quality: 'dominant', midis: [],
+        // Blake bar 76: 3 beats, then a triplet-eighth rest and two notes.
+        events: [
+          { midi: null, duration: 3 * Q + Q / 3 },
+          { midi: 77, duration: Q / 3 },
+          { midi: 75, duration: Q / 3 },
+        ],
+      }],
+    }
+
+    const xml = exerciseToMusicXml(tripletPickup, tenor)
+    const triplets = [...xml.matchAll(/<note>.*?<time-modification>.*?<\/note>/g)].map((match) => match[0])
+
+    expect(triplets).toHaveLength(3)
+    expect(triplets[0]).toContain('<rest/>')
+    expect(triplets[0]).toContain('<tuplet type="start"')
+    expect(triplets[2]).toContain('<tuplet type="stop"')
+  })
+
   it('includes the title so the file is identifiable in MuseScore', () => {
     expect(exerciseToMusicXml(exercise, tenor)).toContain('digital pattern 1235')
   })

@@ -199,6 +199,17 @@ otherwise. The page renders a copy without `<transpose>` (`forDisplay`)
 because OSMD applies it and drew tenor parts a tone below their chord
 symbols; downloads keep it for MuseScore.
 
+Rests: a compacted rest is split into exact written values, largest first
+(plain, dotted, then triplet), because `notatedType` otherwise falls back
+to the *nearest* plain type — a 3.5-quarter rest was written
+`<type>whole</type>` against a duration of 3.5, so the symbol and the bar
+arithmetic disagreed. 91 of 384 rests in the Blake exercises were such
+values.
+
+Tuplets: three consecutive events of the same triplet duration carry
+`<tuplet type="start"/>`…`"stop"`, which MusicXML needs to draw the bracket
+and number; a triplet group whose first member is a rest is marked too.
+
 Beams: notes shorter than a quarter beam within a beat (quarter of the
 bar's time signature); a rest, a longer note or the beat line ends the
 group; adjacent 16ths inside a group carry beam 2. Lone notes unbeamed.
