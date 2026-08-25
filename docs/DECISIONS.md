@@ -394,13 +394,13 @@ scales being played — for example imposing a scale which suggests another
 chord", with a toggle for the full every-span view. Can a departure from the
 default chord scale be detected from the notes?
 
-**Decision.** No. Four formulations were built and measured against null models
+**Decision.** No. Five formulations were built and measured against null models
 on the Weimar Jazz Database; all four fire at or below chance. Do not build a
 pitch-content departure detector. Build the full-coverage chord-scale layer
 (which is well founded) and, for "spicy", report only what the chart itself
 declares via `Chord.tensions`.
 
-**Evidence.** Ratios of real to null firing rate: witness sets over a chord
+**Evidence.** Five deaths. Ratios of real to null firing rate: witness sets over a chord
 span **0.66x**; the same requiring consecutive notes **0.87x** (four window
 lengths, all below null); degree-based character notes **0.90x**; metric and
 durational weighting **0.84–0.97x** across six schemes and ~130 cells, using a
@@ -416,13 +416,16 @@ Full detail in docs/research/scale-analysis.md §4.
 **Who.** Claude, from the corpus measurements; brought to the owner as a scope
 change before any design.
 
-**Would reverse it.** A different *evidence class* rather than another gate on
-pitch content — voice-leading behaviour is the strongest candidate, since an
-approach note and a colour note differ in what follows them, not in what they
-are. Or human-labelled departures to score against, replacing the null-model
-framing: a null answers "better than chance", not "finds the six spots a teacher
-would circle". Or a corpus of deliberately outside playing rather than the WJD's
-mainstream weighting.
+**Would reverse it.** Not another gate on pitch content, and not voice leading
+— that was tested as attempt 5 and died too (real 0.862-1.195 across a
+144-cell grid, median 1.067, nothing above 1.2; the encouraging 1.659 seen
+mid-run was a composition artefact from pooling chord tones, which mostly leap,
+into the comparator). What is left: **human-labelled departures to score
+against**, replacing the null-model framing entirely — a null answers "better
+than chance", not "does it find the six spots a teacher would circle". Or a
+corpus of deliberately outside playing (late Coltrane, Woody Shaw, Liebman)
+rather than the WJD's mainstream weighting. Both change the target, not the
+detector.
 
 ## 2026-08-25 — The default chord scale is chosen by function, not quality
 
@@ -446,3 +449,36 @@ annotation is not a restatement of what is already printed above the staff.
 Lydian is appropriate — a function-driven default will misfire exactly there.
 If that proves common in real transcriptions, the rule needs a non-functional
 escape.
+
+## 2026-08-25 — Voice leading does not detect a departure either
+
+**Question.** Attempts 1–4 all tested *what a note is*. Attempt 5 tested *what
+follows it*: an approach note resolves by step to a chord tone, a colour note is
+dwelt on or leapt away from. A mid-run figure of 1.659 made this look like the
+first live result of the investigation.
+
+**Decision.** Dead. The 1.659 was a composition artefact and no rule is offered,
+because none is warranted.
+
+**Evidence.** 193,018 notes, 456 solos, function-aware defaults, blues split out
+(97 solos, `composition_info.tonalitytype`). Reproducing the earlier statistic —
+outsider resolution against an undifferentiated "everything else" bucket — gives
+1.611. Splitting the bucket kills it: chord tones resolve by step to a chord tone
+only **0.0969** of the time (they mostly leap, being what a line arpeggiates),
+available tensions 0.4366, avoid notes 0.4447, outsiders **0.3550**. Outsiders
+resolve *less* than either insider dissonance class; the pooled comparator was
+dragged down by chord-tone arithmetic. Against a within-span order-permutation
+null every class lifts 1.9–2.4x, which is melodies being stepwise. The double
+ratio runs **0.862–1.195 over a pre-declared 144-cell grid, median 1.067, zero
+cells above 1.2** (~220 cells searched in total). The markers point the wrong
+way: outsiders are 0.750x chance to end a phrase or precede a rest and 0.871x
+chance to be longer than both neighbours — depleted where a colour note should
+sit. Geometrically, an out-of-scale pitch class is nearly always a semitone from
+an in-scale one, so the shuffle absorbs the resolution for free; and
+non-resolving outsiders are 12% of all notes, not a detector that stays silent.
+
+**Who.** Claude, from the corpus measurements.
+
+**Would reverse it.** As above: change the target, not the detector — score
+against human-labelled departures, or against a corpus of deliberately outside
+playing.

@@ -123,7 +123,7 @@ collection-level claim is ever made, **the idea is the only unit with enough
 notes** — which agrees with the engine's existing rule that detectors never
 cross an idea boundary (`samePhrase`, ENGINE_SPEC "Note context").
 
-## 4. Four formulations, measured and killed
+## 4. Five formulations, measured and killed
 
 Every number below is paired with a null model. A detector that fires no more on
 real music than on randomised music is detecting nothing.
@@ -182,6 +182,49 @@ style hides. Tightening the gate makes every variant monotonically worse
 the evidence against "it is a rare event that aggregate statistics miss" — a real
 high-precision tail would make tightening better, not worse. The IDEA unit does
 not help (0.35–0.41).
+
+**DEAD 5 — voice-leading behaviour.** The one formulation that ever showed a
+ratio above 1.0, and the reason it did. The idea: an approach note and a colour
+note differ in what *follows* them — a passing #11 resolves by step to a chord
+tone, a Lydian #11 that is the point of the line is dwelt on or leapt away from.
+
+193,018 notes across 456 solos, under the corrected function-aware defaults
+(§1) with blues identified from `composition_info.tonalitytype` (**97 of the
+456 solos**) and Mixolydian #9 on the blues I7.
+
+**The earlier encouraging 1.659 was a composition artefact.** Reproducing it
+exactly — outsider resolution against an undifferentiated "everything else"
+bucket — gives 1.611. Split the bucket by what the notes actually are and it
+evaporates:
+
+| note class | resolves by step to a chord tone | n |
+|---|---|---|
+| chord tones | 0.0969 | 96,605 |
+| available tensions | 0.4366 | 46,342 |
+| avoid notes | 0.4447 | 7,589 |
+| **outsiders** | **0.3550** | 42,482 |
+
+Outsiders resolve *less* than either insider dissonance class. The pooled
+comparator was dragged down by chord-tone arithmetic alone — chord tones mostly
+leap, because they are the notes a line arpeggiates.
+
+Against a proper null (permute note order within the span, holding the pitch
+multiset and chord fixed) every class lifts 1.9–2.4x, which is melodies being
+stepwise, not voice leading. The double ratio — outsider lift over comparator
+lift — runs **0.862 to 1.195 across a pre-declared 144-cell grid, median 1.067,
+with not one cell above 1.2.** The headline cell bootstraps to 1.141 ± 0.019, a
+few sigma above 1 but with a specification spread ten times the error bar.
+
+**The markers point the wrong way.** Outsiders are **0.750x** as likely as
+chance to end a phrase or idea or precede a rest, and **0.871x** as likely to be
+longer than both neighbours — depleted in exactly the positions a deliberate
+colour note should occupy. This is attempt 4's finding again in another domain.
+
+Why it cannot work: an out-of-scale pitch class is geometrically almost always a
+semitone from an in-scale one, so widening the resolution window from a semitone
+to a whole tone adds 0.062 to outsider resolution but 0.324 to tensions — the
+shuffle absorbs the resolution automatically. And non-resolving outsiders are
+**12% of all notes**, which is not a detector that stays silent.
 
 **What the same measurements say is real:** lines fit the default chord scale
 exactly on **37.6%** of spans against **16.4%** under the null — a 2.3x effect.

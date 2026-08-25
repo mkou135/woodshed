@@ -266,3 +266,15 @@ band on top of the chord symbols, so `bandY` now measures what OSMD drew above
 each staff and clears it; and picking a note's system from its y drew bands
 across the staff, so the system now comes from the note's printed bar. 325
 tests, typecheck, build clean; browser-checked in both modes, no console errors.
+2026-08-25 · session 10 · Death #5. Voice leading tested properly and killed:
+the mid-run 1.659 was a composition artefact — pooling chord tones (which
+resolve by step only 9.7% of the time, because they leap) into the comparator.
+Split by class, outsiders resolve *less* than tensions or avoid notes, and the
+double ratio never exceeds 1.2 across a 144-cell grid. Outsiders are also
+depleted at phrase ends and on long notes, the opposite of a colour note. The
+open question is closed and DECISIONS amended: what would reverse the negative
+result is now a change of *target* (human-labelled departures, or an outside-
+playing corpus), not another detector. Also validated the shipped function rule
+along the way — 27,527 of 63,231 dominant notes (44%) take Lydian b7 rather
+than Mixolydian, so the function-aware default is materially different from a
+quality lookup, not a distinction without a difference.

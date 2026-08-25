@@ -223,18 +223,6 @@ All of these are proposals; none is implemented.
   who lean on it do worst. Resolve: make "play it with the record" a
   standing rule in the AI summariser's output, and decide whether the page
   should say it too.
-- **Voice-leading may be the evidence class that rescues departure detection.**
-  Four pitch-content formulations died against null models (DECISIONS 2026-08-25,
-  scale-analysis.md §4). A fifth — does a non-chord-scale note *resolve by step
-  to a chord tone*, or is it dwelt on and leapt away from? — was cut short when
-  the session ran out of budget. At the moment it was stopped it showed a real
-  resolution lift of **1.659** against a permutation null of 0.902, i.e. the
-  first ratio meaningfully above 1.0 of the whole investigation, but the agent
-  had flagged an uncontrolled confound and was in the middle of splitting the
-  insider set to check it. **Treat 1.659 as unverified.** Resolve: rerun the
-  voice-leading panel with the confound controlled; if it holds, this is the
-  spicy layer. Scripts are gone with the job dir; the approach is described in
-  scale-analysis.md §7.
 - **Function-aware chord scales in non-functional passages.** Nettles p.166/169:
   over contiguous dominants and constant structures there is no controlling
   tonic and Lydian is appropriate, so the p.92 function rule misfires exactly
