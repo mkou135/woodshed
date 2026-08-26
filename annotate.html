@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>woodshed · annotate</title>
+    <link rel="stylesheet" href="./app/style.css" />
+  </head>
+  <body>
+    <main class="annotate">
+      <header class="ann-head">
+        <h1>Annotate</h1>
+        <select id="pick" aria-label="Choose a transcription"></select>
+        <div id="modes" role="toolbar" aria-label="Annotation mode"></div>
+        <div id="counts"></div>
+        <div id="saved" title="saved"></div>
+      </header>
+      <p class="ann-help">
+        <b>1</b> boundaries: click a note to cycle idea → phrase → off ·
+        <b>2</b> outside: click first + last note ·
+        <b>3</b> star: click first + last note ·
+        click a span to delete · Esc cancels
+      </p>
+      <div id="drop" class="drop">Drop a transcription here, or pick one above</div>
+      <div id="sheet"></div>
+    </main>
+    <script type="module" src="./app/annotate.ts"></script>
+  </body>
+</html>

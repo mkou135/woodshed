@@ -330,3 +330,28 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
 }
 .agent-mood { display: flex; gap: 0.4rem; align-items: center; }
 .agent-mood select { font: inherit; padding: 0.2rem 0.3rem; }
+
+/* ---- annotate ---- */
+.ann-head { display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0 0.6rem; flex-wrap: wrap }
+.ann-head h1 { font: 700 1.6rem/1 var(--disp); letter-spacing: 0.02em; text-transform: uppercase }
+.ann-head select { font: 0.9rem var(--mono); padding: 0.3rem 0.5rem; border: 1px solid var(--rule); background: var(--paper); color: inherit }
+#modes { display: flex; gap: 0.3rem }
+#modes button {
+  padding: 0.3rem 0.7rem;
+  border: 1.5px solid var(--ink);
+  background: none;
+  color: var(--ink);
+  font: 500 0.85rem/1 var(--disp);
+}
+#modes button.on { background: var(--ink); color: var(--ground) }
+#counts { margin-left: auto; font: 0.85rem var(--mono); color: var(--pencil) }
+#saved { width: 10px; height: 10px; border-radius: 50%; background: var(--ok) }
+#saved.dirty { background: var(--rule); animation: ann-pulse 1.1s ease-in-out infinite }
+@keyframes ann-pulse { 0%, 100% { opacity: 0.4 } 50% { opacity: 1 } }
+.ann-help { margin: 0 0 1rem; color: var(--pencil); font-size: 0.85rem }
+.ann-idea rect { fill: var(--idea) }
+.ann-phrase rect { fill: var(--phrase) }
+.ann-outside rect { fill: var(--phrase); opacity: 0.35 }
+.ann-star rect { fill: #b8952f; opacity: 0.5 }
+.ann-star text { fill: #b8952f; font-size: 12px }
+.pending { outline: 2px solid var(--idea); outline-offset: 2px }
