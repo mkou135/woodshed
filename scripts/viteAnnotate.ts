@@ -1,10 +1,11 @@
 import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs'
 import { join, basename } from 'node:path'
 import { homedir } from 'node:os'
+import { fileURLToPath } from 'node:url'
 import type { Plugin } from 'vite'
 
 const PEERS = join(homedir(), 'dev', 'woodshed-data', 'peers')
-const ANNOTATIONS = new URL('../annotations/', import.meta.url).pathname
+const ANNOTATIONS = fileURLToPath(new URL('../annotations/', import.meta.url))
 
 const stem = (name: string): string => name.replace(/\.(mxl|musicxml|xml)$/, '')
 
@@ -15,7 +16,8 @@ export function annotatePlugin(): Plugin {
     apply: 'serve',
     configureServer(server) {
       server.middlewares.use('/__annotate', (req, res) => {
-        const [route, raw = ''] = (req.url ?? '').replace(/^\//, '').split('/')
+        const urlPath = (req.url ?? '').split('?')[0] ?? ''
+        const [route, raw = ''] = urlPath.replace(/^\//, '').split('/')
         const name = decodeURIComponent(raw)
         if (name !== basename(name) || name.includes('..')) { res.statusCode = 400; res.end(); return }
         const json = (body: unknown): void => {
@@ -34,6 +36,11 @@ export function annotatePlugin(): Plugin {
             if (!existsSync(path)) { res.statusCode = 404; res.end(); return }
             json(JSON.parse(readFileSync(path, 'utf8')))
           } else if (route === 'save' && req.method === 'POST') {
+            const origin = req.headers.origin
+            if (origin) {
+              const host = new URL(origin).hostname
+              if (host !== 'localhost' && host !== '127.0.0.1') { res.statusCode = 403; res.end(); return }
+            }
             let body = ''
             req.on('data', (c) => { body += c })
             req.on('end', () => {

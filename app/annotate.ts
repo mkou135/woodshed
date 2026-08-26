@@ -27,6 +27,7 @@ const pick = document.getElementById('pick') as HTMLSelectElement
 const modes = document.getElementById('modes') as HTMLDivElement
 const counts = document.getElementById('counts') as HTMLDivElement
 const saved = document.getElementById('saved') as HTMLDivElement
+const errorBox = document.getElementById('ann-error') as HTMLDivElement
 const dropZone = document.getElementById('drop') as HTMLDivElement
 const sheet = document.getElementById('sheet') as HTMLDivElement
 
@@ -181,6 +182,18 @@ function redrawSpans(): void {
   }
 }
 
+// ---- errors ----
+
+function showLoadError(): void {
+  errorBox.textContent = 'could not load existing annotations — marking disabled for this file'
+  errorBox.hidden = false
+}
+
+function hideLoadError(): void {
+  errorBox.hidden = true
+  errorBox.textContent = ''
+}
+
 // ---- counts + save ----
 
 function updateCounts(): void {
@@ -201,7 +214,11 @@ async function doSave(target: AnnotationStore, name: string): Promise<void> {
   })
   // Only the still-current file's dot reflects this save; switching files
   // mid-debounce leaves the old file's write to finish silently.
-  if (res.status === 204 && target === store) saved.classList.remove('dirty')
+  if (res.status === 204) {
+    if (target === store) saved.classList.remove('dirty')
+  } else {
+    console.warn('annotation save failed', res.status)
+  }
 }
 
 /**
@@ -288,6 +305,10 @@ async function openScore(bytes: Uint8Array, name: string): Promise<void> {
   // Leaving this file behind must not drop a mark still waiting to be saved.
   pendingSave?.flush()
   filename = name
+  // Fail closed for the duration of the load: a throw from the fetch below
+  // (dropped connection, malformed JSON) must not leave clicks mutating the
+  // previous file's store under the new filename.
+  store = null
   cancelPending()
   ticks.clear()
   spanNodes = []
@@ -298,9 +319,20 @@ async function openScore(bytes: Uint8Array, name: string): Promise<void> {
   attachHandlers()
 
   const annRes = await fetch(`/__annotate/annotation/${encodeURIComponent(name)}`)
-  store = annRes.status === 200
-    ? AnnotationStore.fromJSON(await annRes.json() as AnnotationFile)
-    : new AnnotationStore(name)
+  if (annRes.status === 200) {
+    store = AnnotationStore.fromJSON(await annRes.json() as AnnotationFile)
+    hideLoadError()
+  } else if (annRes.status === 404) {
+    store = new AnnotationStore(name)
+    hideLoadError()
+  } else {
+    // Anything other than "no annotations yet" (404) could mean the existing
+    // file just failed to load — creating a fresh store here would let a
+    // later autosave silently overwrite it. Leave clicks inert instead.
+    console.error('could not load existing annotations', annRes.status)
+    store = null
+    showLoadError()
+  }
 
   redrawAllBoundaries()
   redrawSpans()

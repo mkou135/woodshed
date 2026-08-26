@@ -21,9 +21,11 @@ export function formatPosition(p: Position): string {
   const frac = beat - whole
   if (frac === 0) return `${p.bar}.${whole}`
   if (frac === 0.5) return `${p.bar}.${whole}½`
-  // Emit remaining fractions via decimal digits, removing trailing zeros
-  const decimal = beat.toFixed(3).substring(2).replace(/0+$/, '')
-  return `${p.bar}.${whole}.${decimal}`
+  // Emit remaining fractions via decimal digits, removing trailing zeros.
+  // Derived from `frac`, not `beat` — the whole part can be multiple digits
+  // (e.g. beat 10.25), and beat.toFixed(3).substring(2) assumed exactly one.
+  const decimal = frac.toFixed(3).substring(1).replace(/0+$/, '')
+  return `${p.bar}.${whole}${decimal}`
 }
 
 /** Within `tolerance` beats of each other, bar lines crossed as `beatsPerBar`. */

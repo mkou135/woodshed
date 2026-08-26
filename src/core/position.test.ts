@@ -24,4 +24,8 @@ describe('position codec', () => {
   it('triplet beats quantise to 3 decimal places', () => {
     expect(parsePosition(formatPosition({ bar: 4, beat: 1 + 1 / 3 }))).toEqual({ bar: 4, beat: 1.333 })
   })
+  it('does not smear digits when the whole beat is multi-digit', () => {
+    expect(formatPosition({ bar: 4, beat: 10.25 })).toBe('4.10.25')
+    expect(parsePosition(formatPosition({ bar: 4, beat: 10.25 }))).toEqual({ bar: 4, beat: 10.25 })
+  })
 })

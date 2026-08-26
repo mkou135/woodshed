@@ -85,6 +85,14 @@ moving its resolution into DECISIONS.md.
   don't line up with findings or phrase starts the way boundary marks do.
   Resolve: decide a matching rule (span overlap? contained finding?) once
   there are enough owner spans to design against.
+- **`npm run typecheck` only covers `src/`.** `tsconfig.json` has
+  `"include": ["src"]` and `lib: ["ES2022"]` with no DOM — deliberate, it's
+  what enforces "`src/` is DOM-free" — but that also means nothing under
+  `app/` or `scripts/` is type-checked by the standard command (caught only
+  by ad hoc direct `tsc` invocations during the annotation-app work).
+  Resolve: add a `tsconfig.app.json` (DOM lib for `app/`, node types for
+  `scripts/`) and wire it into the `typecheck` script, rather than widening
+  the main `include`.
 
 - **Owner brackets: the St Thomas 8th.** `npm run brackets` (session 6)
   scores scripts/brackets.json against the peers files. Mintzer 3–34 is the
