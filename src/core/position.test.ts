@@ -18,4 +18,10 @@ describe('position codec', () => {
     expect(positionsClose({ bar: 4, beat: 4.5 }, { bar: 5, beat: 1 }, 4, 0.5)).toBe(true)
     expect(positionsClose({ bar: 4, beat: 4 }, { bar: 5, beat: 1 }, 4, 0.5)).toBe(false)
   })
+  it('round-trips fractions without float noise', () => {
+    expect(formatPosition({ bar: 4, beat: 2.1 })).toBe('4.2.1')
+  })
+  it('triplet beats quantise to 3 decimal places', () => {
+    expect(parsePosition(formatPosition({ bar: 4, beat: 1 + 1 / 3 }))).toEqual({ bar: 4, beat: 1.333 })
+  })
 })

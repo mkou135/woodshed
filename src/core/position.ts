@@ -1,4 +1,8 @@
-/** A spot on the printed page: bar number as printed, 1-based beat, 4.5 = the "and" of 4. */
+/**
+ * A spot on the printed page: bar number as printed, 1-based beat, 4.5 = the "and" of 4.
+ * Positions are quantised to a thousandth of a beat (3 decimal places), well inside the
+ * 0.5-beat matching tolerance.
+ */
 export interface Position {
   bar: number
   beat: number
@@ -10,10 +14,16 @@ export function parsePosition(s: string): Position {
   return { bar: Number(b), beat: Number(rest === undefined ? f : `${f}.${rest}`) }
 }
 
+/** "4.4½" (the owner's notation) or "4.4.5"; quantises fractional beats to 3 decimal places. */
 export function formatPosition(p: Position): string {
-  const whole = Math.floor(p.beat)
-  const frac = p.beat - whole
-  return `${p.bar}.${whole}${frac === 0 ? '' : frac === 0.5 ? '½' : frac.toString().substring(1)}`
+  const beat = Math.round(p.beat * 1000) / 1000
+  const whole = Math.floor(beat)
+  const frac = beat - whole
+  if (frac === 0) return `${p.bar}.${whole}`
+  if (frac === 0.5) return `${p.bar}.${whole}½`
+  // Emit remaining fractions via decimal digits, removing trailing zeros
+  const decimal = beat.toFixed(3).substring(2).replace(/0+$/, '')
+  return `${p.bar}.${whole}.${decimal}`
 }
 
 /** Within `tolerance` beats of each other, bar lines crossed as `beatsPerBar`. */
