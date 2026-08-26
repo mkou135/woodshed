@@ -27,14 +27,14 @@ export interface ScoreView {
 export type ScaleMode = 'declared' | 'all' | 'off'
 
 /** `bar:beat` for a note, the key both the engine and OSMD can produce. */
-const noteKey = (bar: number, beat: number): string => `${bar}:${beat.toFixed(3)}`
+export const noteKey = (bar: number, beat: number): string => `${bar}:${beat.toFixed(3)}`
 
-interface StaffSpan {
+export interface StaffSpan {
   top: number
   bottom: number
 }
 
-interface SoloMap {
+export interface SoloMap {
   notes: Map<string, SVGGElement[]>
   rests: Map<string, SVGGElement>
   /** Staff line extent per printed bar, so markers span the staff, not the note. */
@@ -59,7 +59,7 @@ export async function renderNotation(container: HTMLElement, xml: string): Promi
  * the engine stores as `Note.bar` before repeats are unrolled; its
  * in-measure timestamp is in whole notes, where the engine's beat is in quarters.
  */
-async function renderSolo(container: HTMLElement, xml: string): Promise<SoloMap> {
+export async function mountScore(container: HTMLElement, xml: string): Promise<SoloMap> {
   const osmd = new OpenSheetMusicDisplay(container, { autoResize: true, drawTitle: false, drawPartNames: false })
   await osmd.load(xml)
   osmd.render()
@@ -250,7 +250,7 @@ function markPhrases(result: PipelineResult, map: SoloMap): void {
 export async function renderScore(container: HTMLElement, result: PipelineResult, xml: string): Promise<ScoreView> {
   let map: SoloMap | null = null
   try {
-    map = await renderSolo(container, xml)
+    map = await mountScore(container, xml)
     markPhrases(result, map)
   } catch (error) {
     container.appendChild(el('p', 'empty', `Could not render the solo: ${(error as Error).message}`))
