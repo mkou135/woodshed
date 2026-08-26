@@ -423,10 +423,13 @@ Owner ground truth on the score, dev-only.
   none); `POST /__annotate/save/<name>` writes it. Every route rejects a
   name that isn't its own `basename` or contains `..` (400); a malformed
   save body is a 400, not a crash.
-- Three-mode toolbar (keys 1/2/3): **boundaries** — click a notehead to
-  cycle none → idea start → phrase start → none; a phrase start counts as
+- Three-mode toolbar (keys 1/2/3): **boundaries** — click a notehead *or a
+  rest* (a pickup rest is often part of the phrase, owner's call 2026-08-26)
+  to cycle none → idea start → phrase start → none; a phrase start counts as
   an idea start too but is stored only once, in `phrases`, never
-  duplicated in `ideas`. **Outside** / **star** — click first note, click
+  duplicated in `ideas`. Ticks are numbered like the main page — phrases
+  1..N in playing order, ideas n.2, n.3 within their phrase (0.n before the
+  first phrase mark) — relabelled on every change. **Outside** / **star** — click first note, click
   last note to close a span (amber underline for outside, star glyph for
   drill-worthy); click a span to delete; Esc cancels a half-made span.
   Autosave is debounced and flushed (not dropped) when switching files.

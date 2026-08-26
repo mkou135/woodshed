@@ -80,19 +80,29 @@ document.addEventListener('keydown', (e) => {
 
 // ---- positions ----
 
-/** `map.notes` keys carry printed bar + 0-based beat; the printed Position is 1-based. */
+/**
+ * `map.notes`/`map.rests` keys carry printed bar + 0-based beat; the printed
+ * Position is 1-based. Rests are clickable too: a pickup rest is often part
+ * of the phrase, so a boundary must be markable on it.
+ */
 function buildEntries(m: SoloMap): void {
-  noteEntries = []
-  for (const [k, nodes] of m.notes) {
+  const byKey = new Map<string, NoteEntry>()
+  const add = (k: string, nodes: SVGGElement[]): void => {
     const [barText, beatText] = k.split(':')
     const pos: Position = { bar: Number(barText), beat: Number(beatText) + 1 }
-    noteEntries.push({ pos, key: formatPosition(pos), nodes })
+    const key = formatPosition(pos)
+    const existing = byKey.get(key)
+    if (existing) existing.nodes.push(...nodes)
+    else byKey.set(key, { pos, key, nodes: [...nodes] })
   }
+  for (const [k, nodes] of m.notes) add(k, nodes)
+  for (const [k, rest] of m.rests) add(k, [rest])
+  noteEntries = [...byKey.values()].sort((a, b) => order(a.pos) - order(b.pos))
 }
 
 // ---- boundary ticks ----
 
-function drawTick(entry: NoteEntry, level: 'idea' | 'phrase'): SVGGElement | null {
+function drawTick(entry: NoteEntry, level: 'idea' | 'phrase', label: string): SVGGElement | null {
   const anchor = entry.nodes[0]
   const svg = anchor?.ownerSVGElement
   const staff = map?.staves.get(entry.pos.bar)
@@ -109,26 +119,44 @@ function drawTick(entry: NoteEntry, level: 'idea' | 'phrase'): SVGGElement | nul
   rect.setAttribute('height', String(staff.bottom - staff.top + pad * 2))
   rect.setAttribute('rx', '1')
   g.appendChild(rect)
+  // Below the staff, like the main page's ticks: above it the label fights
+  // chord symbols and bar numbers.
+  const text = svgEl('text')
+  text.setAttribute('x', String(x))
+  text.setAttribute('y', String(staff.bottom + pad + 13))
+  text.textContent = label
+  g.appendChild(text)
   svg.appendChild(g)
   return g
 }
 
-function redrawBoundary(entry: NoteEntry): void {
-  const existing = ticks.get(entry.key)
-  if (existing) {
-    existing.remove()
-    ticks.delete(entry.key)
-  }
-  const level = store?.boundaryAt(entry.pos) ?? null
-  if (!level) return
-  const g = drawTick(entry, level)
-  if (g) ticks.set(entry.key, g)
-}
-
+/**
+ * Numbering shifts whenever a mark is added or removed earlier in the solo,
+ * so every change relabels the lot: phrases count 1..N in playing order, and
+ * ideas inside a phrase read n.2, n.3 … (the phrase start itself is idea .1),
+ * mirroring the main page. Ideas before the first phrase mark show as 0.n.
+ */
 function redrawAllBoundaries(): void {
   for (const g of ticks.values()) g.remove()
   ticks.clear()
-  for (const entry of noteEntries) redrawBoundary(entry)
+  if (!store) return
+  let phrase = 0
+  let idea = 1
+  for (const entry of noteEntries) {
+    const level = store.boundaryAt(entry.pos)
+    if (!level) continue
+    let label: string
+    if (level === 'phrase') {
+      phrase += 1
+      idea = 1
+      label = String(phrase)
+    } else {
+      idea += 1
+      label = `${phrase}.${idea}`
+    }
+    const g = drawTick(entry, level, label)
+    if (g) ticks.set(entry.key, g)
+  }
 }
 
 // ---- spans ----
@@ -261,7 +289,7 @@ function onNoteClick(entry: NoteEntry): void {
   if (!store) return
   if (mode === 'boundary') {
     store.cycleBoundary(entry.pos)
-    redrawBoundary(entry)
+    redrawAllBoundaries()
     updateCounts()
     scheduleSave()
     return
@@ -291,6 +319,7 @@ function onNoteClick(entry: NoteEntry): void {
 function attachHandlers(): void {
   for (const entry of noteEntries) {
     for (const node of entry.nodes) {
+      node.classList.add('ann-clickable')
       node.addEventListener('click', (e) => {
         e.stopPropagation()
         onNoteClick(entry)

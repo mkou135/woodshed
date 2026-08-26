@@ -347,3 +347,9 @@ new "what scores outside/stars" question), CLAUDE.md commands. 385 tests
 unchanged (no engine code touched), typecheck/build green, Blake
 unchanged (major-seventh arpeggio from the b3, bars 73/77, top finding,
 13 findings in the 6–15 pinned range).
+2026-08-26 · session 12 · Annotate refinements from the owner's first hands-on
+run: rests are clickable boundary anchors (pickup rests belong to the phrase),
+ticks carry main-page numbering (phrases 1..N, ideas n.m, relabelled per
+change), and the Downloads transcription folder is consolidated into peers —
+7 copied, 2 checksum-skipped as duplicates of mintzer/st-thomas; dropdown now
+lists 10 solos. Browser-checked live (labels 1, 1.2, 2 on Autumn Leaves).
