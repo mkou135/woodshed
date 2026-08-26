@@ -17,7 +17,8 @@
     "diag:wjd": "node --experimental-strip-types scripts/diag-wjd.ts",
     "brackets": "node --experimental-strip-types --no-warnings scripts/brackets.ts",
     "bench:bopland": "node --experimental-strip-types --no-warnings scripts/bench-bopland.ts",
-    "eval:agent": "node --experimental-strip-types --no-warnings scripts/eval-agent.ts"
+    "eval:agent": "node --experimental-strip-types --no-warnings scripts/eval-agent.ts",
+    "eval:owner": "node --experimental-strip-types --no-warnings scripts/eval-owner.ts"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
