@@ -37,10 +37,15 @@ export function annotatePlugin(): Plugin {
             let body = ''
             req.on('data', (c) => { body += c })
             req.on('end', () => {
-              writeFileSync(join(ANNOTATIONS, `${stem(name)}.json`),
-                JSON.stringify(JSON.parse(body), null, 2) + '\n')
-              res.statusCode = 204
-              res.end()
+              try {
+                writeFileSync(join(ANNOTATIONS, `${stem(name)}.json`),
+                  JSON.stringify(JSON.parse(body), null, 2) + '\n')
+                res.statusCode = 204
+                res.end()
+              } catch (error) {
+                res.statusCode = 400
+                res.end(String(error))
+              }
             })
           } else { res.statusCode = 404; res.end() }
         } catch (error) {
