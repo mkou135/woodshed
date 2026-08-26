@@ -516,3 +516,22 @@ edit). (4) Agent look-fors moved onto the score as amber tooltip markers.
 Evidence class: owner reading + literature (Ligon p.483, Bergonzi pp.26–27,
 39, Gonzalez) · owner + Claude · reverse: owner finds the on-ramps
 unmusical on the horn, or gating starves the examples on most solos.
+
+2026-08-26 · **Annotation app: blind marking, dev-only, JSON in repo** ·
+Refining segmentation, ranking and departure detection is blocked on
+labels only the owner's ear can produce — today that means screenshots
+and dictation, cumbersome enough that it rarely happens (St Thomas
+brackets were never written down). Decided: a second Vite entry
+(`annotate.html`) that runs no analysis and shows no engine output —
+the engine's opinion must not bias the owner's ear — for marking phrase
+starts, idea starts, outside/colour spans and drill stars directly on the
+rendered score. Served by the dev server only, absent from the Pages
+build; a dev middleware (`scripts/viteAnnotate.ts`) writes one JSON per
+solo to `annotations/`, printed `bar.beat` dialect shared with
+`brackets.json`. Committing is licence-clean (the owner's own labels).
+`npm run eval:owner` reports precision/recall against them; `brackets`
+stays the gate. Evidence class: design brainstormed with the owner,
+spec docs/superpowers/specs/2026-08-26-annotation-app-design.md · owner +
+Claude · would reverse: the tool goes unused, or the owner's marks bias
+differently than screenshots did (e.g. the page's own ticks anchor
+attention even blind).

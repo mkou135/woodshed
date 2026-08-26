@@ -73,6 +73,19 @@ moving its resolution into DECISIONS.md.
 - **displace step and 3/4+ time**: placements assume 4/4 feel (beat 2,
   and-of-1). Check against a 3/4 solo when one arrives.
 
+- **Owner annotation (`annotate.html`, `npm run eval:owner`) unblocks two
+  stalled questions**: departure detection (killed 2026-08-25 "Death #5"
+  for lack of human-labelled departures — the app's outside/colour spans
+  are exactly that target) and ranking ground truth (the agent's `rank`
+  job has no held-out signal to check against — the app's drill stars
+  are "I'd practice this"). Resolve: get a real solo annotated (more than
+  the e2e smoke marks) and re-open both with the new labels as the target.
+- **What formally scores outside spans and stars?** `eval:owner` only
+  prints overlapping `analysis.findings`, no precision/recall — spans
+  don't line up with findings or phrase starts the way boundary marks do.
+  Resolve: decide a matching rule (span overlap? contained finding?) once
+  there are enough owner spans to design against.
+
 - **Owner brackets: the St Thomas 8th.** `npm run brackets` (session 6)
   scores scripts/brackets.json against the peers files. Mintzer 3–34 is the
   owner's list (12/13, 22.1 known). St Thomas 57–76 is the engine's output

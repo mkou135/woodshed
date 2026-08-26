@@ -406,6 +406,49 @@ displaced start within 2 beats. Exit 1 on any other miss or false start.
 Sets: Mintzer written 3–34 (13 owner starts, 22.1 known), St Thomas
 printed 57–76 (7, frozen from the engine in session 6 — see OPEN_QUESTIONS).
 
+## Annotation app (`annotate.html` + `app/annotate.ts`, `scripts/viteAnnotate.ts`,
+`src/annotation/`, `npm run eval:owner`; spec
+docs/superpowers/specs/2026-08-26-annotation-app-design.md)
+
+Owner ground truth on the score, dev-only.
+
+- Second Vite entry, absent from `build.rollupOptions.input` so `npm run
+  build`/Pages are byte-identical. Blind marking: `app/annotate.ts` calls
+  only `readScoreXml`/`parseScore`/`mountScore` — nothing from `analyse/`,
+  so the engine's opinion cannot bias the owner's ear.
+- `scripts/viteAnnotate.ts` (dev middleware, `apply: 'serve'`): `GET
+  /__annotate/files` lists `~/dev/woodshed-data/peers/*.mxl|.musicxml`
+  with an `annotated` flag; `GET /__annotate/file/<name>` serves the bytes;
+  `GET /__annotate/annotation/<name>` serves the existing JSON (404 if
+  none); `POST /__annotate/save/<name>` writes it. Every route rejects a
+  name that isn't its own `basename` or contains `..` (400); a malformed
+  save body is a 400, not a crash.
+- Three-mode toolbar (keys 1/2/3): **boundaries** — click a notehead to
+  cycle none → idea start → phrase start → none; a phrase start counts as
+  an idea start too but is stored only once, in `phrases`, never
+  duplicated in `ideas`. **Outside** / **star** — click first note, click
+  last note to close a span (amber underline for outside, star glyph for
+  drill-worthy); click a span to delete; Esc cancels a half-made span.
+  Autosave is debounced and flushed (not dropped) when switching files.
+- Storage: `annotations/<mxl-basename>.json`, one file per solo,
+  `AnnotationStore` (`src/annotation/store.ts`, DOM-free, tested — cycle/
+  span/serialise round-trips). Positions are printed `bar.beat` strings
+  via `core/position.ts` (`parsePosition`/`formatPosition`), quantised to
+  3 decimal places (`Position { bar, beat }`), the same dialect
+  `brackets.json` uses ("4.4½").
+- `npm run eval:owner` (`scripts/eval-owner.ts`): for each
+  `annotations/*.json`, resolves the `.mxl`/`.musicxml` from `peers/`,
+  runs the pipeline, and matches owner vs. engine phrase/idea starts with
+  the same **0.5**-beat tolerance as `brackets` (`src/annotation/eval.ts`
+  `matchStarts` — greedy in-order, each engine mark claimed by at most one
+  owner mark — and `prf`). A **report, not a gate**: `brackets` stays the
+  gate on phrase starts. `--misses` prints the `boundaryCue` evidence
+  (rest/length/leap/total vs. `DEFAULTS.threshold`) at every miss and
+  false start, per level. Outside and star spans are printed against
+  overlapping `analysis.findings` only (no positional score yet — see
+  OPEN_QUESTIONS "what formally scores outside spans and stars").
+  `ANNOTATIONS_DIR`/`PEERS_DIR` override the default paths; exits 0 always.
+
 ## Agent layer (`src/agent/`, spec docs/superpowers/specs/2026-08-25-agent-layer-design.md)
 
 Judge yes, generate never: verdicts are strict zod schemas referencing engine

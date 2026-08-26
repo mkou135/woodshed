@@ -325,3 +325,25 @@ Comedy rails in JADED_INSTRUCTION: every jab anchored to document evidence,
 roast targets the narrator's jealousy and the notes, never invented
 biography. Live-verified on Blake ("a chord played as itself"; "bookkeeping
 with a mouthpiece") — jabs cited real bars and percentages. 370 tests.
+2026-08-26 · session 12 · Annotation app built end-to-end (spec
+docs/superpowers/specs/2026-08-26-annotation-app-design.md): shared
+`bar.beat` codec (`core/position.ts`, quantised to 3 decimals) factored out
+of `brackets.ts`; `AnnotationStore`/`eval.ts` in `src/annotation/` (tested,
+DOM-free); `mountScore` exported from `app/score.ts` for reuse;
+`scripts/viteAnnotate.ts` dev-only middleware (`/__annotate/files|file|
+annotation|save`, traversal/bad-body guarded, 400/404 not crashes);
+`annotate.html` + `app/annotate.ts` — blind marking (imports nothing from
+`analyse/`), modes 1/2/3 for phrase/idea boundaries and outside/star spans,
+flush-not-drop debounced autosave; `scripts/eval-owner.ts` +
+`npm run eval:owner` (report against owner JSON, `brackets` stays the
+gate; `--misses` prints `boundaryCue` evidence). Hey Lock copied into
+`~/dev/woodshed-data/peers/hey-lock.mxl`. End-to-end verified in Chrome via
+agent-browser: annotated the first line for real (phrase/idea starts, one
+star span), `annotations/hey-lock.json` read correctly, `eval:owner` and
+`--misses` both ran clean — then the e2e marks were deleted (not ground
+truth; the owner annotates for real later). ENGINE_SPEC "Annotation app"
+section, DECISIONS, OPEN_QUESTIONS (departure/ranking labels unblocked;
+new "what scores outside/stars" question), CLAUDE.md commands. 385 tests
+unchanged (no engine code touched), typecheck/build green, Blake
+unchanged (major-seventh arpeggio from the b3, bars 73/77, top finding,
+13 findings in the 6–15 pinned range).
