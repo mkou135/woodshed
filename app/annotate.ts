@@ -42,8 +42,6 @@ let spanNodes: SVGGElement[] = []
 let pendingFrom: Position | null = null
 let pendingNodes: SVGGElement[] = []
 
-let saveTimer: ReturnType<typeof setTimeout> | null = null
-
 const spanKind = (m: Mode): SpanKind | null => (m === 'outside' ? 'outside' : m === 'stars' ? 'stars' : null)
 
 /** Same ordering the store uses internally, so "inside this span" agrees with it. */
@@ -206,13 +204,38 @@ async function doSave(target: AnnotationStore, name: string): Promise<void> {
   if (res.status === 204 && target === store) saved.classList.remove('dirty')
 }
 
+/**
+ * A debounced save in flight. `flush` cancels the timer and runs the save
+ * immediately — used both when a *different* file's edit would otherwise
+ * clear this timer, and when the page navigates away from this file, so no
+ * path ever drops a scheduled write; the worst that happens is one runs early.
+ */
+interface PendingSave {
+  target: AnnotationStore
+  name: string
+  timer: ReturnType<typeof setTimeout>
+  flush(): void
+}
+
+let pendingSave: PendingSave | null = null
+
 function scheduleSave(): void {
   if (!store || !filename) return
   const target = store
   const name = filename
   saved.classList.add('dirty')
-  if (saveTimer) clearTimeout(saveTimer)
-  saveTimer = setTimeout(() => void doSave(target, name), 500)
+  if (pendingSave) {
+    if (pendingSave.target === target && pendingSave.name === name) {
+      // Same file: this is a plain debounce re-arm.
+      clearTimeout(pendingSave.timer)
+    } else {
+      // A different file's save is still owed — flush it now rather than
+      // letting this timer's re-arm cancel it outright.
+      pendingSave.flush()
+    }
+  }
+  const timer = setTimeout(() => { pendingSave = null; void doSave(target, name) }, 500)
+  pendingSave = { target, name, timer, flush: () => { clearTimeout(timer); pendingSave = null; void doSave(target, name) } }
 }
 
 // ---- interaction ----
@@ -262,6 +285,8 @@ function attachHandlers(): void {
 // ---- loading ----
 
 async function openScore(bytes: Uint8Array, name: string): Promise<void> {
+  // Leaving this file behind must not drop a mark still waiting to be saved.
+  pendingSave?.flush()
   filename = name
   cancelPending()
   ticks.clear()
