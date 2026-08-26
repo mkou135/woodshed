@@ -14,6 +14,7 @@ import { join } from 'node:path'
 import { homedir } from 'node:os'
 import { run, TICKS_PER_QUARTER } from '../src/index.ts'
 import { writtenBar } from '../src/core/bars.ts'
+import { parsePosition, formatPosition, positionsClose } from '../src/core/position.ts'
 import type { PipelineResult } from '../src/index.ts'
 
 interface BracketSet {
@@ -45,26 +46,13 @@ function engineStarts(result: PipelineResult): { bar: number; beat: number }[] {
   })
 }
 
-/** "4.4½" (the owner's notation) or "4.4.5". */
-const parse = (s: string): { bar: number; beat: number } => {
-  const [b, f = '1', rest] = s.replace('½', '.5').split('.')
-  return { bar: Number(b), beat: Number(rest === undefined ? f : `${f}.${rest}`) }
-}
-const fmt = (p: { bar: number; beat: number }): string => {
-  const whole = Math.floor(p.beat)
-  const frac = p.beat - whole
-  return `${p.bar}.${whole}${frac === 0 ? '' : frac === 0.5 ? '½' : `.${frac}`}`
-}
-
-const close = (a: { bar: number; beat: number }, b: { bar: number; beat: number }, beatsPerBar: number): boolean =>
-  Math.abs((a.bar - b.bar) * beatsPerBar + (a.beat - b.beat)) <= TOLERANCE
 
 const args = process.argv.slice(2)
 if (args[0] === '--print') {
   const result = run(new Uint8Array(readFileSync(args[1])))
   const from = Number(args[2] ?? 1)
   const to = Number(args[3] ?? Infinity)
-  console.log(engineStarts(result).filter((s) => s.bar >= from && s.bar <= to).map(fmt).join(' '))
+  console.log(engineStarts(result).filter((s) => s.bar >= from && s.bar <= to).map(formatPosition).join(' '))
   process.exit(0)
 }
 
@@ -74,15 +62,15 @@ for (const set of sets) {
   const result = run(new Uint8Array(readFileSync(join(PEERS, set.file))))
   const beatsPerBar = result.score.timeSig[0] * (4 / result.score.timeSig[1])
   const engine = engineStarts(result).filter((s) => s.bar >= set.range[0] && s.bar <= set.range[1])
-  const owner = set.starts.map(parse)
+  const owner = set.starts.map(parsePosition)
   const known = new Set(set.knownMisses ?? [])
-  const matched = owner.filter((o) => engine.some((e) => close(o, e, beatsPerBar)))
-  const missed = owner.filter((o) => !engine.some((e) => close(o, e, beatsPerBar)))
-  let falseStarts = engine.filter((e) => !owner.some((o) => close(o, e, beatsPerBar)))
-  const newMisses = missed.filter((m) => !known.has(fmt(m)))
+  const matched = owner.filter((o) => engine.some((e) => positionsClose(o, e, beatsPerBar, TOLERANCE)))
+  const missed = owner.filter((o) => !engine.some((e) => positionsClose(o, e, beatsPerBar, TOLERANCE)))
+  let falseStarts = engine.filter((e) => !owner.some((o) => positionsClose(o, e, beatsPerBar, TOLERANCE)))
+  const newMisses = missed.filter((m) => !known.has(formatPosition(m)))
   // A known miss is a start the engine places elsewhere: its displaced
   // start, within two beats, is part of the same known disagreement.
-  for (const m of missed.filter((m) => known.has(fmt(m)))) {
+  for (const m of missed.filter((m) => known.has(formatPosition(m)))) {
     const near = falseStarts.find((e) => Math.abs((e.bar - m.bar) * beatsPerBar + (e.beat - m.beat)) <= 2)
     if (near) falseStarts = falseStarts.filter((e) => e !== near)
   }
@@ -90,7 +78,7 @@ for (const set of sets) {
   failed ||= !ok
   console.log(`${ok ? 'ok  ' : 'FAIL'} ${set.file} printed ${set.range[0]}–${set.range[1]}: ` +
     `${matched.length}/${owner.length} matched, ${falseStarts.length} false`)
-  if (missed.length) console.log(`     missed: ${missed.map(fmt).join(' ')}${newMisses.length ? '' : ' (known)'}`)
-  if (falseStarts.length) console.log(`     false:  ${falseStarts.map(fmt).join(' ')}`)
+  if (missed.length) console.log(`     missed: ${missed.map(formatPosition).join(' ')}${newMisses.length ? '' : ' (known)'}`)
+  if (falseStarts.length) console.log(`     false:  ${falseStarts.map(formatPosition).join(' ')}`)
 }
 process.exit(failed ? 1 : 0)
