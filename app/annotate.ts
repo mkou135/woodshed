@@ -9,7 +9,7 @@ import { formatPosition } from '../src/core/position.ts'
 import type { Position } from '../src/core/position.ts'
 import { readScoreXml } from '../src/index.ts'
 
-type Mode = 'boundary' | 'outside' | 'stars'
+type Mode = 'boundary' | 'outside' | 'stars' | 'ends' | 'variations'
 type SpanKind = 'outside' | 'stars'
 
 interface NoteEntry {
@@ -37,11 +37,19 @@ let filename: string | null = null
 let mode: Mode = 'boundary'
 
 let noteEntries: NoteEntry[] = []
-const ticks = new Map<string, SVGGElement>()
+let tickNodes: SVGGElement[] = []
 let spanNodes: SVGGElement[] = []
+let highlightedNodes: SVGGElement[] = []
 
 let pendingFrom: Position | null = null
 let pendingNodes: SVGGElement[] = []
+
+/**
+ * The variation group new spans join. Entering variations mode (or Escape)
+ * clears it, so each visit to the mode marks one fresh group: the idea first,
+ * then its variations.
+ */
+let currentGroup: number | null = null
 
 const spanKind = (m: Mode): SpanKind | null => (m === 'outside' ? 'outside' : m === 'stars' ? 'stars' : null)
 
@@ -60,10 +68,18 @@ function cancelPending(): void {
 function setMode(next: Mode): void {
   mode = next
   cancelPending()
+  currentGroup = null
   for (const [m, b] of modeButtons) b.classList.toggle('on', m === next)
 }
 
-for (const [m, label] of [['boundary', '1 boundaries'], ['outside', '2 outside'], ['stars', '3 star']] as [Mode, string][]) {
+const MODE_LABELS: [Mode, string][] = [
+  ['boundary', '1 starts'],
+  ['outside', '2 outside'],
+  ['stars', '3 star'],
+  ['ends', '4 ends'],
+  ['variations', '5 variations'],
+]
+for (const [m, label] of MODE_LABELS) {
   const b = button('', label, () => setMode(m))
   modeButtons.set(m, b)
   modes.appendChild(b)
@@ -75,7 +91,12 @@ document.addEventListener('keydown', (e) => {
   if (e.key === '1') setMode('boundary')
   else if (e.key === '2') setMode('outside')
   else if (e.key === '3') setMode('stars')
-  else if (e.key === 'Escape') cancelPending()
+  else if (e.key === '4') setMode('ends')
+  else if (e.key === '5') setMode('variations')
+  else if (e.key === 'Escape') {
+    cancelPending()
+    currentGroup = null
+  }
 })
 
 // ---- positions ----
@@ -102,16 +123,18 @@ function buildEntries(m: SoloMap): void {
 
 // ---- boundary ticks ----
 
-function drawTick(entry: NoteEntry, level: 'idea' | 'phrase', label: string): SVGGElement | null {
+function drawTick(entry: NoteEntry, level: 'idea' | 'phrase', label: string, side: 'start' | 'end'): void {
   const anchor = entry.nodes[0]
   const svg = anchor?.ownerSVGElement
   const staff = map?.staves.get(entry.pos.bar)
-  if (!anchor || !svg || !staff) return null
-  const x = anchor.getBBox().x - 10
+  if (!anchor || !svg || !staff) return
+  const box = anchor.getBBox()
+  // Start ticks sit left of the note, end ticks right of it.
+  const x = side === 'start' ? box.x - 10 : box.x + box.width + 7
   const phrase = level === 'phrase'
   const pad = phrase ? 14 : 8
   const g = svgEl('g')
-  g.setAttribute('class', phrase ? 'ann-phrase' : 'ann-idea')
+  g.setAttribute('class', (phrase ? 'ann-phrase' : 'ann-idea') + (side === 'end' ? ' ann-end' : ''))
   const rect = svgEl('rect')
   rect.setAttribute('x', String(x))
   rect.setAttribute('y', String(staff.top - pad))
@@ -124,10 +147,11 @@ function drawTick(entry: NoteEntry, level: 'idea' | 'phrase', label: string): SV
   const text = svgEl('text')
   text.setAttribute('x', String(x))
   text.setAttribute('y', String(staff.bottom + pad + 13))
+  if (side === 'end') text.setAttribute('text-anchor', 'end')
   text.textContent = label
   g.appendChild(text)
   svg.appendChild(g)
-  return g
+  tickNodes.push(g)
 }
 
 /**
@@ -135,14 +159,22 @@ function drawTick(entry: NoteEntry, level: 'idea' | 'phrase', label: string): SV
  * so every change relabels the lot: phrases count 1..N in playing order, and
  * ideas inside a phrase read n.2, n.3 … (the phrase start itself is idea .1),
  * mirroring the main page. Ideas before the first phrase mark show as 0.n.
+ * End marks share the numbering: an end tick is labelled with the phrase or
+ * idea currently open at its position, so it's drawn before a start on the
+ * same note advances the counter.
  */
 function redrawAllBoundaries(): void {
-  for (const g of ticks.values()) g.remove()
-  ticks.clear()
+  for (const g of tickNodes) g.remove()
+  tickNodes = []
   if (!store) return
   let phrase = 0
   let idea = 1
   for (const entry of noteEntries) {
+    const end = store.endAt(entry.pos)
+    if (end) {
+      const label = end === 'phrase' ? `${phrase}⌉` : `${phrase}.${idea}⌉`
+      drawTick(entry, end, label, 'end')
+    }
     const level = store.boundaryAt(entry.pos)
     if (!level) continue
     let label: string
@@ -154,14 +186,13 @@ function redrawAllBoundaries(): void {
       idea += 1
       label = `${phrase}.${idea}`
     }
-    const g = drawTick(entry, level, label)
-    if (g) ticks.set(entry.key, g)
+    drawTick(entry, level, label, 'start')
   }
 }
 
 // ---- spans ----
 
-function drawSpan(kind: SpanKind, span: { from: Position; to: Position }): void {
+function drawSpan(cls: string, span: { from: Position; to: Position }, label?: string): void {
   if (!map) return
   const lo = order(span.from)
   const hi = order(span.to)
@@ -174,7 +205,16 @@ function drawSpan(kind: SpanKind, span: { from: Position; to: Position }): void 
     const bucket = bySystem.get(staff.top) ?? { staff, entries: [] }
     bucket.entries.push(entry)
     bySystem.set(staff.top, bucket)
+    // Outside marks colour the notes themselves — a departure reads best on
+    // the noteheads, the underline just keeps it findable in dense passages.
+    if (cls === 'ann-outside') {
+      for (const n of entry.nodes) {
+        n.classList.add('ann-outside-note')
+        highlightedNodes.push(n)
+      }
+    }
   }
+  let labelled = false
   for (const { staff, entries } of bySystem.values()) {
     const svg = entries[0]?.nodes[0]?.ownerSVGElement
     if (!svg) continue
@@ -182,18 +222,19 @@ function drawSpan(kind: SpanKind, span: { from: Position; to: Position }): void 
     const x0 = Math.min(...boxes.map((b) => b.x))
     const x1 = Math.max(...boxes.map((b) => b.x + b.width))
     const g = svgEl('g')
-    g.setAttribute('class', kind === 'outside' ? 'ann-outside' : 'ann-star')
+    g.setAttribute('class', cls)
     const rect = svgEl('rect')
     rect.setAttribute('x', String(x0))
     rect.setAttribute('y', String(staff.bottom + 6))
     rect.setAttribute('width', String(x1 - x0))
     rect.setAttribute('height', '5')
     g.appendChild(rect)
-    if (kind === 'stars') {
+    if (label !== undefined && !labelled) {
+      labelled = true
       const text = svgEl('text')
       text.setAttribute('x', String(x0 - 14))
       text.setAttribute('y', String(staff.bottom + 16))
-      text.textContent = '★'
+      text.textContent = label
       g.appendChild(text)
     }
     svg.appendChild(g)
@@ -201,13 +242,22 @@ function drawSpan(kind: SpanKind, span: { from: Position; to: Position }): void 
   }
 }
 
+/** A, B, … Z, then AA, AB … for the pathological 27th group. */
+function groupLetter(g: number): string {
+  return g < 26 ? String.fromCharCode(65 + g) : groupLetter(Math.floor(g / 26) - 1) + groupLetter(g % 26)
+}
+
 function redrawSpans(): void {
   for (const g of spanNodes) g.remove()
   spanNodes = []
+  for (const n of highlightedNodes) n.classList.remove('ann-outside-note')
+  highlightedNodes = []
   if (!store) return
-  for (const kind of ['outside', 'stars'] as const) {
-    for (const span of store.spans(kind)) drawSpan(kind, span)
-  }
+  for (const span of store.spans('outside')) drawSpan('ann-outside', span)
+  for (const span of store.spans('stars')) drawSpan('ann-star', span, '★')
+  store.variations().forEach((group, g) => {
+    group.forEach((span, i) => drawSpan('ann-variation', span, `${groupLetter(g)}${i + 1}`))
+  })
 }
 
 // ---- errors ----
@@ -230,7 +280,9 @@ function updateCounts(): void {
     return
   }
   const c = store.counts()
-  counts.textContent = `${c.phrases} phrases · ${c.ideas} ideas · ${c.outside} outside · ${c.stars} stars`
+  counts.textContent =
+    `${c.phrases} phrases · ${c.ideas} ideas · ${c.ends} ends · ` +
+    `${c.outside} outside · ${c.stars} stars · ${c.variations} variation groups`
 }
 
 async function doSave(target: AnnotationStore, name: string): Promise<void> {
@@ -287,11 +339,33 @@ function scheduleSave(): void {
 
 function onNoteClick(entry: NoteEntry): void {
   if (!store) return
-  if (mode === 'boundary') {
-    store.cycleBoundary(entry.pos)
+  if (mode === 'boundary' || mode === 'ends') {
+    if (mode === 'boundary') store.cycleBoundary(entry.pos)
+    else store.cycleEnd(entry.pos)
     redrawAllBoundaries()
     updateCounts()
     scheduleSave()
+    return
+  }
+  if (mode === 'variations') {
+    if (store.removeVariationAt(entry.pos)) {
+      cancelPending()
+      // Removal can renumber groups, so the next span starts a fresh one.
+      currentGroup = null
+      redrawSpans()
+      updateCounts()
+      scheduleSave()
+    } else if (pendingFrom) {
+      currentGroup = store.addVariation(pendingFrom, entry.pos, currentGroup ?? undefined)
+      cancelPending()
+      redrawSpans()
+      updateCounts()
+      scheduleSave()
+    } else {
+      pendingFrom = entry.pos
+      pendingNodes = entry.nodes
+      for (const n of entry.nodes) n.classList.add('pending')
+    }
     return
   }
   const kind = spanKind(mode)
@@ -339,8 +413,10 @@ async function openScore(bytes: Uint8Array, name: string): Promise<void> {
   // previous file's store under the new filename.
   store = null
   cancelPending()
-  ticks.clear()
+  currentGroup = null
+  tickNodes = []
   spanNodes = []
+  highlightedNodes = []
   const xml = readScoreXml(bytes)
   sheet.replaceChildren()
   map = await mountScore(sheet, xml)
@@ -390,6 +466,9 @@ async function loadFileList(): Promise<void> {
 }
 
 pick.addEventListener('change', () => {
+  // Give the keyboard back to the mode shortcuts: a focused select swallows
+  // 1–5 (the keydown guard skips them), which read as "the mode is broken".
+  pick.blur()
   if (pick.value) void loadFile(pick.value)
 })
 

@@ -22,6 +22,8 @@
   --warn-bg: #fdeee6;
   --ok: #2f6b4f;
   --alarm: #8a2a1f;
+  --outside: #b0306e;
+  --variation: #2f8f5b;
   --disp: 'Barlow Condensed', 'Arial Narrow', 'Helvetica Neue', sans-serif;
   --body: 'Source Serif 4', Georgia, 'Times New Roman', serif;
   --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
@@ -354,7 +356,15 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
 .ann-phrase rect { fill: var(--phrase) }
 .ann-phrase text { fill: var(--phrase); font: 700 13px var(--disp) }
 .ann-clickable { cursor: pointer }
-.ann-outside rect { fill: var(--phrase); opacity: 0.35 }
+.ann-end rect { opacity: 0.6 }
+.ann-outside rect { fill: var(--outside); opacity: 0.35 }
+/* Departures colour the notes themselves; OSMD paints fills inline, so win. */
+.ann-outside-note path, .ann-outside-note rect, .ann-outside-note ellipse {
+  fill: var(--outside) !important;
+  stroke: var(--outside) !important;
+}
 .ann-star rect { fill: #b8952f; opacity: 0.5 }
 .ann-star text { fill: #b8952f; font-size: 12px }
+.ann-variation rect { fill: var(--variation); opacity: 0.45 }
+.ann-variation text { fill: var(--variation); font: 600 12px var(--disp) }
 .pending { outline: 2px solid var(--idea); outline-offset: 2px }

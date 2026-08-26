@@ -353,3 +353,16 @@ ticks carry main-page numbering (phrases 1..N, ideas n.m, relabelled per
 change), and the Downloads transcription folder is consolidated into peers —
 7 copied, 2 checksum-skipped as duplicates of mintzer/st-thomas; dropdown now
 lists 10 solos. Browser-checked live (labels 1, 1.2, 2 on Autumn Leaves).
+2026-08-27 · session 13 · Annotate round 2 from owner feedback: (1) found and
+fixed why "outside mode just sets idea anchors" — the file dropdown kept
+focus and the keydown guard swallowed 1–5, so mode never switched; picking a
+file now blurs the select. (2) Outside spans colour the noteheads (magenta,
+!important over OSMD inline fills) — departures read on the notes, not just
+an underline. (3) New ends mode (key 4): cycle idea end → phrase end, right-
+side tick labelled n⌉ / n.m⌉; stored in phraseEnds/ideaEnds (optional fields,
+old files load fine). (4) New variations mode (key 5): grouped click-pair
+ranges, entering the mode or Esc starts a new group, green underlines A1 A2 …
+B1, emptied groups vanish. eval:owner reports end-mark agreement (engine
+last-note positions, same matcher, never pooled) and lists variation groups.
+389 tests green; browser-verified on Autumn Leaves (end ticks 0.1⌉/0⌉, groups
+A1 A2 B1, 7 coloured notes); test annotation deleted after.

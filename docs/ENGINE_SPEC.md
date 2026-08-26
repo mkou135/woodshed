@@ -423,22 +423,39 @@ Owner ground truth on the score, dev-only.
   none); `POST /__annotate/save/<name>` writes it. Every route rejects a
   name that isn't its own `basename` or contains `..` (400); a malformed
   save body is a 400, not a crash.
-- Three-mode toolbar (keys 1/2/3): **boundaries** — click a notehead *or a
+- Five-mode toolbar (keys 1–5): **1 starts** — click a notehead *or a
   rest* (a pickup rest is often part of the phrase, owner's call 2026-08-26)
   to cycle none → idea start → phrase start → none; a phrase start counts as
   an idea start too but is stored only once, in `phrases`, never
   duplicated in `ideas`. Ticks are numbered like the main page — phrases
   1..N in playing order, ideas n.2, n.3 within their phrase (0.n before the
-  first phrase mark) — relabelled on every change. **Outside** / **star** — click first note, click
-  last note to close a span (amber underline for outside, star glyph for
-  drill-worthy); click a span to delete; Esc cancels a half-made span.
+  first phrase mark) — relabelled on every change. **2 outside** / **3
+  star** — click first note, click last note to close a span; outside
+  colours the noteheads themselves (`--outside` magenta, `!important` to
+  beat OSMD's inline fills) plus an underline, star keeps the underline +
+  glyph; click a span to delete; Esc cancels a half-made span. **4 ends** —
+  cycle none → idea end → phrase end, tick drawn right of the note,
+  labelled with the phrase/idea open at that position plus `⌉`; ends are
+  sparse — mark one only where the implicit end (note before the next
+  start) is wrong. **5 variations** — grouped ranges: entering the mode (or
+  Esc) starts a new group; each click-pair marks one range, first the idea
+  then its variations; drawn as green underlines labelled A1, A2 … B1;
+  clicking a range deletes it and an emptied group disappears (adding to a
+  closed group means delete + re-mark, accepted 2026-08-27). Picking a file
+  blurs the dropdown so keys 1–5 always reach the mode switcher (a focused
+  select swallowed them — the 2026-08-26 "outside mode doesn't work" bug).
   Autosave is debounced and flushed (not dropped) when switching files.
 - Storage: `annotations/<mxl-basename>.json`, one file per solo,
   `AnnotationStore` (`src/annotation/store.ts`, DOM-free, tested — cycle/
-  span/serialise round-trips). Positions are printed `bar.beat` strings
-  via `core/position.ts` (`parsePosition`/`formatPosition`), quantised to
-  3 decimal places (`Position { bar, beat }`), the same dialect
-  `brackets.json` uses ("4.4½").
+  span/serialise round-trips). Fields: `phrases`, `ideas`, `phraseEnds`,
+  `ideaEnds` (position-string arrays; the end arrays are optional — older
+  files load as none), `outside`, `stars` (`{from,to}` lists),
+  `variations` (optional array of groups, each a `{from,to}` list — first
+  span the idea, the rest its variations, groups in creation order).
+  Positions are printed `bar.beat` strings via `core/position.ts`
+  (`parsePosition`/`formatPosition`), quantised to 3 decimal places
+  (`Position { bar, beat }`), the same dialect `brackets.json` uses
+  ("4.4½").
 - `npm run eval:owner` (`scripts/eval-owner.ts`): for each
   `annotations/*.json`, resolves the `.mxl`/`.musicxml` from `peers/`,
   runs the pipeline, and matches owner vs. engine phrase/idea starts with
@@ -447,9 +464,14 @@ Owner ground truth on the score, dev-only.
   owner mark — and `prf`). A **report, not a gate**: `brackets` stays the
   gate on phrase starts. `--misses` prints the `boundaryCue` evidence
   (rest/length/leap/total vs. `DEFAULTS.threshold`) at every miss and
-  false start, per level. Outside and star spans are printed against
-  overlapping `analysis.findings` only (no positional score yet — see
-  OPEN_QUESTIONS "what formally scores outside spans and stars").
+  false start, per level. Owner end marks (when present) are matched
+  against the engine's phrase/idea last-note positions with the same
+  matcher and tolerance, reported as matched/total per level, never
+  pooled with start metrics (they're sparse by design). Variation groups
+  are listed only — nothing in the engine detects variations yet. Outside
+  and star spans are printed against overlapping `analysis.findings` only
+  (no positional score yet — see OPEN_QUESTIONS "what formally scores
+  outside spans and stars").
   `ANNOTATIONS_DIR`/`PEERS_DIR` override the default paths; exits 0 always.
 
 ## Agent layer (`src/agent/`, spec docs/superpowers/specs/2026-08-25-agent-layer-design.md)

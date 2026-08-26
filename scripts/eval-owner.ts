@@ -58,6 +58,26 @@ function engineIdeaStarts(result: PipelineResult): { bar: number; beat: number }
   })
 }
 
+/** Printed bar and 1-based beat of each phrase's last note — the engine's phrase ends. */
+function enginePhraseEnds(result: PipelineResult): { bar: number; beat: number }[] {
+  const { score, analysis } = result
+  return analysis.phrases.map((p) => {
+    const last = p.notes[p.notes.length - 1]
+    const w = writtenBar(score, last.bar)
+    return { bar: w.bar, beat: last.beat + 1 }
+  })
+}
+
+/** Printed bar and 1-based beat of each idea's last note. */
+function engineIdeaEnds(result: PipelineResult): { bar: number; beat: number }[] {
+  const { score, analysis } = result
+  return analysis.phrases.flatMap((p) => p.ideas).map((idea) => {
+    const last = idea.notes[idea.notes.length - 1]
+    const w = writtenBar(score, last.bar)
+    return { bar: w.bar, beat: last.beat + 1 }
+  })
+}
+
 // Copied from src/analyse/segment.ts:150-154 — scripts don't import each other.
 function median(xs: number[]): number {
   if (xs.length === 0) return 0
@@ -206,6 +226,30 @@ for (const file of files) {
     for (const m of ideaResult.missed) printCueAt('missed', 'idea', m, notes, score, medianDuration, beatsPerBar)
     for (const f of ideaResult.falseStarts) printCueAt('false', 'idea', f, notes, score, medianDuration, beatsPerBar)
   }
+
+  // End marks are sparse — the owner only places one where the implicit end
+  // (note before the next start) is wrong — so score them per level only when
+  // any exist, and don't pool them with the start metrics.
+  const ownerPhraseEnds = (annotation.phraseEnds ?? []).map(parsePosition)
+  const ownerIdeaEnds = (annotation.ideaEnds ?? []).map(parsePosition)
+  if (ownerPhraseEnds.length > 0) {
+    const r = matchStarts(ownerPhraseEnds, enginePhraseEnds(result), beatsPerBar, TOLERANCE)
+    console.log(`  phrase ends: ${r.matched.length}/${ownerPhraseEnds.length} matched` +
+      (r.missed.length ? ` — missed ${r.missed.map(formatPosition).join(', ')}` : ''))
+  }
+  if (ownerIdeaEnds.length > 0) {
+    const engEnds = [...enginePhraseEnds(result), ...engineIdeaEnds(result)]
+    const r = matchStarts(ownerIdeaEnds, engEnds, beatsPerBar, TOLERANCE)
+    console.log(`  idea ends: ${r.matched.length}/${ownerIdeaEnds.length} matched` +
+      (r.missed.length ? ` — missed ${r.missed.map(formatPosition).join(', ')}` : ''))
+  }
+
+  const variationGroups = annotation.variations ?? []
+  variationGroups.forEach((group, g) => {
+    const letter = String.fromCharCode(65 + (g % 26))
+    const ranges = group.map((s) => `${s.from}–${s.to}`).join(', ')
+    console.log(`  variation group ${letter}: ${ranges}`)
+  })
 
   for (const span of annotation.outside) {
     const from = parsePosition(span.from)
