@@ -69,6 +69,18 @@ describe('annotationExportHtml', () => {
     expect(html).toContain('How it is detected:')
   })
 
+  it('describes the phrase tick as the engine does now: a chorus prior, and faint means unsure', () => {
+    const html = annotationExportHtml('Hey Lock!', SVG, ITEMS)
+    // The engine has no structural boundary kind any more — the chorus wall
+    // became the wChorus prior, and the legend is a prose copy of the spec.
+    expect(html).not.toContain('structural boundary')
+    expect(html).toContain('min(1, total + 0.45) ≥ 0.45')
+    expect(html).toContain('A half-opacity tick is a phrase it opened on a call it was not sure of')
+    // One-sided: confidence is floored at the threshold, so it is never below it.
+    expect(html).toContain('cleared the 0.45 threshold by less than 0.15')
+    expect(html).toContain('80.8 F1')
+  })
+
   it('escapes <, > and & in item labels and details rather than emitting them raw', () => {
     const dangerous: OverlayItem[] = [
       {
