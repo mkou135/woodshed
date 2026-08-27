@@ -17,6 +17,12 @@ const analysis = {
       degrees: ['b3', '5', 'b7', '9'], detectedBy: ['shape', 'recurring'],
       weights: { shape: 1 }, confidence: 0.97,
     },
+    {
+      id: 'f2', kind: 'cell', name: 'dominant arpeggio 3 to the b9',
+      spans: [{ startIndex: 8, endIndex: 11, bar: 97, beat: 0 }],
+      degrees: ['3', '5', 'b7', 'b9'], detectedBy: ['shape'],
+      weights: { shape: 1 }, confidence: 0.8, language: 'bebop', lickShare: 0.47,
+    },
   ],
   profile: {
     bars: [],
@@ -36,7 +42,8 @@ const units = [
     id: 'u1', phrase: 3, idea: 1, notes: [], startIndex: 0, endIndex: 3,
     harmony: [{ onset: 0, bar: 76, rootPc: 0, quality: 'minor-seventh', tensions: [] }],
     degrees: [], findings: analysis.findings,
-    arrival: { degree: '9', chordTone: false }, stock: 0.1, rank: 2.5,
+    arrival: { degree: '9', chordTone: false }, stock: 0.1,
+    stockParts: { run: 0.1, corpus: 0.05, language: 0.61 }, rank: 2.5,
     header: 'x', summary: { bars: 'Bars 76–77', chords: ['Cm7'], cells: [], landing: null, alsoAt: [], stock: false },
     steps: [],
   },
@@ -49,6 +56,12 @@ describe('analysisDocument', () => {
     expect(doc).toContain('major-seventh arpeggio from the b3')
     expect(doc).toContain('u1')
     expect(doc).toContain('Bars 76–77')
+  })
+
+  it('marks common-language findings and the unit stock split', () => {
+    const doc = analysisDocument(analysis, units, score)
+    expect(doc).toContain('common language (in 47% of recorded solos)')
+    expect(doc).toContain('stock 0.10 (run 0.10, corpus 0.05, language 0.61)')
   })
 
   it('is deterministic', () => {

@@ -16,7 +16,10 @@ function findingLine(f: Finding, score: Score): string {
   const bars = f.spans.map((s) => barLabel(score, s.bar)).join(', ')
   const degrees = f.degrees ? ` · degrees ${f.degrees.join(' ')}` : ''
   const quality = f.quality ? ` over ${f.quality}` : ''
-  return `${f.id} · ${f.kind} · ${f.name}${quality} · bars ${bars}${degrees} · confidence ${f.confidence.toFixed(2)} · detected by ${f.detectedBy.join('+')}`
+  const language = f.language
+    ? ` · common language${f.lickShare !== undefined ? ` (in ${(f.lickShare * 100).toFixed(0)}% of recorded solos)` : ''}`
+    : ''
+  return `${f.id} · ${f.kind} · ${f.name}${quality} · bars ${bars}${degrees} · confidence ${f.confidence.toFixed(2)} · detected by ${f.detectedBy.join('+')}${language}`
 }
 
 function unitLine(u: PracticeUnit): string {
@@ -24,7 +27,8 @@ function unitLine(u: PracticeUnit): string {
   const findings = u.findings.map((f) => f.id).join(', ') || 'none'
   const arrival = u.arrival ? `arrives on ${u.arrival.degree}${u.arrival.chordTone ? ' (chord tone)' : ''}` : 'no arrival'
   const part = u.part ? ` (part ${u.part.n}/${u.part.of})` : ''
-  return `${u.id}${part} · ${u.summary.bars} · ${chords} · findings: ${findings} · ${arrival} · stock ${u.stock.toFixed(2)} · engine rank ${u.rank.toFixed(2)}`
+  const stock = `stock ${u.stock.toFixed(2)} (run ${u.stockParts.run.toFixed(2)}, corpus ${u.stockParts.corpus.toFixed(2)}, language ${u.stockParts.language.toFixed(2)})`
+  return `${u.id}${part} · ${u.summary.bars} · ${chords} · findings: ${findings} · ${arrival} · ${stock} · engine rank ${u.rank.toFixed(2)}`
 }
 
 export function analysisDocument(analysis: Analysis, units: PracticeUnit[], score: Score): string {

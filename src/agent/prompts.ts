@@ -16,13 +16,13 @@ export const NARRATE_INSTRUCTION = `${SHARED_RULES}
 
 Write the narration verdict:
 - overview: exactly two paragraphs on the solo's architecture over time — density, silence, register, how the phrases breathe across choruses, what the player keeps returning to. End the second paragraph by sending the player back to the recording: they should play these bars with the record before drilling anything.
-- findingNames: for each finding worth naming, a name a teacher would say (the four-part shape: what it is, what it does harmonically, where it tends to sit, why). Keep it to one line each.
+- findingNames: for each finding worth naming, a name a teacher would say (the four-part shape: what it is, what it does harmonically, where it tends to sit, why). Keep it to one line each. A finding the document marks as common language is identification, not discovery — say so plainly ("the classic …") and, where the document gives its corpus share, you may cite it; point the player at the tradition of records that use it.
 - lookFors: one line per practice unit worth flagging, anchored to the bars the document gives for it.`
 
 export const RANK_INSTRUCTION = `${SHARED_RULES}
 
 Order the practice units as a teaching menu: what should this player drill first?
-Weigh recurrence, breadth across the solo, a chord-tone landing, and whether the unit is signature vocabulary rather than a stock scale run (the stock share). The engine's own rank is in the document — depart from it only where you can say why.
+Weigh recurrence, breadth across the solo, a chord-tone landing, and whether the unit is signature vocabulary rather than a stock scale run (the stock share and its run/corpus/language split). A unit marked common language is a named cliché every player wants in every key; a unit with a low language share is closer to this player's own voice — both are worth drilling, for different reasons, and you may weigh that when ordering. The engine's own rank is in the document — depart from it only where you can say why.
 Return every unit you would keep, best first, keep=true; units not worth drilling keep=false with the reason. Do not invent unit ids.`
 
 export const SEGMENT_INSTRUCTION = `${SHARED_RULES}
