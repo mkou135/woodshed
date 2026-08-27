@@ -415,3 +415,12 @@ proposals flooded (40% of notes, bridge conflation, absolute threshold vs
 motivic development. Two new OPEN_QUESTIONS entries carry the candidate
 rules (relative threshold + dominant tolerance + phrase-split; proximity
 grouping + far-flung cells seeding stars instead).
+2026-08-27 · session 13 (cont. 6) · Implemented the three audit rules in the
+seeder: relative hot threshold (baseline + 0.15) with windows confined to one
+seeded phrase, graded dominant weighting (altered tension 0.5, natural 7 = 1
+— a binary dominant exemption gutted the blues where the owner's marks ARE
+altered vocabulary), variation clustering within 16 bars, and ≥3-occurrence
+findings seeding stars (top 5, first occurrence). Results: mintzer 40% of
+notes → 12 one-bar spans; blues recovers 6 of the owner's 13 marks; hey-lock
+5 tight spans. mintzer.json reseeded (was untouched pure seed). Browser-
+verified incl. star seeding; spec updated.

@@ -37,6 +37,7 @@ interface EngineSeed {
   ideas: string[]
   outside: { from: string; to: string; confidence: number }[]
   variations: { from: string; to: string }[][]
+  stars: { from: string; to: string }[]
   scales: { at: string; name: string; because: string; declared: boolean }[]
 }
 const dropZone = document.getElementById('drop') as HTMLDivElement
@@ -549,11 +550,12 @@ saveBtn.addEventListener('click', () => {
 engineBtn.addEventListener('click', async () => {
   if (!store || !filename) return
   const existing = store.counts()
-  const marked = existing.phrases + existing.ideas + existing.outside + existing.variations
+  const marked = existing.phrases + existing.ideas + existing.outside + existing.variations + existing.stars
   if (marked > 0 && !window.confirm(
     `Replace your ${existing.phrases + existing.ideas} start marks, ` +
-    `${existing.outside} outside spans and ${existing.variations} variation groups ` +
-    'with the engine\'s? Stars and struck-out scales stay.',
+    `${existing.outside} outside spans, ${existing.stars} stars and ` +
+    `${existing.variations} variation groups with the engine's? ` +
+    'Struck-out scales stay.',
   )) return
   engineBtn.disabled = true
   try {
@@ -563,6 +565,7 @@ engineBtn.addEventListener('click', async () => {
     store.seedSpans('outside', seed.outside.map((s) => ({ from: parsePosition(s.from), to: parsePosition(s.to) })))
     outsideConfidence.clear()
     for (const s of seed.outside) outsideConfidence.set(formatPosition(parsePosition(s.from)), s.confidence)
+    store.seedSpans('stars', seed.stars.map((s) => ({ from: parsePosition(s.from), to: parsePosition(s.to) })))
     store.seedVariations(seed.variations.map((group) =>
       group.map((s) => ({ from: parsePosition(s.from), to: parsePosition(s.to) }))))
     hideLoadError()

@@ -14,16 +14,26 @@ interface EngineSeedResult {
   ideas: string[]
   outside: { from: string; to: string; confidence: number }[]
   variations: { from: string; to: string }[][]
+  stars: { from: string; to: string }[]
   scales: { at: string; name: string; because: string; declared: boolean }[]
 }
 
 /** Sliding window for out-of-scale density; a hotter run seeds one outside span. */
 const SPICE_WINDOW = 6
-/** A window with at least this fraction of its notes off the declared scale is hot. */
-const SPICE_THRESHOLD = 1 / 3
+/**
+ * Hot = this much above the solo's own baseline off-scale rate. Absolute
+ * thresholds flooded on chromatic solos: the mintzer.mxl audit (2026-08-27)
+ * marked 40% of the notes at a flat 1/3 against a 0.29 baseline.
+ */
+const SPICE_MARGIN = 0.15
 /** Most outside spans / variation groups a seed proposes; correction, not a flood. */
 const SPICE_CAP = 12
 const VARIATION_CAP = 6
+/** Occurrences of one finding within this many bars are development; beyond it, vocabulary. */
+const VARIATION_NEAR_BARS = 16
+/** A finding recurring this often is the player's vocabulary — seed a star to drill. */
+const STAR_MIN_OCCURRENCES = 3
+const STAR_CAP = 5
 
 const seedCache = new Map<string, { mtimeMs: number; data: EngineSeedResult }>()
 
@@ -60,39 +70,63 @@ async function engineSeed(name: string): Promise<EngineSeedResult> {
   })
   const ideas = analysis.phrases.flatMap((p) => p.ideas).map((idea) => printed(idea.notes[0]))
 
-  // Outside candidates: merged runs of hot out-of-scale windows. Finds the
-  // chromatic-intense species of spicy only — measured AUC 0.74 on the
-  // owner's Mintzer spans, at/below chance on contextual outside (hey-lock);
-  // see DECISIONS 2026-08-25 on why nothing stronger is inferred from pitch.
+  // Outside candidates: merged runs of hot out-of-scale windows, scanned
+  // within one phrase at a time (a departure lives inside a phrase; crossing
+  // starts is how the 9-bar monsters happened). Finds the chromatic-intense
+  // species of spicy only — measured AUC 0.74 on the owner's Mintzer spans,
+  // at/below chance on contextual outside (hey-lock); see DECISIONS
+  // 2026-08-25 on why nothing stronger is inferred from pitch.
   const scaleSpans = chordScales(score.chordTracks[0]?.chords ?? [], score.keyFifths ?? 0)
-  const inScale = notes.map((n) => {
+  // How far off the declared scale each note is, 0–1. Over a dominant the
+  // altered tensions are vocabulary every player reaches for, so they count
+  // half: still detectable as a dense altered run, cooled enough that a
+  // rhythm-changes bridge doesn't flood (the mintzer audit's conflation), and
+  // the natural 7 — the one truly wrong pc — counts in full.
+  const outWeight = notes.map((n) => {
     let s: (typeof scaleSpans)[0] | null = null
     for (const sc of scaleSpans) if (sc.chord.onset <= n.onset && (!s || sc.chord.onset > s.chord.onset)) s = sc
-    return s ? s.pcs.includes(((n.midi % 12) + 12) % 12) : true
+    if (!s) return 0
+    const pc = ((n.midi % 12) + 12) % 12
+    if (s.pcs.includes(pc)) return 0
+    if (s.chord.quality === 'dominant') return pc === (s.chord.rootPc + 11) % 12 ? 1 : 0.5
+    return 1
   })
+  const baseline = outWeight.reduce((a, b) => a + b, 0) / (outWeight.length || 1)
+  const hotAt = baseline + SPICE_MARGIN
+  const phraseRanges: { start: number; end: number }[] = []
+  {
+    let at = 0
+    for (const p of analysis.phrases) {
+      phraseRanges.push({ start: at, end: at + p.notes.length - 1 })
+      at += p.notes.length
+    }
+  }
   const runs: { start: number; end: number; confidence: number }[] = []
-  for (let i = 0; i + SPICE_WINDOW <= notes.length; i++) {
-    let out = 0
-    for (let k = i; k < i + SPICE_WINDOW; k++) if (!inScale[k]) out++
-    const rate = out / SPICE_WINDOW
-    if (rate < SPICE_THRESHOLD) continue
-    const last = runs[runs.length - 1]
-    if (last && i <= last.end) {
-      last.end = i + SPICE_WINDOW - 1
-      last.confidence = Math.max(last.confidence, rate)
-    } else {
-      runs.push({ start: i, end: i + SPICE_WINDOW - 1, confidence: rate })
+  for (const range of phraseRanges) {
+    for (let i = range.start; i + SPICE_WINDOW - 1 <= range.end; i++) {
+      let out = 0
+      for (let k = i; k < i + SPICE_WINDOW; k++) out += outWeight[k]
+      const rate = out / SPICE_WINDOW
+      if (rate < hotAt) continue
+      const last = runs[runs.length - 1]
+      if (last && i <= last.end && last.end >= range.start) {
+        last.end = i + SPICE_WINDOW - 1
+        last.confidence = Math.max(last.confidence, rate)
+      } else {
+        runs.push({ start: i, end: i + SPICE_WINDOW - 1, confidence: rate })
+      }
     }
   }
   // Trim each run to its actual off-scale notes — the window pads both ends
   // with in-scale neighbours — and re-score confidence over the trimmed span.
   const trimmed = runs.flatMap((r) => {
     const outIdx: number[] = []
-    for (let k = r.start; k <= r.end; k++) if (!inScale[k]) outIdx.push(k)
+    for (let k = r.start; k <= r.end; k++) if (outWeight[k] > 0) outIdx.push(k)
     if (outIdx.length < 3) return []
     const from = outIdx[0]
     const to = outIdx[outIdx.length - 1]
-    return [{ from, to, confidence: outIdx.length / (to - from + 1) }]
+    const weight = outIdx.reduce((a, k) => a + outWeight[k], 0)
+    return [{ from, to, confidence: Math.min(1, weight / (to - from + 1)) }]
   })
   const outside = trimmed
     .sort((a, b) => b.confidence - a.confidence)
@@ -104,15 +138,46 @@ async function engineSeed(name: string): Promise<EngineSeedResult> {
       confidence: Math.round(r.confidence * 100) / 100,
     }))
 
-  // Variation groups: each recurring finding with 2+ occurrences is a family.
-  const variations = analysis.findings
+  // Variation groups: occurrences of one finding that sit close together —
+  // development, an idea being worked. The same cell recurring across the
+  // whole solo is vocabulary, not variation (mintzer audit paired bar 3 with
+  // bar 119): those seed stars below instead.
+  const printedBar = (idx: number): number => writtenBar(score, notes[idx].bar).bar
+  const clusters = analysis.findings
     .filter((f) => f.spans.length >= 2)
     .sort((a, b) => b.confidence - a.confidence)
+    .flatMap((f) => {
+      const sorted = [...f.spans].sort((a, b) => a.startIndex - b.startIndex)
+      const groups: (typeof sorted)[] = []
+      for (const span of sorted) {
+        const current = groups[groups.length - 1]
+        const prev = current?.[current.length - 1]
+        if (prev && printedBar(span.startIndex) - printedBar(prev.startIndex) <= VARIATION_NEAR_BARS) {
+          current.push(span)
+        } else {
+          groups.push([span])
+        }
+      }
+      return groups.filter((g) => g.length >= 2)
+    })
+  const variations = clusters
     .slice(0, VARIATION_CAP)
-    .map((f) => f.spans.map((s) => ({
+    .map((group) => group.map((s) => ({
       from: printed(notes[s.startIndex]),
       to: printed(notes[s.endIndex]),
     })))
+
+  // Stars: the player's recurring vocabulary — a finding with enough
+  // occurrences is what drilling wants. One star at the first occurrence;
+  // the finding list carries the rest.
+  const stars = analysis.findings
+    .filter((f) => f.spans.length >= STAR_MIN_OCCURRENCES)
+    .sort((a, b) => b.spans.length - a.spans.length || b.confidence - a.confidence)
+    .slice(0, STAR_CAP)
+    .map((f) => {
+      const first = [...f.spans].sort((a, b) => a.startIndex - b.startIndex)[0]
+      return { from: printed(notes[first.startIndex]), to: printed(notes[first.endIndex]) }
+    })
 
   // Scales, anchored at the first solo note at/after each chord: chart tensions
   // win, else the function rule — never inferred from the melody.
@@ -125,7 +190,7 @@ async function engineSeed(name: string): Promise<EngineSeedResult> {
     // actually sounding under that note (the last) wins.
     .filter((s, i, all) => i === all.length - 1 || all[i + 1].at !== s.at)
 
-  const data: EngineSeedResult = { phrases, ideas, outside, variations, scales }
+  const data: EngineSeedResult = { phrases, ideas, outside, variations, stars, scales }
   seedCache.set(name, { mtimeMs, data })
   return data
 }

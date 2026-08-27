@@ -450,17 +450,23 @@ Owner ground truth on the score, dev-only.
   from engine** button (dev middleware `GET /__annotate/engine/<name>`
   runs the pipeline lazily) replaces all start marks with engine output —
   after a confirm when any exist; spans/variations untouched — so a long
-  solo is a correction pass. The seed also proposes **outside spans** —
-  merged runs of 6-note windows with ≥ 1/3 of notes off the declared chord
-  scale, trimmed to the off-scale notes, ≥ 3 off-notes per run, top 12 by
-  off-density; each rendered at opacity 0.35 + 0.65·confidence with the
-  percentage in a tooltip. Measured on the owner's spans: AUC 0.74 on the
-  Mintzer blues, at/below chance on hey-lock's contextual outside — it
-  finds the chromatic-intense species only (DECISIONS 2026-08-25 stands:
-  nothing stronger is inferred from pitch content). And **variation
-  groups**: each finding with ≥ 2 spans, top 6 by confidence, one group
-  per finding. One confirm replaces starts + outside + variations; stars
-  and scale strike-outs survive. That file's JSON carries `seeded: true`
+  solo is a correction pass. The seed also proposes **outside spans**:
+  each note carries an off-scale weight (0 in the declared scale; over a
+  **dominant** an altered tension weighs 0.5 — vocabulary, not departure;
+  the natural 7, the one truly wrong pc, weighs 1; elsewhere off-scale
+  weighs 1), a 6-note window is hot when its mean weight ≥ the solo's own
+  baseline + 0.15 (absolute thresholds flooded: the 2026-08-27 mintzer
+  audit marked 40% of notes), windows never cross a seeded phrase start,
+  runs trim to their weighted notes (≥ 3), top 12 by density; rendered at
+  opacity 0.35 + 0.65·confidence with a tooltip. It finds the
+  chromatic-intense species only (DECISIONS 2026-08-25 stands: nothing
+  stronger is inferred from pitch content). **Variation groups**:
+  occurrences of one finding within 16 printed bars of the previous
+  occurrence (development, not vocabulary), clusters of ≥ 2, top 6.
+  **Stars**: findings with ≥ 3 occurrences — the player's recurring
+  vocabulary, what drilling wants — one star at the first occurrence,
+  top 5 by occurrence count. One confirm replaces starts + outside +
+  stars + variations; scale strike-outs survive. That file's JSON carries `seeded: true`
   forever after, and eval:owner tags it `(seeded)`: corrected-from-engine
   agreement is biased toward the engine and never pools with blind files'
   evidence class. See DECISIONS 2026-08-27 "Seeded annotation".
