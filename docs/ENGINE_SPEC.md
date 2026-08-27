@@ -566,7 +566,10 @@ ids; no pitch, count or interval can ride in one. Runs whenever a key is
 present (CLI env `ANTHROPIC_API_KEY`; page BYOK from localStorage,
 browser-direct); keyless runs are byte-identical to the engine alone.
 
-- Model `claude-opus-5`, `max_tokens` 16000, structured outputs on every
+- Model: default `claude-opus-5`; the page's model dropdown (next to the
+  BYOK key, `localStorage` `woodshed.agentModel`: Opus 5 / Sonnet 5 /
+  Haiku 4.5) or the CLI env `ANTHROPIC_MODEL` override it
+  (`LiveOptions.model`). `max_tokens` 16000, structured outputs on every
   call, analysis document cached (`cache_control` ephemeral on the system
   block, identical prefix across jobs).
 - Jobs, runtime order: **segment** (batch-adjudicate `boundaryCandidates` —

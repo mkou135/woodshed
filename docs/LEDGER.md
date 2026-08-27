@@ -480,3 +480,7 @@ baseline); corpus:wjd `events` crash on 3 solos (OPEN_QUESTIONS); noted
 overlap-merge span absorption (OPEN_QUESTIONS). Owner to review:
 spec + plan docs, the lick degree strings (veto pass), and the
 St Thomas / Blake pin changes.
+2026-08-27 · session 14 (cont.) · Agent model selection: the hardcoded
+claude-opus-5 becomes LiveOptions.model — page dropdown next to the BYOK
+key (Opus 5 / Sonnet 5 / Haiku 4.5, woodshed.agentModel, default Opus 5),
+CLI env ANTHROPIC_MODEL. 414 tests, typecheck, build green; pushed.

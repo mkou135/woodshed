@@ -330,8 +330,8 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
   background: #fffdf7; border: 1px solid #b58a3c; border-radius: 4px;
   font-size: 0.85rem; line-height: 1.35; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
-.agent-mood { display: flex; gap: 0.4rem; align-items: center; }
-.agent-mood select { font: inherit; padding: 0.2rem 0.3rem; }
+.agent-mood, .agent-model { display: flex; gap: 0.4rem; align-items: center; }
+.agent-mood select, .agent-model select { font: inherit; padding: 0.2rem 0.3rem; }
 
 /* ---- annotate ---- */
 .ann-head {

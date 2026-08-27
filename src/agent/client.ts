@@ -10,7 +10,7 @@ import type { z } from 'zod'
  * deterministic path always stands behind it.
  */
 
-const MODEL = 'claude-opus-5'
+const DEFAULT_MODEL = 'claude-opus-5'
 const MAX_TOKENS = 16000
 /** Tool-loop ceiling for the construction job; best verdict so far after that. */
 const MAX_TOOL_TURNS = 15
@@ -65,15 +65,18 @@ export interface LiveOptions {
   browser?: boolean
   /** Record every verdict to `<dir>/<job>.json` (Node callers only). */
   recordDir?: string
+  /** Model id for every job; the page's dropdown or ANTHROPIC_MODEL. */
+  model?: string
 }
 
 export function liveClient(apiKey: string, options: LiveOptions = {}): AgentClient {
   const anthropic = new Anthropic({ apiKey, ...(options.browser ? { dangerouslyAllowBrowser: true } : {}) })
+  const model = options.model ?? DEFAULT_MODEL
   const usage: AgentUsage[] = []
 
   function request(prompt: AgentPrompt, schema: z.ZodType<unknown>, extra: Partial<Anthropic.MessageCreateParamsNonStreaming> = {}) {
     return anthropic.messages.create({
-      model: MODEL,
+      model,
       max_tokens: MAX_TOKENS,
       system: [{ type: 'text', text: prompt.document, cache_control: { type: 'ephemeral' } }],
       output_config: { format: zodOutputFormat(schema) },
@@ -129,7 +132,7 @@ export function liveClient(apiKey: string, options: LiveOptions = {}): AgentClie
       const messages: Anthropic.MessageParam[] = [{ role: 'user', content: prompt.instruction }]
       for (let turn = 0; turn < MAX_TOOL_TURNS; turn++) {
         const response = await anthropic.messages.create({
-          model: MODEL,
+          model,
           max_tokens: MAX_TOKENS,
           system: [{ type: 'text', text: prompt.document, cache_control: { type: 'ephemeral' } }],
           tools: definitions,
@@ -157,7 +160,7 @@ export function liveClient(apiKey: string, options: LiveOptions = {}): AgentClie
       }
       messages.push({ role: 'user', content: 'Return your verdict now.' })
       const final = await anthropic.messages.create({
-        model: MODEL,
+        model,
         max_tokens: MAX_TOKENS,
         system: [{ type: 'text', text: prompt.document, cache_control: { type: 'ephemeral' } }],
         tools: definitions,

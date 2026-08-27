@@ -2,6 +2,16 @@ import { el } from './dom.ts'
 
 const KEY = 'woodshed.anthropicKey'
 const MOOD = 'woodshed.agentMood'
+const MODEL = 'woodshed.agentModel'
+
+/** Model ids offered in the dropdown; the first is the default. */
+const MODELS = [
+  ['claude-opus-5', 'Opus 5'],
+  ['claude-sonnet-5', 'Sonnet 5'],
+  ['claude-haiku-4-5', 'Haiku 4.5'],
+] as const
+
+type ModelId = (typeof MODELS)[number][0]
 
 /** Pastes arrive with newlines, spaces or the quotes from a shell export line. */
 function clean(raw: string): string {
@@ -47,13 +57,37 @@ export function agentKeyRow(): HTMLElement {
     try { localStorage.setItem(MOOD, select.value) } catch { /* ignore */ }
   })
   mood.append(el('span', undefined, 'mood'), select)
+  const model = el('label', 'agent-model')
+  const modelSelect = document.createElement('select')
+  for (const [value, label] of MODELS) {
+    const option = document.createElement('option')
+    option.value = value
+    option.textContent = label
+    modelSelect.appendChild(option)
+  }
+  modelSelect.setAttribute('aria-label', 'Agent model')
+  modelSelect.value = agentModel()
+  modelSelect.addEventListener('change', () => {
+    try { localStorage.setItem(MODEL, modelSelect.value) } catch { /* ignore */ }
+  })
+  model.append(el('span', undefined, 'model'), modelSelect)
   row.append(
     el('span', undefined, 'Anthropic API key (optional)'),
     input,
+    model,
     mood,
     el('small', undefined, 'Stays in this browser’s storage and is sent only to api.anthropic.com; with it, an agent narrates and orders the menu.'),
   )
   return row
+}
+
+export function agentModel(): ModelId {
+  try {
+    const stored = localStorage.getItem(MODEL)
+    return MODELS.some(([id]) => id === stored) ? (stored as ModelId) : MODELS[0][0]
+  } catch {
+    return MODELS[0][0]
+  }
 }
 
 export function agentPersona(): 'teacher' | 'jaded' {

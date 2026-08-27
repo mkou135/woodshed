@@ -31,7 +31,7 @@ function chooseClient(): AgentClient | null {
   if (noAgent) return null
   if (process.env.AGENT_FIXTURES) return replayClient(loadFixtures(process.env.AGENT_FIXTURES))
   if (process.env.ANTHROPIC_API_KEY) {
-    return liveClient(process.env.ANTHROPIC_API_KEY, { recordDir: process.env.AGENT_RECORD })
+    return liveClient(process.env.ANTHROPIC_API_KEY, { recordDir: process.env.AGENT_RECORD, model: process.env.ANTHROPIC_MODEL })
   }
   console.log('agent: no ANTHROPIC_API_KEY — deterministic output (docs/superpowers/specs/2026-08-25-agent-layer-design.md)')
   return null
