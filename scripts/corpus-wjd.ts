@@ -17,6 +17,7 @@
  */
 import { DatabaseSync } from 'node:sqlite'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { scoreFromWjd } from '../src/ingest/wjd.ts'
 import type { WjdBeatRow, WjdMelodyRow, WjdSolo } from '../src/ingest/wjd.ts'
 import { prepare } from '../src/prepare/index.ts'
@@ -25,7 +26,7 @@ import { buildUnits } from '../src/practice/unit.ts'
 import { tuneFromScore } from '../src/practice/tune.ts'
 
 const dbPath = process.env.WJD ?? `${process.env.HOME}/dev/woodshed-data/wjazzd.db`
-const goldenPath = new URL('../goldens/corpus-wjd.json', import.meta.url).pathname
+const goldenPath = fileURLToPath(new URL('../goldens/corpus-wjd.json', import.meta.url))
 const limitArg = process.argv.indexOf('--limit')
 const limit = limitArg > -1 ? Number(process.argv[limitArg + 1]) : Infinity
 const verbose = process.argv.includes('--verbose')
@@ -158,7 +159,11 @@ function serialise(entries: Map<number, Entry>): string {
 const fieldMoved = new Map<string, number>()
 
 if (limit !== Infinity) {
-  console.log('\ngolden: not compared — --limit runs only part of the corpus.')
+  // A partial sweep can neither be compared nor pinned: every solo past the
+  // limit would read as removed, and writing one would poison the golden.
+  console.log(writeGolden
+    ? '\ngolden: NOT written — --limit runs only part of the corpus. Re-run without it.'
+    : '\ngolden: not compared — --limit runs only part of the corpus.')
 } else if (writeGolden) {
   writeFileSync(goldenPath, serialise(current))
   console.log(`\ngolden: wrote ${current.size} solos to goldens/corpus-wjd.json`)
