@@ -290,8 +290,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   background-position: right 0.55rem center;
   background-size: 0.6rem;
 }
-.field .goto input, .goto input { width: 4.5rem; font-family: var(--mono); font-size: 0.8rem }
-.goto input { width: 4.5rem }
+.goto input { width: 4.5rem; font-family: var(--mono); font-size: 0.8rem }
 
 /* A static key — a mark the player does not toggle, so it gets no box. */
 .key { display: inline-flex; align-items: center; gap: 0.4rem; font: 500 0.78rem/1 var(--disp); letter-spacing: 0.1em; text-transform: uppercase; color: var(--pencil) }
