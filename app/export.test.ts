@@ -78,6 +78,11 @@ describe('annotationExportHtml', () => {
     expect(html).toContain('A half-opacity tick is a phrase it opened on a call it was not sure of')
     // One-sided: confidence is floored at the threshold, so it is never below it.
     expect(html).toContain('cleared the 0.45 threshold by less than 0.15')
+    // `boundaryCandidates` does not exclude gaps that became boundaries, so a
+    // caret and a faint tick routinely mark the same gap. Measured across the
+    // peer solos: 16 of 37 faint ticks sit on a candidate; the rest are
+    // chorus starts, where the caret's `rest > 0` test excludes the gap.
+    expect(html).toContain('The two are not alternatives and often land on the same gap')
     expect(html).toContain('80.8 F1')
   })
 

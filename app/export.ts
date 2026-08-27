@@ -22,7 +22,7 @@ const LEGEND: LegendEntry[] = [
     vector: 'phrase',
     name: 'Phrase tick (amber, numbered)',
     swatch: '#c4641d',
-    meaning: 'Where the engine hears a phrase begin — the breath-to-breath unit. A half-opacity tick is a phrase it opened on a call it was not sure of: the boundary that opened it cleared the 0.45 threshold by less than 0.15, which is the same width of doubt a grey caret marks. The caret is a gap it considered and ducked; a faint tick is one it went ahead and cut on.',
+    meaning: 'Where the engine hears a phrase begin — the breath-to-breath unit. A half-opacity tick is a phrase it opened on a call it was not sure of: the boundary that opened it cleared the 0.45 threshold by less than 0.15, which is the same width of doubt a grey caret marks. The two are not alternatives and often land on the same gap: the caret says the call was close, the faint tick says the engine cut there anyway. A faint tick with no caret under it is a chorus start, where the rest the caret requires need not be there at all.',
     parameters: 'Boundary strength per gap = min(1, 0.6·rest + 0.45·length + 0.25·leap); a phrase ends when the total reaches 0.45 with a real rest present (rests under a 16th are articulation; a quarter or more counts in full). A gap into a chorus downbeat is tested without the rest requirement and with a 0.45 chorus prior added — min(1, total + 0.45) ≥ 0.45 — but only after the idea test, so a chorus start that already reads as an idea stays one. Scored 80.8 F1 against the 456-solo Weimar Jazz Database.',
   },
   {

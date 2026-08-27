@@ -443,8 +443,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
    the face: box, padding and drawn caret come from the shared field rule
    above, and a `background` or `padding` shorthand here would reset the
    chevron background-image to none and leave the select with no affordance at
-   all. `appearance: none` also removes the intrinsic width a select sizes by,
-   so the cap stays: this is a list of filenames, not the row's growth column. */
+   all. The cap stays too: a select sizes to its widest option, and these are
+   long filenames — left uncapped it eats the pinned header row. */
 .ann-head select { flex: 0 1 20rem; min-width: 10rem; font-family: var(--mono); letter-spacing: 0 }
 #modes { display: flex; gap: 0.3rem }
 #modes button {
