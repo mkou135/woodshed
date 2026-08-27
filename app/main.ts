@@ -335,7 +335,8 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
   }
 }
 
-landing.append(agentKeyRow())
+// The key belongs with the drop zone: both are things you hand the page.
+document.getElementById('land-do')!.append(agentKeyRow())
 
 async function handleFile(file: File): Promise<void> {
   errorBox.hidden = true

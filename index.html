@@ -11,21 +11,30 @@
       <header id="top" class="top" hidden></header>
 
       <section id="landing" class="land">
-        <h1>Woodshed</h1>
-        <p class="lede">
-          Drop a transcribed solo. Woodshed finds the ideas in it and turns each one
-          into four things to practise.
-        </p>
-        <div id="drop" class="drop">
-          Drop a transcription here
-          <small>.mxl or .musicxml from MuseScore, Sibelius, Finale — or choose a file</small>
-          <input id="file" type="file" accept=".mxl,.musicxml,.xml" aria-label="Choose a transcription" />
+        <div class="land-intro">
+          <h1>Woodshed</h1>
+          <p class="lede">
+            Drop a transcribed solo. Woodshed finds the ideas in it and turns each one
+            into four things to practise.
+          </p>
         </div>
-        <div class="then">
-          <div><div class="n">1</div><div class="t">Loop it</div><p>As played, with the record.</p></div>
-          <div><div class="n">2</div><div class="t">Through the tune</div><p>Every chord that takes it.</p></div>
-          <div><div class="n">3</div><div class="t">Vary it</div><p>Moved, reversed, recombined.</p></div>
-          <div><div class="n">4</div><div class="t">Write your own</div><p>Then check it here.</p></div>
+        <div id="land-do" class="land-do">
+          <div id="drop" class="drop">
+            Drop a transcription here
+            <small>.mxl or .musicxml from MuseScore, Sibelius, Finale</small>
+            <input id="file" type="file" accept=".mxl,.musicxml,.xml" aria-label="Choose a transcription" />
+          </div>
+        </div>
+        <!-- A real sequence — the four steps are worked in order — so it is a
+             numbered list, not four cards that happen to carry digits. -->
+        <div class="land-then">
+          <h2 class="label">Then, for every idea it finds</h2>
+          <ol class="then">
+            <li><span class="n">1</span><span class="t">Loop it</span><p>As played, with the record.</p></li>
+            <li><span class="n">2</span><span class="t">Through the tune</span><p>Every chord that takes it.</p></li>
+            <li><span class="n">3</span><span class="t">Vary it</span><p>Moved, reversed, recombined.</p></li>
+            <li><span class="n">4</span><span class="t">Write your own</span><p>Then check it here.</p></li>
+          </ol>
         </div>
       </section>
 
