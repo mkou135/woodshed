@@ -407,3 +407,11 @@ blind) prints scale names under the staff; clicking strikes one out as "not
 implied by the solo", stored as scalesRejected and listed by eval:owner.
 393 tests, typecheck, build green; browser-verified on Autumn Leaves (12
 outside, 6 groups, 62 scales, strike-out persisted; test file deleted).
+2026-08-27 · session 13 (cont. 5) · Audit of the untouched mintzer.mxl seed
+at the owner's request: starts trustworthy (12/13 vs the owner's old hand
+brackets, 0 false), variation groups all real recurring cells, but outside
+proposals flooded (40% of notes, bridge conflation, absolute threshold vs
+0.29 baseline) and variation groups conflate vocabulary recurrence with
+motivic development. Two new OPEN_QUESTIONS entries carry the candidate
+rules (relative threshold + dominant tolerance + phrase-split; proximity
+grouping + far-flung cells seeding stars instead).

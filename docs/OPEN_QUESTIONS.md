@@ -288,3 +288,23 @@ All of these are proposals; none is implemented.
   chorus-start bonus term in the cue (breaks only when the surface at
   least weakly agrees), score against eval:owner blind files + eval:wjd +
   brackets.
+- **Outside seeding needs a relative threshold and a dominant rule.** Audit
+  of the untouched mintzer.mxl seed (2026-08-27): 40% of the solo's notes
+  fell inside proposed outside spans (the owner's hand marks on the blues
+  covered ~6%), spans ballooned to 7–9 bars, and 5 of 12 spans are just
+  the AABA bridge. Cause: absolute hot threshold 1/3 vs this solo's
+  baseline off-declared-scale rate 0.29 (blues 0.18), plus the function
+  rule declaring Mixolydian on bridge dominants while Mintzer plays
+  altered — off-Mixolydian ≠ outside; over a dominant almost the only
+  wrong pc is the major 7. Candidate rules: hot = baseline + margin, split
+  spans at seeded phrase starts, and over dominants count only pcs
+  outside Mixolydian ∪ Lydian b7 ∪ altered. Resolve: implement, reseed,
+  check proposals land near the owner's blues/hey-lock marks and cover
+  ≤ ~10% of notes.
+- **Engine "variations" are vocabulary, not development.** The seeded
+  groups pair bar 3 with bar 119 — a cell recurring across the whole solo
+  — where the owner's hand-marked groups sit within 2–14 bars (sequences,
+  immediate development). Candidate: group only occurrences within ~16
+  bars for variation seeding, and seed the far-flung high-count cells
+  (e.g. chromatic enclosure into the 1 from above, 7 hits) as **star**
+  candidates instead — recurring vocabulary is what drilling wants.
