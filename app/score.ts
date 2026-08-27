@@ -2,7 +2,21 @@ import { OpenSheetMusicDisplay } from 'opensheetmusicdisplay'
 import { barLabel, writtenBar } from '../src/core/bars.ts'
 import { TICKS_PER_QUARTER, boundaryCandidates, languageRuns, soloistNotes } from '../src/index.ts'
 import type { Finding, PipelineResult, PracticeUnit } from '../src/index.ts'
+import { CANDIDATE_BAND, DEFAULTS as SEGMENT_DEFAULTS } from '../src/analyse/segment.ts'
 import { el, svgEl } from './dom.ts'
+
+/**
+ * A phrase is drawn at half opacity when the boundary that opened it cleared
+ * the segmentation threshold by less than the candidate band — the same width
+ * of doubt inside which `boundaryCandidates()` refuses to call a gap and
+ * defers to the agent. So a faint tick means "the engine opened this phrase
+ * on a call it was not sure of", which is the only thing the mark has ever
+ * honestly said: there is no structural/forced kind of boundary any more (the
+ * chorus wall became the `wChorus` prior), and the old literal 0.6 never
+ * separated one. Derived rather than written out so it cannot drift from the
+ * spec.
+ */
+const WEAK_CONFIDENCE = SEGMENT_DEFAULTS.threshold + CANDIDATE_BAND
 
 /**
  * The solo on the page: OSMD renders it, phrase and idea ticks are drawn
@@ -99,9 +113,17 @@ export async function renderNotation(container: HTMLElement, xml: string): Promi
     const osmd = new OpenSheetMusicDisplay(container, { autoResize: false, drawTitle: false, drawPartNames: false })
     await osmd.load(xml)
     osmd.render()
-    trimNotation(container)
   } catch (error) {
     container.appendChild(el('p', 'empty', `Could not render this exercise: ${(error as Error).message}`))
+    return
+  }
+  // Cropping is cosmetic, and `getBBox()` throws in engines that have not laid
+  // the SVG out. Its own try: a failed crop must leave an untrimmed but
+  // perfectly good exercise, never print "Could not render" under one.
+  try {
+    trimNotation(container)
+  } catch {
+    // Untrimmed is the correct fallback; the notes are already on the page.
   }
 }
 
@@ -120,7 +142,10 @@ function trimNotation(container: HTMLElement): void {
   if (!(width > 0) || !(box.height > 0)) return
   const pad = 8
   const top = Math.max(0, box.y - pad)
-  const height = box.height + pad * 2
+  // The top pad is whatever the clamp actually gave us: when the drawing
+  // starts within `pad` of the canvas top, `top` is 0 and a flat `pad * 2`
+  // would over-extend the bottom by the difference.
+  const height = box.height + pad + (box.y - top)
   svg.setAttribute('viewBox', `0 ${top} ${width} ${height}`)
   svg.setAttribute('height', String(height))
 }
@@ -304,7 +329,11 @@ function markPhrases(result: PipelineResult, map: SoloMap): void {
     anchor ??= map.notes.get(noteKey(firstBar, first.beat))?.[0]
     const staff = map.staves.get(firstBar)
     if (!anchor || !staff) return
-    tick(anchor, staff, `phrase-tick${phrase.confidence < 0.6 ? ' weak' : ''}`, String(i + 1))
+    // Exclusive at the edge, on purpose: a total of exactly threshold + band
+    // is 0.6·1 — a saturated rest cue, the most confident call the engine
+    // makes. `boundaryCandidates`' inclusive `<= band` is a two-sided test on
+    // an unfloored cue; this one is floored at the threshold and one-sided.
+    tick(anchor, staff, `phrase-tick${phrase.confidence < WEAK_CONFIDENCE ? ' weak' : ''}`, String(i + 1))
 
     phrase.ideas.forEach((idea, j) => {
       if (j === 0) return
