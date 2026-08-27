@@ -62,7 +62,7 @@ const beatsQ = db.prepare("select bar, beat, coalesce(chord, '') as chord, coale
  * something about the source: that this melid's `beats.form` column carried
  * rehearsal annotations. `rejected: 'mixed-meter'` says a specific recording
  * changes meter. Both are true facts about WJD entries. They are here because
- * each is one token from a fixed four- or three-value vocabulary — a couple
+ * each is one token from a fixed five- or three-value vocabulary — a couple
  * of bits per solo, reconstructing nothing — and because the file is
  * unreadable without them. Anything richer (the meters themselves, the form
  * length, bar counts) fails the same test and stays out. See DECISIONS

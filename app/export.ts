@@ -23,7 +23,7 @@ const LEGEND: LegendEntry[] = [
     name: 'Phrase tick (amber, numbered)',
     swatch: '#c4641d',
     meaning: 'Where the engine hears a phrase begin — the breath-to-breath unit. A half-opacity tick is a phrase it opened on a call it was not sure of: the boundary that opened it cleared the 0.45 threshold by less than 0.15, which is the same width of doubt a grey caret marks. The two are not alternatives and often land on the same gap: the caret says the call was close, the faint tick says the engine cut there anyway. A faint tick with no caret under it is a chorus start, where the rest the caret requires need not be there at all.',
-    parameters: 'Boundary strength per gap = min(1, 0.6·rest + 0.45·length + 0.25·leap); a phrase ends when the total reaches 0.45 with a real rest present (rests under a 16th are articulation; a quarter or more counts in full). A gap into a chorus downbeat is tested without the rest requirement and with a 0.45 chorus prior added — min(1, total + 0.45) ≥ 0.45 — but only after the idea test, so a chorus start that already reads as an idea stays one. Scored 80.8 F1 against the 456-solo Weimar Jazz Database.',
+    parameters: 'Boundary strength per gap = min(1, 0.6·rest + 0.45·length + 0.25·leap); a phrase ends when the total reaches 0.45 with a real rest present (rests under a 16th are articulation; a quarter or more counts in full). A gap into a chorus downbeat is tested without the rest requirement and with a 0.45 chorus prior added — min(1, total + 0.45) ≥ 0.45 — but only after the idea test, so a chorus start that already reads as an idea stays one, and never when the line picked up into that downbeat from the last two beats of the bar before — a phrase that runs over the bar line is not cut at it. Scored 80.8 F1 against the 456-solo Weimar Jazz Database.',
   },
   {
     vector: 'idea',
@@ -51,7 +51,7 @@ const LEGEND: LegendEntry[] = [
     name: 'Recurring cell (green underline)',
     swatch: '#2f855a',
     meaning: 'A figure the player keeps returning to: the same interval shape appearing more than once, named by its intervals when no dictionary name exists.',
-    parameters: 'Interval n-grams of 3–6 notes with ≥ 2 occurrences; all-step one-direction runs excluded as trivia; cells of ≥ 4 notes join a variant family when they are the head’s exact inversion or differ in one interval by ≤ 2 semitones.',
+    parameters: 'Interval n-grams of 4–7 notes with ≥ 2 occurrences; all-step one-direction runs excluded as trivia; cells of ≥ 5 notes join a variant family when they are the head’s exact inversion or differ in one interval by ≤ 2 semitones.',
   },
   {
     vector: 'language',

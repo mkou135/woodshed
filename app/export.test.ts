@@ -75,6 +75,9 @@ describe('annotationExportHtml', () => {
     // became the wChorus prior, and the legend is a prose copy of the spec.
     expect(html).not.toContain('structural boundary')
     expect(html).toContain('min(1, total + 0.45) ≥ 0.45')
+    // `!pickupInto` is load-bearing in the rule (segment.ts:401) and the legend
+    // transcribes the rule, so it has to carry the exemption too.
+    expect(html).toContain('never when the line picked up into that downbeat')
     expect(html).toContain('A half-opacity tick is a phrase it opened on a call it was not sure of')
     // One-sided: confidence is floored at the threshold, so it is never below it.
     expect(html).toContain('cleared the 0.45 threshold by less than 0.15')

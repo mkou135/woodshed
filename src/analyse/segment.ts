@@ -128,11 +128,15 @@ export const DEFAULTS: SegmentOptions = {
   fullRest: TICKS_PER_QUARTER,
   minRest: TICKS_PER_QUARTER / 4,
   articulationSpan: TICKS_PER_QUARTER,
-  // Tuned against the Weimar Jazz Database (scripts/eval-wjd.ts): phrase
-  // boundaries F1 83.8, idea boundaries F1 76.3 on 456 solos, within 0.6
-  // of the best setting found while keeping a long-held note (6x the
-  // median — three beats among eighths) as an idea cue on its own, which
-  // the owner hears. See docs/research/phrases-and-ideas.md.
+  // Tuned against the Weimar Jazz Database (scripts/eval-wjd.ts), picking
+  // the setting nearest the best found that still keeps a long-held note
+  // (6x the median — three beats among eighths) as an idea cue on its own,
+  // which the owner hears. See docs/research/phrases-and-ideas.md.
+  // The F1 figures that used to sit here are **superseded**: they were
+  // measured before Task 5a wired chorus starts into `eval:wjd` at all, so
+  // they are not comparable with the numbers in force, and this tuning has
+  // not been re-run under the wired eval. Read docs/ENGINE_SPEC.md for the
+  // current table rather than quoting a number from here.
   wRest: 0.6,
   wLength: 0.45,
   wLeap: 0.25,
