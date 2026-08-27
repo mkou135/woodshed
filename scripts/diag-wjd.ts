@@ -7,7 +7,6 @@
  *   LEVEL=phrase npm run diag:wjd    # phrase level
  */
 import { DatabaseSync } from 'node:sqlite'
-import { notesFromWjd } from '../src/ingest/wjd.ts'
 import type { WjdMelodyRow } from '../src/ingest/wjd.ts'
 import { segment, boundaryCue } from '../src/analyse/segment.ts'
 import { scoreFromWjd } from '../src/ingest/wjd.ts'
@@ -38,7 +37,6 @@ function feats(notes: Note[], i: number, med: number): F {
   const c = boundaryCue(notes, i, med)
   const dirBefore = i > 0 ? Math.sign(h.midi - notes[i - 1].midi) : 0
   const dirAfter = Math.sign(n.midi - h.midi)
-  const dirAfter2 = i + 2 < notes.length ? Math.sign(notes[i + 2].midi - n.midi) : 0
   const iv = (k: number) => notes[k + 1].midi - notes[k].midi
   let repeat = 0
   if (i + 3 < notes.length) {
