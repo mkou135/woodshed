@@ -484,3 +484,11 @@ St Thomas / Blake pin changes.
 claude-opus-5 becomes LiveOptions.model — page dropdown next to the BYOK
 key (Opus 5 / Sonnet 5 / Haiku 4.5, woodshed.agentModel, default Opus 5),
 CLI env ANTHROPIC_MODEL. 414 tests, typecheck, build green; pushed.
+2026-08-27 · session 14 (cont.) · Engine-evidence overlays on the main
+page score: opt-in checkbox strip (phrases/cells/devices/recurring/
+common language/boundary candidates/stock), per-vector underline lanes
+with confidence opacity, candidate carets with cue tooltips, stock wash,
+languageRuns helper (tested) merging mined-table windows for display.
+Verified live in Chrome on Blake: all lanes draw, tooltip shows "f3
+dominant arpeggio 3 to the b9 · 0.95 · shape+target · common language ·
+2%", no console errors. 417 tests, typecheck, build green; pushed.

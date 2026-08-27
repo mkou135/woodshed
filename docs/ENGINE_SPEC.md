@@ -435,6 +435,21 @@ omitted (6,482 of 7,742). Regenerate after any ingest change.
     drawn on Blake), `all` (57), `off`. The default is the quiet one because
     three of the four sources say in print that marking every bar is the
     failure mode.
+- **Engine overlays** (`score.ts` `showOverlays`, strip in `main.ts`,
+  `localStorage` `woodshed.overlays` JSON): opt-in audit view of what the
+  detectors guessed, drawn where they guessed it. Checkboxes: phrases
+  (the existing ticks, the one default-on switch), cells / devices /
+  recurring / common language (underlines below the tick labels,
+  `LANE_BASE` 32 + `LANE_GAP` 6 px per fixed lane, opacity 0.35 +
+  0.65·confidence — the seeder's convention), boundary candidates (grey
+  carets at the near-threshold gaps the agent's segment job adjudicates,
+  tooltip with the cue numbers), stock (grey wash behind units whose
+  stockParts max ≥ 0.5, tooltip naming the dominant signal). Common
+  language draws marked findings plus `languageRuns` ≥ `LANGUAGE_RUN_MIN`
+  **0.25** WJD share (merged overlapping windows, best share kept —
+  `analyse/language.ts`, tested). Tooltips reuse the agent-tip element
+  without the amber agent-sourced class; finding tips carry id, name,
+  confidence, detectors, corpus share.
 - Scrolling to an SVG note group must be instant and deferred with
   `setTimeout`, not `requestAnimationFrame` (never fires in a background
   tab) and not `smooth` (Chrome ignores it on SVG groups).

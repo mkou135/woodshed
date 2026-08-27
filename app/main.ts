@@ -3,7 +3,8 @@ import type { AgentOutput, PipelineResult, PracticeUnit } from '../src/index.ts'
 import { agentKey, agentKeyRow, agentModel, agentPersona } from './agentKey.ts'
 import { button, el } from './dom.ts'
 import { renderScore } from './score.ts'
-import type { ScaleMode } from './score.ts'
+import type { OverlaySettings, ScaleMode } from './score.ts'
+import { OVERLAY_DEFAULTS } from './score.ts'
 import { tuneChip } from './tune.ts'
 import { detailsDrawer, whereOf } from './details.ts'
 import { doneStore } from './done.ts'
@@ -73,6 +74,7 @@ function soloTitle(result: PipelineResult, filename: string): string {
 
 /** Which scales the band shows; one setting for the browser, not per solo. */
 const SCALES_KEY = 'woodshed.scales'
+const OVERLAYS_KEY = 'woodshed.overlays'
 
 function header(result: PipelineResult, filename: string, chip: HTMLElement, picker: HTMLElement, details: HTMLElement): void {
   const title = el('span', 'solo-title', soloTitle(result, filename))
@@ -194,7 +196,40 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
   }
   scalesSelect.setAttribute('aria-label', 'Which scales to show')
   scales.append(el('span', undefined, 'scales'), scalesSelect)
-  legend.append(ph, id, hl, scales, goto)
+
+  // Engine-evidence overlays: opt-in checkboxes for auditing what the
+  // detectors guessed, drawn where they guessed it. Choices stick per browser.
+  const overlays = el('span', 'overlays')
+  overlays.append(el('span', undefined, 'engine:'))
+  const overlaySettings: OverlaySettings = { ...OVERLAY_DEFAULTS }
+  try {
+    Object.assign(overlaySettings, JSON.parse(localStorage.getItem(OVERLAYS_KEY) ?? '{}'))
+  } catch { /* defaults stand */ }
+  const overlayBoxes: [keyof OverlaySettings, string][] = [
+    ['ticks', 'phrases'],
+    ['cells', 'cells'],
+    ['devices', 'devices'],
+    ['recurring', 'recurring'],
+    ['language', 'common language'],
+    ['candidates', 'boundary candidates'],
+    ['stock', 'stock'],
+  ]
+  const onOverlayChange: { fn: () => void } = { fn: () => {} }
+  for (const [key, label] of overlayBoxes) {
+    const wrap = el('label', `ov ov-${key}`)
+    const box = document.createElement('input')
+    box.type = 'checkbox'
+    box.checked = overlaySettings[key]
+    box.addEventListener('change', () => {
+      overlaySettings[key] = box.checked
+      try { localStorage.setItem(OVERLAYS_KEY, JSON.stringify(overlaySettings)) } catch { /* ignore */ }
+      onOverlayChange.fn()
+    })
+    wrap.append(box, el('span', undefined, label))
+    overlays.appendChild(wrap)
+  }
+
+  legend.append(ph, id, hl, scales, overlays, goto)
   const solo = el('div', 'solo')
   sheet.append(legend, solo)
 
@@ -227,6 +262,9 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
     localStorage.setItem(SCALES_KEY, mode)
     view.showScales(mode)
   })
+
+  onOverlayChange.fn = () => view.showOverlays(overlaySettings)
+  view.showOverlays(overlaySettings)
 
   const desk = practiceDesk(deskHost, result, view, done)
   let units = agent?.ranking ? agentOrder(result.units, agent) : result.units

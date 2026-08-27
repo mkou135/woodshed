@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { contextualise } from './context.ts'
 import type { Chord, Note } from '../core/types.ts'
-import { bucket, crossKey, languageShare, languageWindows, singleKey } from './language.ts'
+import { bucket, crossKey, languageRuns, languageShare, languageWindows, singleKey } from './language.ts'
 
 const note = (midi: number, k: number): Note => ({
   midi,
@@ -88,5 +88,27 @@ describe('languageShare', () => {
     }
     // First four notes covered at 0.8, last four at 0.2.
     expect(languageShare(iiVContexts(), table, 100)).toBeCloseTo(0.5)
+  })
+})
+
+describe('languageRuns', () => {
+  it('merges overlapping windows into runs carrying the best share', () => {
+    const table = {
+      '1 2 3 5@min': { wjd: 80, bop: 0 },
+      '2 3 5@min': { wjd: 90, bop: 0 },          // too short: never a window key
+      '1 2 3 5@min|3 5 b7 2@dom+5': { wjd: 30, bop: 0 },
+    }
+    const runs = languageRuns(iiVContexts(), 0.25, table, 100)
+    expect(runs).toEqual([{ start: 0, end: 7, share: 0.8 }])
+  })
+
+  it('drops windows below the floor and keeps disjoint runs apart', () => {
+    const table = { '1 2 3 5@min': { wjd: 80, bop: 0 }, '3 5 b7 2@dom': { wjd: 10, bop: 0 } }
+    const runs = languageRuns(iiVContexts(), 0.25, table, 100)
+    expect(runs).toEqual([{ start: 0, end: 3, share: 0.8 }])
+  })
+
+  it('is empty with no solos counted', () => {
+    expect(languageRuns(iiVContexts(), 0.25, {}, 0)).toEqual([])
   })
 })

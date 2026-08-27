@@ -107,6 +107,42 @@ export function languageWindows(ctx: NoteContext[]): LanguageWindow[] {
   return windows
 }
 
+export interface LanguageRun {
+  start: number
+  end: number
+  /** Best WJD document share of any merged window, 0-1. */
+  share: number
+}
+
+/**
+ * Contiguous stretches of common language for display: windows whose WJD
+ * share reaches `minShare`, overlapping or touching ones merged, each run
+ * carrying the best share inside it. What a score overlay draws.
+ */
+export function languageRuns(
+  ctx: NoteContext[],
+  minShare: number,
+  table: LanguageTable = LICK_PATTERNS,
+  solos: number = LICK_WJD_SOLOS,
+): LanguageRun[] {
+  if (solos === 0) return []
+  const hot = languageWindows(ctx)
+    .map((w) => ({ ...w, share: (table[w.key]?.wjd ?? 0) / solos }))
+    .filter((w) => w.share >= minShare)
+    .sort((a, b) => a.start - b.start || a.end - b.end)
+  const runs: LanguageRun[] = []
+  for (const w of hot) {
+    const last = runs[runs.length - 1]
+    if (last && w.start <= last.end + 1) {
+      last.end = Math.max(last.end, w.end)
+      last.share = Math.max(last.share, w.share)
+    } else {
+      runs.push({ start: w.start, end: w.end, share: w.share })
+    }
+  }
+  return runs
+}
+
 /**
  * How much of a line is common jazz language, by the mined table: each note
  * takes the best WJD document share of any window covering it; the line's

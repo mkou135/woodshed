@@ -386,3 +386,26 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
 .ann-scale text { fill: var(--pencil); font: 500 10px var(--disp); cursor: pointer }
 .ann-scale.off text { text-decoration: line-through; opacity: 0.45 }
 .pending { outline: 2px solid var(--idea); outline-offset: 2px }
+
+/* Engine-evidence overlays (score audit) */
+:root {
+  --ov-cell: #2f6fb2;
+  --ov-device: #d97706;
+  --ov-recurring: #2f855a;
+  --ov-language: #b83280;
+}
+.overlays { display: inline-flex; gap: 0.55rem; align-items: center; flex-wrap: wrap; color: var(--pencil) }
+.overlays .ov { display: inline-flex; gap: 0.25rem; align-items: center; cursor: pointer }
+.overlays .ov input { accent-color: var(--pencil); margin: 0 }
+.overlays .ov-cells input { accent-color: var(--ov-cell) }
+.overlays .ov-devices input { accent-color: var(--ov-device) }
+.overlays .ov-recurring input { accent-color: var(--ov-recurring) }
+.overlays .ov-language input { accent-color: var(--ov-language) }
+.eng-overlay { cursor: pointer }
+.eng-overlay.ov-cell rect { fill: var(--ov-cell) }
+.eng-overlay.ov-device rect { fill: var(--ov-device) }
+.eng-overlay.ov-recurring rect { fill: var(--ov-recurring) }
+.eng-overlay.ov-language rect { fill: var(--ov-language) }
+.cand-caret { cursor: pointer }
+.cand-caret path { fill: var(--pencil); opacity: 0.8 }
+.stock-shade { fill: #8892a0; fill-opacity: 0.13; cursor: pointer }
