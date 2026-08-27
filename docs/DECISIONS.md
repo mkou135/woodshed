@@ -576,8 +576,9 @@ Evidence class: owner-approved design · owner + Claude · would reverse:
 lick hits mislabelling on real solos (a wrong name is worse than none), or
 the summary split confusing rather than informing practice.
 
-2026-08-27 · **`excerpt` lays bars out by flooring, not by `%`** · Question:
-why did `corpus:wjd` throw "Cannot read properties of undefined (reading
+## 2026-08-27 — `excerpt` lays bars out by flooring, not by `%`
+
+Question: why did `corpus:wjd` throw "Cannot read properties of undefined (reading
 'events')" at `loop.ts:50` on melids 78 (Potter), 135 (Gillespie) and 189
 (Higginbotham), and where does it belong fixed? Mechanism: `throughStep`
 moves a line by `match.chords[0].onset − sourceStart` so the line's first
@@ -606,8 +607,9 @@ Evidence class: reproduced and instrumented on the corpus · Claude · would
 reverse: an excerpt whose pickup bar reads wrong on a real solo (then the
 line wants trimming to the bar, not a pickup bar).
 
-2026-08-27 · **What may live in a corpus golden** · Question: `corpus:wjd`
-now pins itself against `goldens/corpus-wjd.json`, a committed file derived
+## 2026-08-27 — What may live in a corpus golden
+
+Question: `corpus:wjd` now pins itself against `goldens/corpus-wjd.json`, a committed file derived
 from the ODbL Weimar Jazz Database, which under CLAUDE.md may never enter
 the repo. The counts (`findings`, `units`, `phrases`, `ideas`) are plainly
 derived aggregate statistics and are permitted. Two further per-solo fields
@@ -691,3 +693,37 @@ advisor-reviewed, returned to the controller as the task's one open
 concern · would reverse: the owner saying the WJD's precision matters more
 than their chorus marks, or a second blind-annotated solo agreeing with the
 corpus. Flipping is one number, one ENGINE_SPEC row and a golden re-pin.
+
+## 2026-08-27 — Correction: flipping `wChorus` is five things, not three
+
+Question: the entry above ("Chorus-start prior value") closes with
+"Flipping is one number, one ENGINE_SPEC row and a golden re-pin." Is that
+the whole reversal cost? Decision: **no — the checklist under-counts by two
+files, and this entry supersedes that closing sentence.** The entry itself
+stands; only its last sentence was wrong, and DECISIONS is append-only, so
+it is corrected here rather than rewritten there. The annotation export
+carries a prose copy of the rule, and its test asserts on the copy
+literally. Setting `wChorus = 0` therefore touches, in full:
+
+1. `DEFAULTS.wChorus` in `src/analyse/segment.ts` — the one number.
+2. The `wChorus` row in `docs/ENGINE_SPEC.md`, plus the phrase-F1 figure
+   in force (82.5 unwired, not 80.8).
+3. `goldens/corpus-wjd.json` — re-pin, `npm run corpus:wjd --write-golden`.
+4. `app/export.ts` — the phrase-tick legend, in two places, neither of
+   which degrades gracefully. Its `parameters` string transcribes the rule
+   as `min(1, total + 0.45) ≥ 0.45` and cites `Scored 80.8 F1`; its
+   `meaning` string ends "A faint tick with no caret under it is a chorus
+   start", which at `wChorus = 0` describes a mark the engine can no longer
+   emit. Left unedited, every exported annotation file would describe a
+   prior that is switched off — and the export exists to be handed to a
+   musician who cannot check it against the source.
+5. `app/export.test.ts` — the assertions on those literals (the formula,
+   `80.8 F1`, the faint-tick and pickup-exemption sentences). They fail on
+   the flip by design; update them with the copy, never loosen them.
+
+Evidence class: read of the code at HEAD, verified by grep across `app/`
+(`app/score.ts` carries only the unrelated `threshold 0.45` candidate
+detail and needs no change) · Claude, final whole-branch review · would
+reverse: the export legend ceasing to quote parameter values, which is the
+only reason items 4 and 5 exist — see the header comment in `app/export.ts`
+that makes quoting them a standing obligation.

@@ -528,8 +528,8 @@ onset >= 0), T2 pinned the 456-solo sweep with goldens/corpus-wjd.json
 works), T3 covered the annotation export (a505aab, 429 tests). T5's spec
 was revised before dispatch after a probe found all 13 chorus-start gaps
 across both annotated solos have rest == 0 — the original design would
-have deleted every chorus boundary. Full state, open items and rulings in
-.superpowers/sdd/2026-08-27-chorus-prior-sprint/progress.md.
+have deleted every chorus boundary. Rulings and parked items: see the
+section at the end of this file.
 2026-08-27 · session 15 (cont.) · Task 5a: `eval:wjd` now passes chorus
 starts into `segment()` instead of an empty list, so the 456-solo corpus
 scores the chorus rule for the first time. Starts come from
@@ -593,5 +593,73 @@ F1 across 456 solos, measured for the first time because eval:wjd had
 never scored the chorus rule at all. Shipped at wChorus 0.45 (= the wall)
 because the owner's 7 kept chorus marks all sit at rest-free gaps and can
 only be produced at wChorus >= threshold — the owner's call to flip, and
-it is one number. Rulings and parked items in
-.superpowers/sdd/2026-08-27-chorus-prior-sprint/progress.md.
+it is one number. Rulings and parked items: see the section below.
+
+## Chorus-prior sprint (2026-08-27, session 15) — rulings and parked items
+
+Made on the owner's behalf while they were away, and previously recorded
+only in the sprint's own workspace, which is gitignored — so they vanished
+on a fresh clone. Lifted here rather than into a new document: the ledger
+is the running task log and this is that sprint's state, and the protocol
+has four files, not five. Only the judgement calls are kept; the dispatch
+mechanics that produced them are not repo material.
+
+**Rulings — scope**
+
+- **The outside-seeding task was dropped from the sprint.**
+  `scripts/viteAnnotate.ts:100-160` already implements every rule the
+  OPEN_QUESTIONS entry proposed (`SPICE_MARGIN` relative to the solo's own
+  baseline, phrase-range confinement, enclosure/approach exemption,
+  repeated-pitch damping). The entry is stale, not open. If wrong: a stale
+  entry was treated as done; recoverable by re-reading that function.
+- **Wiring chorus starts into `eval:wjd` was a prerequisite of the prior,
+  not optional scope.** `scripts/eval-wjd.ts` passed an empty forced list,
+  so the 456-solo corpus had never scored the chorus rule in either
+  direction; without it the prior would have been tuned on the owner's
+  three deletions alone. This ruling is what produced the sprint's headline
+  measurement.
+- **No dark mode was required of the design pass.** The score SVG is
+  black-on-white from OSMD and does not invert for free, so a half-done
+  dark mode is worse than none. If wrong: the owner wanted it and did not
+  get it.
+
+**Rulings — findings**
+
+- **The revised chorus rule's equivalence gate is unsatisfiable as
+  written**, and the confidence requirement wins over positional
+  equivalence. Full reasoning and the isolated control in DECISIONS
+  2026-08-27 "The chorus wall becomes `wChorus`".
+- **`wChorus` ships at 0.45 against the corpus's preference**, trading 1.7
+  phrase F1 across 456 solos to preserve the owner's 7 kept chorus marks.
+  DECISIONS 2026-08-27 "Chorus-start prior value", and the corrected
+  reversal checklist in the entry after it. **This is the trade made on the
+  owner's behalf and the first thing for them to review.**
+- **Owner acceptance was downgraded from a gate to a diagnostic.** Cue
+  total 0.00 appears on both sides of the owner's keep/delete split, so no
+  `wChorus` can reproduce their marks — gating on it would have driven an
+  implementer to contort the rule. If wrong: the owner wanted their marks
+  matched and got a table instead.
+- **The owner's damaged annotation file was left untouched.** Now an
+  OPEN_QUESTIONS entry in its own right ("Is
+  `annotations/blues-in-all-keys-bob-mintzer.json` owner data or reseed
+  output?"), which carries the positions, both commits and what would
+  resolve it. **`56425ca` is a commit Claude made; the owner decides.**
+- **On one task the brief was wrong, not the implementer.** It asserted
+  `esc()` escaped `"`; it did not. The implementer investigated instead of
+  fudging an assertion to look compliant, and `esc()` was hardened anyway —
+  an escaper safe only because of a property of its current call sites is a
+  trap for whoever adds the next attribute interpolation.
+
+**Parked — minor, none load-bearing, none scheduled**
+
+- `bars[0]` keeps `rootPc: 0, quality: 'unknown'` on a chordless pickup
+  bar in `excerpt`. Pre-existing; the old arithmetic reached it too.
+- `practice/steps/loop.test.ts` calls `excerpt` in a `describe` body, so a
+  regression surfaces as a collection error rather than a named assertion.
+  Cosmetic, and it is how the fail-before was captured.
+- An unnecessary spread on a readonly tuple in `scripts/corpus-wjd.ts`.
+- The `too-few-notes` and `'error'` rejection codes in the corpus golden
+  are dead today — nothing currently emits them.
+- The corpus golden's comparison was rewritten field by field over a closed
+  union, so a hand-reordered golden no longer reads as spurious changes;
+  the key-order-sensitive `JSON.stringify` form is gone.

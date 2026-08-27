@@ -457,14 +457,19 @@ draws no ticks for a second pass. Segno / coda remain
   chords, form found in 305, findings median 13 (max 132), units median
   35.
 - Corpus, 2026-08-27: 452 solos run, 4 rejected (mixed meter), 0 unparsed
-  chords, **0 crashes**, form found in 305, findings median 13 (max 119),
-  units median 36 (max 655). Only the crash count is attributable to a
+  chords, **0 crashes**, form found in 305, findings median 13 (max 121),
+  units median 36 (max 659). The maxima were re-measured from the
+  committed `goldens/corpus-wjd.json` at the close of the chorus-prior
+  sprint; the medians, the run/rejection counts and the form count were
+  measured before it and are unchanged by it, so the line mixes a
+  pre- and a post-`wChorus` reading that happen to agree everywhere the
+  medians look. Only the crash count is attributable to a
   measured change (DECISIONS 2026-08-27 `excerpt` flooring; the three
   solos that threw now run). The rest of the drift since 2026-08-24 is
   **unattributed**: `ingest/wjd.ts` has not changed in the window, so the
   extra mixed-meter rejection has no explanation at all, and while
   `src/analyse/` changed in some sixteen commits over the same days — any
-  of which could move findings max 132 → 119 — none was measured against
+  of which could move findings max 132 → 121 — none was measured against
   the corpus, so naming one would be a guess. Both lines stand until
   someone re-measures the intermediate points. Going forward the golden
   (`goldens/corpus-wjd.json`) makes this drift visible per solo, so a
@@ -704,6 +709,7 @@ counts recorded in session 10 had already drifted by session 13 — the
 finding: the enclosure-into-the-3 device was absorbed into the new bar-92
 b9 arpeggio by the existing overlap merge, so the count stayed 13.) St Thomas: top unit is the bar-114 b9-arpeggio unit
 (unit.test.ts pin). WJD sweep 2026-08-27: findings median 13, units
-median 36, 4 meter rejections, 3 pre-existing `events` crashes
-(OPEN_QUESTIONS). Bopland bench, first 300 licks: named coverage 72.7%
+median 36, 4 meter rejections, **0 crashes** (DECISIONS 2026-08-27
+"`excerpt` lays bars out by flooring" — the three solos that threw now
+run). Bopland bench, first 300 licks: named coverage 72.7%
 → **74.7%** with the lick entries.
