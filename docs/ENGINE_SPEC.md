@@ -423,28 +423,37 @@ Owner ground truth on the score, dev-only.
   none); `POST /__annotate/save/<name>` writes it. Every route rejects a
   name that isn't its own `basename` or contains `..` (400); a malformed
   save body is a 400, not a crash.
-- Five-mode toolbar (keys 1–5): **1 starts** — click a notehead *or a
-  rest* (a pickup rest is often part of the phrase, owner's call 2026-08-26)
-  to cycle none → idea start → phrase start → none; a phrase start counts as
-  an idea start too but is stored only once, in `phrases`, never
-  duplicated in `ideas`. Ticks are numbered like the main page — phrases
-  1..N in playing order, ideas n.2, n.3 within their phrase (0.n before the
-  first phrase mark) — relabelled on every change. **2 outside** / **3
-  star** — click first note, click last note to close a span; outside
-  colours the noteheads themselves (`--outside` magenta, `!important` to
-  beat OSMD's inline fills) plus an underline, star keeps the underline +
-  glyph; click a span to delete; Esc cancels a half-made span. **4 ends** —
-  cycle none → idea end → phrase end, tick drawn right of the note,
-  labelled with the phrase/idea open at that position plus `⌉`; ends are
-  sparse — mark one only where the implicit end (note before the next
-  start) is wrong. **5 variations** — grouped ranges: entering the mode (or
-  Esc) starts a new group; each click-pair marks one range, first the idea
-  then its variations; drawn as green underlines labelled A1, A2 … B1;
-  clicking a range deletes it and an emptied group disappears (adding to a
-  closed group means delete + re-mark, accepted 2026-08-27). Picking a file
-  blurs the dropdown so keys 1–5 always reach the mode switcher (a focused
-  select swallowed them — the 2026-08-26 "outside mode doesn't work" bug).
-  Autosave is debounced and flushed (not dropped) when switching files.
+- Five-mode toolbar (keys 1–5): **1 phrase** / **2 idea** — click a
+  notehead *or a rest* (a pickup rest is often part of the phrase, owner's
+  call 2026-08-26) to toggle a start mark at that level (split from a
+  single cycling mode 2026-08-27; clicking with the other level active
+  switches the level). A phrase start counts as an idea start too but is
+  stored only once, in `phrases`, never duplicated in `ideas`. Ticks are
+  numbered like the main page — phrases 1..N in playing order, ideas n.2,
+  n.3 within their phrase (0.n before the first phrase mark) — relabelled
+  on every change. **3 outside** / **4 star** — click first note, click
+  last note to close a span; outside colours the noteheads themselves
+  (`--outside` magenta, `!important` to beat OSMD's inline fills) plus an
+  underline, star keeps the underline + glyph; click a span to delete; Esc
+  cancels a half-made span. **5 variations** — grouped ranges: entering
+  the mode (or Esc) starts a new group; each click-pair marks one range,
+  first the idea then its variations; drawn as green underlines labelled
+  A1, A2 … B1; clicking a range deletes it and an emptied group disappears
+  (adding to a closed group means delete + re-mark, accepted 2026-08-27).
+  The ends mode (2026-08-27 morning) was retired the same day — the owner
+  didn't use it; `phraseEnds`/`ideaEnds` stay in the file format and load
+  fine, there is just no UI writing them. Picking a file blurs the
+  dropdown so keys 1–5 always reach the mode switcher (a focused select
+  swallowed them — the 2026-08-26 "outside mode doesn't work" bug). The
+  toolbar row is sticky. Autosave is debounced and flushed (not dropped)
+  when switching files; a **save** button flushes on demand. A **seed
+  from engine** button (dev middleware `GET /__annotate/engine/<name>`
+  runs the pipeline lazily) replaces all start marks with engine output —
+  after a confirm when any exist; spans/variations untouched — so a long
+  solo is a correction pass. That file's JSON carries `seeded: true`
+  forever after, and eval:owner tags it `(seeded)`: corrected-from-engine
+  agreement is biased toward the engine and never pools with blind files'
+  evidence class. See DECISIONS 2026-08-27 "Seeded annotation".
 - Storage: `annotations/<mxl-basename>.json`, one file per solo,
   `AnnotationStore` (`src/annotation/store.ts`, DOM-free, tested — cycle/
   span/serialise round-trips). Fields: `phrases`, `ideas`, `phraseEnds`,

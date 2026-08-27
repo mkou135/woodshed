@@ -9,6 +9,35 @@ const ANNOTATIONS = fileURLToPath(new URL('../annotations/', import.meta.url))
 
 const stem = (name: string): string => name.replace(/\.(mxl|musicxml|xml)$/, '')
 
+/**
+ * Run the pipeline on a peers file and print its phrase/idea starts in the
+ * annotation position dialect. Imported lazily so `vite dev` doesn't pay for
+ * the engine at config load; only the seed button does.
+ */
+async function engineSeed(name: string): Promise<{ phrases: string[]; ideas: string[] }> {
+  const { run, TICKS_PER_QUARTER } = await import('../src/index.ts')
+  const { writtenBar } = await import('../src/core/bars.ts')
+  const { formatPosition } = await import('../src/core/position.ts')
+  const result = run(new Uint8Array(readFileSync(join(PEERS, name))))
+  const { score, analysis } = result
+  const ticksPerBar = score.timeSig[0] * (4 / score.timeSig[1]) * TICKS_PER_QUARTER
+  // Copied from scripts/eval-owner.ts engineStarts/engineIdeaStarts — scripts
+  // don't import each other.
+  const phrases = analysis.phrases.map((p) => {
+    const first = p.notes[0]
+    const barStart = first.onset - first.beat * TICKS_PER_QUARTER
+    const w = writtenBar(score, first.bar)
+    const beat = (p.onset - barStart) / TICKS_PER_QUARTER + 1
+    return formatPosition({ bar: w.bar + Math.floor((p.onset - barStart) / ticksPerBar), beat })
+  })
+  const ideas = analysis.phrases.flatMap((p) => p.ideas).map((idea) => {
+    const first = idea.notes[0]
+    const w = writtenBar(score, first.bar)
+    return formatPosition({ bar: w.bar, beat: first.beat + 1 })
+  })
+  return { phrases, ideas }
+}
+
 /** Dev-only bridge for annotate.html: list peers files, serve bytes, save JSON. */
 export function annotatePlugin(): Plugin {
   return {
@@ -31,6 +60,11 @@ export function annotatePlugin(): Plugin {
           } else if (route === 'file') {
             res.setHeader('content-type', 'application/octet-stream')
             res.end(readFileSync(join(PEERS, name)))
+          } else if (route === 'engine') {
+            if (!existsSync(join(PEERS, name))) { res.statusCode = 404; res.end(); return }
+            engineSeed(name)
+              .then(json)
+              .catch((error) => { res.statusCode = 500; res.end(String(error)) })
           } else if (route === 'annotation') {
             const path = join(ANNOTATIONS, `${stem(name)}.json`)
             if (!existsSync(path)) { res.statusCode = 404; res.end(); return }

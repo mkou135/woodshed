@@ -19,6 +19,11 @@ export interface AnnotationFile {
   stars: { from: string; to: string }[]
   /** Groups of ranges: the first span is the idea, the rest its variations. */
   variations?: { from: string; to: string }[][]
+  /**
+   * True when the starts were seeded from engine output and corrected, not
+   * marked blind — eval reads these with that bias in mind.
+   */
+  seeded?: boolean
   annotated: string
 }
 
@@ -37,6 +42,7 @@ export class AnnotationStore {
   readonly file: string
   readonly boundaries: Map<string, BoundaryLevel> = new Map()
   readonly ends: Map<string, BoundaryLevel> = new Map()
+  seeded = false
   private readonly spanLists: Record<SpanKind, Span[]> = { outside: [], stars: [] }
   private readonly variationGroups: Span[][] = []
 
@@ -55,6 +61,26 @@ export class AnnotationStore {
 
   boundaryAt(p: Position): BoundaryLevel | null {
     return this.boundaries.get(formatPosition(p)) ?? null
+  }
+
+  /** Set the mark to `level`, or clear it when it is already that level. */
+  toggleBoundary(p: Position, level: BoundaryLevel): BoundaryLevel | null {
+    const key = formatPosition(p)
+    if (this.boundaries.get(key) === level) {
+      this.boundaries.delete(key)
+      return null
+    }
+    this.boundaries.set(key, level)
+    return level
+  }
+
+  /** Replace all start marks with engine output, flagging the file as seeded. */
+  seedBoundaries(phrases: Position[], ideas: Position[]): void {
+    this.boundaries.clear()
+    for (const p of ideas) this.boundaries.set(formatPosition(p), 'idea')
+    // Phrases last: a position the engine lists in both levels stays a phrase.
+    for (const p of phrases) this.boundaries.set(formatPosition(p), 'phrase')
+    this.seeded = true
   }
 
   cycleEnd(p: Position): BoundaryLevel | null {
@@ -152,12 +178,14 @@ export class AnnotationStore {
       stars: sortedSpans(this.spanLists.stars),
       // Groups keep their creation order; spans inside a group sort by position.
       variations: this.variationGroups.map(sortedSpans),
+      ...(this.seeded ? { seeded: true } : {}),
       annotated: date,
     }
   }
 
   static fromJSON(json: AnnotationFile): AnnotationStore {
     const store = new AnnotationStore(json.file)
+    store.seeded = json.seeded ?? false
     for (const key of json.ideas) store.boundaries.set(formatPosition(parsePosition(key)), 'idea')
     for (const key of json.phrases) store.boundaries.set(formatPosition(parsePosition(key)), 'phrase')
     for (const key of json.ideaEnds ?? []) store.ends.set(formatPosition(parsePosition(key)), 'idea')

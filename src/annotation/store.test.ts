@@ -18,6 +18,24 @@ describe('AnnotationStore', () => {
     expect(s.removeSpanAt('outside', p(12, 3))).toBe(true)
     expect(s.spans('outside')).toEqual([])
   })
+  it('toggles a boundary at one level directly', () => {
+    const s = new AnnotationStore('x.mxl')
+    expect(s.toggleBoundary(p(4, 1), 'phrase')).toBe('phrase')
+    expect(s.toggleBoundary(p(4, 1), 'idea')).toBe('idea')     // switches level
+    expect(s.toggleBoundary(p(4, 1), 'idea')).toBe(null)       // same level clears
+    expect(s.boundaryAt(p(4, 1))).toBe(null)
+  })
+  it('seeding replaces marks, prefers phrase on overlap, and survives the round-trip', () => {
+    const s = new AnnotationStore('x.mxl')
+    s.cycleBoundary(p(2, 1))
+    s.seedBoundaries([p(4, 1)], [p(4, 1), p(6, 3)])
+    expect(s.boundaryAt(p(2, 1))).toBe(null)
+    expect(s.boundaryAt(p(4, 1))).toBe('phrase')
+    expect(s.boundaryAt(p(6, 3))).toBe('idea')
+    const json = s.toJSON('2026-08-27')
+    expect(json.seeded).toBe(true)
+    expect(AnnotationStore.fromJSON(json).seeded).toBe(true)
+  })
   it('cycles an end mark none → idea → phrase → none', () => {
     const s = new AnnotationStore('x.mxl')
     expect(s.cycleEnd(p(6, 4))).toBe('idea')

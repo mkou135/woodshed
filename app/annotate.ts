@@ -5,11 +5,11 @@ import type { SoloMap, StaffSpan } from './score.ts'
 import { el, svgEl, button } from './dom.ts'
 import { AnnotationStore } from '../src/annotation/store.ts'
 import type { AnnotationFile } from '../src/annotation/store.ts'
-import { formatPosition } from '../src/core/position.ts'
+import { formatPosition, parsePosition } from '../src/core/position.ts'
 import type { Position } from '../src/core/position.ts'
 import { readScoreXml } from '../src/index.ts'
 
-type Mode = 'boundary' | 'outside' | 'stars' | 'ends' | 'variations'
+type Mode = 'phrase' | 'idea' | 'outside' | 'stars' | 'variations'
 type SpanKind = 'outside' | 'stars'
 
 interface NoteEntry {
@@ -28,13 +28,15 @@ const modes = document.getElementById('modes') as HTMLDivElement
 const counts = document.getElementById('counts') as HTMLDivElement
 const saved = document.getElementById('saved') as HTMLDivElement
 const errorBox = document.getElementById('ann-error') as HTMLDivElement
+const saveBtn = document.getElementById('save-btn') as HTMLButtonElement
+const engineBtn = document.getElementById('engine-btn') as HTMLButtonElement
 const dropZone = document.getElementById('drop') as HTMLDivElement
 const sheet = document.getElementById('sheet') as HTMLDivElement
 
 let map: SoloMap | null = null
 let store: AnnotationStore | null = null
 let filename: string | null = null
-let mode: Mode = 'boundary'
+let mode: Mode = 'phrase'
 
 let noteEntries: NoteEntry[] = []
 let tickNodes: SVGGElement[] = []
@@ -73,10 +75,10 @@ function setMode(next: Mode): void {
 }
 
 const MODE_LABELS: [Mode, string][] = [
-  ['boundary', '1 starts'],
-  ['outside', '2 outside'],
-  ['stars', '3 star'],
-  ['ends', '4 ends'],
+  ['phrase', '1 phrase'],
+  ['idea', '2 idea'],
+  ['outside', '3 outside'],
+  ['stars', '4 star'],
   ['variations', '5 variations'],
 ]
 for (const [m, label] of MODE_LABELS) {
@@ -84,14 +86,14 @@ for (const [m, label] of MODE_LABELS) {
   modeButtons.set(m, b)
   modes.appendChild(b)
 }
-setMode('boundary')
+setMode('phrase')
 
 document.addEventListener('keydown', (e) => {
   if (e.target instanceof HTMLSelectElement || e.target instanceof HTMLInputElement) return
-  if (e.key === '1') setMode('boundary')
-  else if (e.key === '2') setMode('outside')
-  else if (e.key === '3') setMode('stars')
-  else if (e.key === '4') setMode('ends')
+  if (e.key === '1') setMode('phrase')
+  else if (e.key === '2') setMode('idea')
+  else if (e.key === '3') setMode('outside')
+  else if (e.key === '4') setMode('stars')
   else if (e.key === '5') setMode('variations')
   else if (e.key === 'Escape') {
     cancelPending()
@@ -123,18 +125,16 @@ function buildEntries(m: SoloMap): void {
 
 // ---- boundary ticks ----
 
-function drawTick(entry: NoteEntry, level: 'idea' | 'phrase', label: string, side: 'start' | 'end'): void {
+function drawTick(entry: NoteEntry, level: 'idea' | 'phrase', label: string): void {
   const anchor = entry.nodes[0]
   const svg = anchor?.ownerSVGElement
   const staff = map?.staves.get(entry.pos.bar)
   if (!anchor || !svg || !staff) return
-  const box = anchor.getBBox()
-  // Start ticks sit left of the note, end ticks right of it.
-  const x = side === 'start' ? box.x - 10 : box.x + box.width + 7
+  const x = anchor.getBBox().x - 10
   const phrase = level === 'phrase'
   const pad = phrase ? 14 : 8
   const g = svgEl('g')
-  g.setAttribute('class', (phrase ? 'ann-phrase' : 'ann-idea') + (side === 'end' ? ' ann-end' : ''))
+  g.setAttribute('class', phrase ? 'ann-phrase' : 'ann-idea')
   const rect = svgEl('rect')
   rect.setAttribute('x', String(x))
   rect.setAttribute('y', String(staff.top - pad))
@@ -147,7 +147,6 @@ function drawTick(entry: NoteEntry, level: 'idea' | 'phrase', label: string, sid
   const text = svgEl('text')
   text.setAttribute('x', String(x))
   text.setAttribute('y', String(staff.bottom + pad + 13))
-  if (side === 'end') text.setAttribute('text-anchor', 'end')
   text.textContent = label
   g.appendChild(text)
   svg.appendChild(g)
@@ -159,9 +158,6 @@ function drawTick(entry: NoteEntry, level: 'idea' | 'phrase', label: string, sid
  * so every change relabels the lot: phrases count 1..N in playing order, and
  * ideas inside a phrase read n.2, n.3 … (the phrase start itself is idea .1),
  * mirroring the main page. Ideas before the first phrase mark show as 0.n.
- * End marks share the numbering: an end tick is labelled with the phrase or
- * idea currently open at its position, so it's drawn before a start on the
- * same note advances the counter.
  */
 function redrawAllBoundaries(): void {
   for (const g of tickNodes) g.remove()
@@ -170,11 +166,6 @@ function redrawAllBoundaries(): void {
   let phrase = 0
   let idea = 1
   for (const entry of noteEntries) {
-    const end = store.endAt(entry.pos)
-    if (end) {
-      const label = end === 'phrase' ? `${phrase}⌉` : `${phrase}.${idea}⌉`
-      drawTick(entry, end, label, 'end')
-    }
     const level = store.boundaryAt(entry.pos)
     if (!level) continue
     let label: string
@@ -186,7 +177,7 @@ function redrawAllBoundaries(): void {
       idea += 1
       label = `${phrase}.${idea}`
     }
-    drawTick(entry, level, label, 'start')
+    drawTick(entry, level, label)
   }
 }
 
@@ -281,7 +272,7 @@ function updateCounts(): void {
   }
   const c = store.counts()
   counts.textContent =
-    `${c.phrases} phrases · ${c.ideas} ideas · ${c.ends} ends · ` +
+    `${c.phrases} phrases · ${c.ideas} ideas · ` +
     `${c.outside} outside · ${c.stars} stars · ${c.variations} variation groups`
 }
 
@@ -339,9 +330,8 @@ function scheduleSave(): void {
 
 function onNoteClick(entry: NoteEntry): void {
   if (!store) return
-  if (mode === 'boundary' || mode === 'ends') {
-    if (mode === 'boundary') store.cycleBoundary(entry.pos)
-    else store.cycleEnd(entry.pos)
+  if (mode === 'phrase' || mode === 'idea') {
+    store.toggleBoundary(entry.pos, mode)
     redrawAllBoundaries()
     updateCounts()
     scheduleSave()
@@ -464,6 +454,39 @@ async function loadFileList(): Promise<void> {
     pick.appendChild(opt)
   }
 }
+
+saveBtn.addEventListener('click', () => {
+  if (pendingSave) pendingSave.flush()
+  else if (store && filename) void doSave(store, filename)
+})
+
+/**
+ * Seed start marks from the engine so a long solo is a correction pass, not
+ * a from-scratch one. This trades away blind marking for that file — the
+ * saved JSON carries `seeded: true` so eval reads it with the bias in mind.
+ */
+engineBtn.addEventListener('click', async () => {
+  if (!store || !filename) return
+  const existing = store.counts()
+  const marked = existing.phrases + existing.ideas
+  if (marked > 0 && !window.confirm(`Replace your ${marked} start marks with the engine's? Spans and variations stay.`)) return
+  engineBtn.disabled = true
+  try {
+    const res = await fetch(`/__annotate/engine/${encodeURIComponent(filename)}`)
+    if (res.status !== 200) throw new Error(`engine run failed (${res.status})`)
+    const seed = await res.json() as { phrases: string[]; ideas: string[] }
+    store.seedBoundaries(seed.phrases.map(parsePosition), seed.ideas.map(parsePosition))
+    hideLoadError()
+    redrawAllBoundaries()
+    updateCounts()
+    scheduleSave()
+  } catch (error) {
+    errorBox.textContent = `could not seed from engine — ${String(error)}`
+    errorBox.hidden = false
+  } finally {
+    engineBtn.disabled = false
+  }
+})
 
 pick.addEventListener('change', () => {
   // Give the keyboard back to the mode shortcuts: a focused select swallows

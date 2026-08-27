@@ -535,3 +535,15 @@ spec docs/superpowers/specs/2026-08-26-annotation-app-design.md · owner +
 Claude · would reverse: the tool goes unused, or the owner's marks bias
 differently than screenshots did (e.g. the page's own ticks anchor
 attention even blind).
+
+2026-08-27 · Seeded annotation amends blind marking. Question: long solos
+(Blues in All Keys) make from-scratch marking too slow — may the owner seed
+starts from the engine and correct? Decision: yes, per file, via an explicit
+button; the file carries `seeded: true` permanently and eval:owner tags it
+`(seeded)`. Seeded files are a weaker evidence class than blind ones —
+correction anchors on the engine's proposal, so agreement is inflated in an
+unmeasured way; blind files remain the reference class for boundary-term
+experiments. The ends mode shipped the same morning is retired unused (file
+format keeps the fields). Evidence class: owner request in session ·
+owner + Claude · would reverse: seeded files disagreeing with blind files
+systematically (then seeding is retuning the owner's ear, not saving time).

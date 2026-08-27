@@ -354,6 +354,15 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
 }
 #modes button.on { background: var(--ink); color: var(--ground) }
 #counts { margin-left: auto; font: 0.85rem var(--mono); color: var(--pencil) }
+#save-btn, #engine-btn {
+  padding: 0.3rem 0.7rem;
+  border: 1.5px solid var(--pencil);
+  background: none;
+  color: var(--pencil);
+  font: 500 0.85rem/1 var(--disp);
+}
+#save-btn:hover, #engine-btn:hover { border-color: var(--ink); color: var(--ink) }
+#engine-btn:disabled { opacity: 0.5 }
 #saved { width: 10px; height: 10px; border-radius: 50%; background: var(--ok) }
 #saved.dirty { background: var(--rule); animation: ann-pulse 1.1s ease-in-out infinite }
 @keyframes ann-pulse { 0%, 100% { opacity: 0.4 } 50% { opacity: 1 } }
@@ -363,7 +372,6 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
 .ann-phrase rect { fill: var(--phrase) }
 .ann-phrase text { fill: var(--phrase); font: 700 13px var(--disp) }
 .ann-clickable { cursor: pointer }
-.ann-end rect { opacity: 0.6 }
 .ann-outside rect { fill: var(--outside); opacity: 0.35 }
 /* Departures colour the notes themselves; OSMD paints fills inline, so win. */
 .ann-outside-note path, .ann-outside-note rect, .ann-outside-note ellipse {

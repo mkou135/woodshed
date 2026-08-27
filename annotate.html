@@ -13,13 +13,14 @@
         <select id="pick" aria-label="Choose a transcription"></select>
         <div id="modes" role="toolbar" aria-label="Annotation mode"></div>
         <div id="counts"></div>
+        <button id="save-btn" type="button">save</button>
+        <button id="engine-btn" type="button" title="seed starts from the engine, then correct them">seed from engine</button>
         <div id="saved" title="saved"></div>
       </header>
       <p class="ann-help">
-        <b>1</b> starts: click a note to cycle idea → phrase → off ·
-        <b>2</b> outside: click first + last note ·
-        <b>3</b> star: click first + last note ·
-        <b>4</b> ends: click a note to cycle idea end → phrase end → off ·
+        <b>1</b> phrase / <b>2</b> idea: click a note to toggle a start mark ·
+        <b>3</b> outside: click first + last note ·
+        <b>4</b> star: click first + last note ·
         <b>5</b> variations: click first + last note of the idea, then of each variation; re-enter the mode (or Esc) to start a new group ·
         click a span to delete · Esc cancels
       </p>

@@ -214,8 +214,11 @@ for (const file of files) {
     pooledIdeas[key] += ideaTally[key]
   }
 
+  // A seeded file was corrected from engine output, not marked blind — its
+  // agreement is biased toward the engine, so it wears a tag.
+  const seededTag = annotation.seeded ? ' (seeded)' : ''
   console.log(
-    `${annotation.file.padEnd(20)}phrases ${fmtPrf(phraseTally)}   ideas ${fmtPrf(ideaTally)}`,
+    `${annotation.file.padEnd(20)}phrases ${fmtPrf(phraseTally)}   ideas ${fmtPrf(ideaTally)}${seededTag}`,
   )
 
   if (showMisses) {

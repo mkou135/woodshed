@@ -374,3 +374,11 @@ uncaught, and the rest-vs-first-note phrase-start convention (mark the sounded
 note unless the silence is the point). Zero-cue downbeat idea starts (75.1,
 79.1, 109.1, totals ≤0.09) add evidence for the queued metric/form-position
 term. Outside span 82.3–82.4½ overlaps no engine finding.
+2026-08-27 · session 13 (cont. 2) · Annotate round 3 for the long Mintzer
+blues: start marking split into direct phrase (1) / idea (2) toggle modes
+(cycling retired), ends mode removed from the UI (fields stay in the format),
+explicit save button, and a "seed from engine" button — dev middleware runs
+the pipeline lazily, page replaces start marks after a confirm, JSON carries
+seeded: true and eval:owner prints the (seeded) tag (DECISIONS "Seeded
+annotation"). 391 tests, typecheck, build green; browser-verified on 26-2
+(44 phrases + 5 ideas seeded, toggle works, test file deleted).
