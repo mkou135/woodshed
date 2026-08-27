@@ -464,3 +464,19 @@ Bopland + WJD, descriptive + practice framing, agent document wiring).
 Spec written: docs/superpowers/specs/2026-08-27-common-language-design.md.
 Owner away; instruction is to run spec → plan → implementation → verified
 production autonomously for review on return.
+2026-08-27 · session 14 (cont.) · Common-language identification built to
+production: language.ts keys + languageShare; cross-chord LickEntry
+matcher + 4 single-chord clichés + 3 licks in shapes.ts (CELL_LENGTHS
+8→3); Finding/FindingView language + lickShare; corpus:licks mined table
+(441 WJD solos + 1,785 Bopland licks → 1,291 patterns, 115 cross-chord);
+stockParts + stockKind summary split ("mostly common jazz language");
+loop/write cliché framing; agent document + rank/narrate prompt wiring.
+414 tests, typecheck, build green. Blake: top finding unchanged, +b9
+arpeggio at 92 (common language, checked by ear); St Thomas top unit now
+the bar-114 b9-arpeggio unit (pin updated, checked by ear). Bopland
+named coverage 72.7% → 74.7% (first 300). Found pre-existing: spec
+verification counts stale since session 10 (16 phrases / 34 units at
+baseline); corpus:wjd `events` crash on 3 solos (OPEN_QUESTIONS); noted
+overlap-merge span absorption (OPEN_QUESTIONS). Owner to review:
+spec + plan docs, the lick degree strings (veto pass), and the
+St Thomas / Blake pin changes.

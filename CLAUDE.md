@@ -69,6 +69,7 @@ solo and read what comes out:
 
 `~/Documents/MuseScore4/Scores/Hey Lock! - Seamus Blake Solo Transcription.mxl`
 should yield "major-seventh arpeggio from the b3" at bars 73 and 77 as the top
-finding, with all three detectors agreeing, about 12 findings in all, and a
+finding, with all three detectors agreeing, about 13 findings in all (the
+bar-92 "dominant arpeggio 3 to the b9" marked common language), and a
 cycle exercise whose bars all ascend. `npm run solo` prints it;
 `pipeline.test.ts` pins it.

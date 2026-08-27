@@ -6,7 +6,7 @@ the code. Each section names the file that implements it — if this file and
 the code disagree, that is a bug to fix immediately, in whichever direction
 the DECISIONS log supports.
 
-Last updated: 2026-08-25 (session 10).
+Last updated: 2026-08-27 (session 14).
 
 ## Units
 
@@ -134,9 +134,10 @@ first 24.
 
 ## Shape dictionary (`analyse/detectors/shapes.ts`)
 
-Cell lengths 4 then 3, longest first; a 3-note hit sharing any note with a
-4-note hit is dropped (1357 contains 135; 3-5-1 across two 1235s is no
-triad). Keyed by degree string AND allowed qualities (not family):
+Cell lengths 8 down to 3, longest first; a shorter hit sharing any note
+with a longer one is dropped (1357 contains 135; 3-5-1 across two 1235s is
+no triad). At equal length, cross-chord licks (below) are tried before
+single-chord cells — a lick is the more specific claim. Keyed by degree string AND allowed qualities (not family):
 1235/1234/5321 over all major-family; 3572 major/maj7 = "3-5-7-9 upper
 structure", dominant = "3-5-b7-9" (as 35b72); 1357 maj = "major-seventh
 arpeggio", 135b7 dominant; dominant b9 cells b7#9b91, 3b91, 1b9b7
@@ -146,6 +147,47 @@ arpeggio", 135b7 dominant; dominant b9 cells b7#9b91, 3b91, 1b9b7
 entry ("major triad 5-3-1" over major-family, "minor triad 5-3-1" over
 minor-family; diminished/augmented never match because their 5/3 carry
 accidentals). Hits carry intervals **as played** (contour kept).
+
+Named clichés (`language: 'bebop'`, hand-written from the pedagogy
+literature, spec 2026-08-27-common-language-design.md): single-chord
+17b765 "bebop dominant descent", 176b135 "bebop major descent" (maj),
+b9b753 "b9 diminished arpeggio descent", 35b7b9 "dominant arpeggio 3 to
+the b9" (all dominant unless noted). Cross-chord `LickEntry` — two
+segments, each with degrees + qualities on its own chord, second root =
+first + `rootMove` (mod 12), whole window inside one idea: "dominant b9
+resolution" (3 b9 | 5, dom→major-family, +5), "ii–V digital pattern 1235
+into 3-5-7-9" (min→dom, +5) and its V-of-V twin (dom→dom, +5). The
+3-note b9 resolution still takes `SHORT_CELL_FACTOR` by the existing
+degrees-length rule. Hits (and Findings/FindingViews) carry `language`
+and, when the mined table has the pattern, `lickShare` = its WJD document
+share.
+
+## Common language (`analyse/language.ts`, `src/data/corpusLicks.ts`)
+
+Exact degree-pattern matching only — never inference from pitch content
+(DECISIONS 2026-08-25 stands; DECISIONS 2026-08-27 "Corpus-derived lick
+table" and "Common-language identification"). Keys: quality collapsed to
+maj/dom/min buckets; single-chord windows of 4–8 notes
+(`'1 7 b7 6 5@dom'`), windows spanning exactly one chord change with 2–4
+notes a side (`'1 2 3 5@min|3 5 b7 2@dom+5'`); windows never cross an
+idea boundary or a null degree. `npm run corpus:licks` mines document
+frequency per WJD solo and per Bopland treble-clef lick (locally, from
+`~/dev/woodshed-data`) and writes the aggregate table with attribution:
+441 solos + 1,785 licks, keep at WJD share ≥ **0.10** or Bopland count ≥
+**8**, 1,291 patterns kept (115 cross-chord). `languageShare(ctx)` =
+per-note max WJD share of any covering window, mean over notes — the
+degree-aware mirror of `corpusShare`.
+
+Surfacing is descriptive only, ranking untouched:
+`PracticeUnit.stockParts` = { run: stockShare, corpus: corpusShare,
+language: languageShare }; `stock` (and `STOCK_PENALTY`) remains
+max(run, corpus). `UnitSummary.stockKind` (at `STOCK_SHOWN` 0.5 over any
+part): 'scale-run' when run dominates, else 'common-language' ("mostly
+common jazz language" on the page). Loop rationale and Write prompt gain
+one framing sentence when a unit finding carries `language`. The CLI
+prints "common language (in N% of recorded solos)". The agent's analysis
+document carries the per-finding language marker + share and the per-unit
+stock split; rank/narrate prompts may weigh and name them (judging only).
 
 ## Target detector (`analyse/detectors/targets.ts`)
 
@@ -550,7 +592,16 @@ browser-direct); keyless runs are byte-identical to the engine alone.
 
 Blake (`npm run solo`): form 56 bars, chorus starts **9 and 65** (8-bar
 intro, head, solo from a pickup at 63); profile regions 63–64, 65–122.
-Top finding "major-seventh arpeggio from the b3",
-bars 73+77, all three detectors, 12 findings; 18 phrases (numbered in the
-score), 21 ideas, 32 practice units, u1 = bars 76–77 with that cell; cycle
-exercise bars all ascend. WJD scores as above.
+Top finding "major-seventh arpeggio from the b3", bars 73+77, all three
+detectors; **13 findings** including "dominant arpeggio 3 to the b9" at
+bar 92 marked common language; 16 phrases, 34 practice units, u1 = bars
+76–77 with that cell; cycle exercise bars all ascend. (The 18/21/32
+counts recorded in session 10 had already drifted by session 13 — the
+2026-08-27 baseline check measured 16 phrases / 13 findings / 34 units
+*before* the common-language change. The change itself swapped one
+finding: the enclosure-into-the-3 device was absorbed into the new bar-92
+b9 arpeggio by the existing overlap merge, so the count stayed 13.) St Thomas: top unit is the bar-114 b9-arpeggio unit
+(unit.test.ts pin). WJD sweep 2026-08-27: findings median 13, units
+median 36, 4 meter rejections, 3 pre-existing `events` crashes
+(OPEN_QUESTIONS). Bopland bench, first 300 licks: named coverage 72.7%
+→ **74.7%** with the lick entries.

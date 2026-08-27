@@ -308,3 +308,24 @@ All of these are proposals; none is implemented.
   bars for variation seeding, and seed the far-flung high-count cells
   (e.g. chromatic enclosure into the 1 from above, 7 hits) as **star**
   candidates instead — recurring vocabulary is what drilling wants.
+
+## corpus:wjd `events` crash on three solos (2026-08-27, pre-existing)
+
+Solos 78 (Potter — Anthropology), 135 (Gillespie — Blue 'n Boogie) and
+189 (Higginbotham — Baby Won't You Please Come Home) throw "Cannot read
+properties of undefined (reading 'events')" at `loop.ts:50` `excerpt`
+(via `throughStep`). Reproduces at 823a4a9, before the common-language
+work — not a regression, a latent bar-indexing bug in `excerpt` on some
+WJD bar shapes. Resolve by probing melid 78 (`ensure(b)` returns
+undefined for a bar outside the excerpt's range?) and fixing with a
+regression test.
+
+## Overlap merge consumes a multi-span device when one span converges
+
+Blake 2026-08-27: the new bar-92 b9-arpeggio shape hit absorbed the
+"chromatic enclosure into the 3 from below" device (spans 75, 84, 92)
+entirely — pass 2 takes evidence, not spans, so the 75/84 occurrences no
+longer surface as a finding. By design today; worth deciding whether a
+device whose *other* spans do not overlap should instead be split rather
+than absorbed. Would resolve: an owner read of whether 75/84 deserve
+their own menu entry.
