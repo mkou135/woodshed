@@ -93,6 +93,19 @@ not over confidences — those change by design. `app/score.ts` draws
 structural ticks at half opacity and ENGINE_SPEC quotes the 0.6; both key
 on a distinction that no longer exists and both must be updated.
 
+### Corroborated on the second annotated solo
+
+The same probe over `hey-lock.json` finds one chorus-start gap (65.1):
+`total 0.03, rest 0.00`, structural branch, and the owner **deleted** it.
+
+**13 of 13 chorus-start gaps across both annotated solos have
+`rest == 0`.** This is not a Mintzer quirk. It raises the prior
+probability that the WJD looks the same, which is what makes 5a a
+decision gate rather than a formality — and it means the likely honest
+outcome of this task is "the hard-coded wall becomes a tunable
+parameter whose current value is 0.45", not "the engine now hears
+chorus starts the way the owner does".
+
 ## Finding 2 — the cue cannot reproduce the owner's decisions
 
 Under either reading of the annotation file (see Finding 3), cue total
