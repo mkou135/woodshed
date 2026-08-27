@@ -354,15 +354,16 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
 }
 #modes button.on { background: var(--ink); color: var(--ground) }
 #counts { margin-left: auto; font: 0.85rem var(--mono); color: var(--pencil) }
-#save-btn, #engine-btn {
+#save-btn, #engine-btn, #scales-btn {
   padding: 0.3rem 0.7rem;
   border: 1.5px solid var(--pencil);
   background: none;
   color: var(--pencil);
   font: 500 0.85rem/1 var(--disp);
 }
-#save-btn:hover, #engine-btn:hover { border-color: var(--ink); color: var(--ink) }
-#engine-btn:disabled { opacity: 0.5 }
+#save-btn:hover, #engine-btn:hover, #scales-btn:hover { border-color: var(--ink); color: var(--ink) }
+#engine-btn:disabled, #scales-btn:disabled { opacity: 0.5 }
+#scales-btn.on { background: var(--pencil); color: var(--ground) }
 #saved { width: 10px; height: 10px; border-radius: 50%; background: var(--ok) }
 #saved.dirty { background: var(--rule); animation: ann-pulse 1.1s ease-in-out infinite }
 @keyframes ann-pulse { 0%, 100% { opacity: 0.4 } 50% { opacity: 1 } }
@@ -382,4 +383,6 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
 .ann-star text { fill: #b8952f; font-size: 12px }
 .ann-variation rect { fill: var(--variation); opacity: 0.45 }
 .ann-variation text { fill: var(--variation); font: 600 12px var(--disp) }
+.ann-scale text { fill: var(--pencil); font: 500 10px var(--disp); cursor: pointer }
+.ann-scale.off text { text-decoration: line-through; opacity: 0.45 }
 .pending { outline: 2px solid var(--idea); outline-offset: 2px }

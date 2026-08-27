@@ -450,10 +450,30 @@ Owner ground truth on the score, dev-only.
   from engine** button (dev middleware `GET /__annotate/engine/<name>`
   runs the pipeline lazily) replaces all start marks with engine output —
   after a confirm when any exist; spans/variations untouched — so a long
-  solo is a correction pass. That file's JSON carries `seeded: true`
+  solo is a correction pass. The seed also proposes **outside spans** —
+  merged runs of 6-note windows with ≥ 1/3 of notes off the declared chord
+  scale, trimmed to the off-scale notes, ≥ 3 off-notes per run, top 12 by
+  off-density; each rendered at opacity 0.35 + 0.65·confidence with the
+  percentage in a tooltip. Measured on the owner's spans: AUC 0.74 on the
+  Mintzer blues, at/below chance on hey-lock's contextual outside — it
+  finds the chromatic-intense species only (DECISIONS 2026-08-25 stands:
+  nothing stronger is inferred from pitch content). And **variation
+  groups**: each finding with ≥ 2 spans, top 6 by confidence, one group
+  per finding. One confirm replaces starts + outside + variations; stars
+  and scale strike-outs survive. That file's JSON carries `seeded: true`
   forever after, and eval:owner tags it `(seeded)`: corrected-from-engine
   agreement is biased toward the engine and never pools with blind files'
   evidence class. See DECISIONS 2026-08-27 "Seeded annotation".
+- A **scales** toggle (off by default, so blind files stay blind) fetches
+  the same engine payload (middleware caches by file mtime) and prints
+  each `chordScales` name — chart tensions win, else the function rule,
+  never inferred from the melody — in small grey text under the first
+  solo note at/after its chord. Clicking a name strikes it out: "the solo
+  does not imply this scale", saved as `scalesRejected: {at, name}[]` in
+  the annotation JSON and listed by eval:owner. The kept-minus-rejected
+  list is the owner's ground truth on which chart scales the solo
+  actually expresses — the filter the four failed pitch-content detectors
+  (DECISIONS 2026-08-25) never had.
 - Storage: `annotations/<mxl-basename>.json`, one file per solo,
   `AnnotationStore` (`src/annotation/store.ts`, DOM-free, tested — cycle/
   span/serialise round-trips). Fields: `phrases`, `ideas`, `phraseEnds`,

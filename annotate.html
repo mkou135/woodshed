@@ -14,7 +14,8 @@
         <div id="modes" role="toolbar" aria-label="Annotation mode"></div>
         <div id="counts"></div>
         <button id="save-btn" type="button">save</button>
-        <button id="engine-btn" type="button" title="seed starts from the engine, then correct them">seed from engine</button>
+        <button id="engine-btn" type="button" title="seed starts, outside spans and variation groups from the engine, then correct them">seed from engine</button>
+        <button id="scales-btn" type="button" title="show the engine's chord scales; click one to strike it out">scales</button>
         <div id="saved" title="saved"></div>
       </header>
       <p class="ann-help">
@@ -22,7 +23,8 @@
         <b>3</b> outside: click first + last note ·
         <b>4</b> star: click first + last note ·
         <b>5</b> variations: click first + last note of the idea, then of each variation; re-enter the mode (or Esc) to start a new group ·
-        click a span to delete · Esc cancels
+        click a span to delete · Esc cancels ·
+        scales on: click a scale name to strike it out as not implied by the solo
       </p>
       <div id="ann-error" class="error" hidden></div>
       <div id="drop" class="drop">Drop a transcription here, or pick one above</div>

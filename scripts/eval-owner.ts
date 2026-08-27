@@ -254,6 +254,10 @@ for (const file of files) {
     console.log(`  variation group ${letter}: ${ranges}`)
   })
 
+  for (const r of annotation.scalesRejected ?? []) {
+    console.log(`  scale rejected at ${r.at}: ${r.name} — the solo does not imply it`)
+  }
+
   for (const span of annotation.outside) {
     const from = parsePosition(span.from)
     const to = parsePosition(span.to)

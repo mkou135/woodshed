@@ -393,3 +393,17 @@ extension past the chord — both engine-tagged "maj7 arpeggio from the b3";
 52.3 + 112.1 half-step side-steps), ~5 altered-dominant vocabulary, ~4
 blues/Lydian colour. 11 of 13 overlap engine recurring findings — the
 owner's "outside" is mostly systematic vocabulary, not random departure.
+2026-08-27 · session 13 (cont. 4) · Seed round 2, owner-approved design: the
+engine endpoint now proposes outside spans (off-declared-scale window density,
+trimmed to off-notes, confidence = off-density; spike on the owner's spans:
+AUC 0.74 Mintzer / at-chance hey-lock, so it finds chromatic-intense outside
+only — 2026-08-25 no-pitch-inference decision stands, the human filter is
+what changed), variation groups from multi-span findings, and the chordScales
+list anchored at each chord's first solo note (middleware caches by mtime).
+Page: seed replaces starts+outside+variations after one confirm (stars and
+scale strike-outs survive), seeded outside spans render at confidence
+opacity with a tooltip, and a scales toggle (off by default — blind stays
+blind) prints scale names under the staff; clicking strikes one out as "not
+implied by the solo", stored as scalesRejected and listed by eval:owner.
+393 tests, typecheck, build green; browser-verified on Autumn Leaves (12
+outside, 6 groups, 62 scales, strike-out persisted; test file deleted).

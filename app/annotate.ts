@@ -30,6 +30,15 @@ const saved = document.getElementById('saved') as HTMLDivElement
 const errorBox = document.getElementById('ann-error') as HTMLDivElement
 const saveBtn = document.getElementById('save-btn') as HTMLButtonElement
 const engineBtn = document.getElementById('engine-btn') as HTMLButtonElement
+const scalesBtn = document.getElementById('scales-btn') as HTMLButtonElement
+
+interface EngineSeed {
+  phrases: string[]
+  ideas: string[]
+  outside: { from: string; to: string; confidence: number }[]
+  variations: { from: string; to: string }[][]
+  scales: { at: string; name: string; because: string; declared: boolean }[]
+}
 const dropZone = document.getElementById('drop') as HTMLDivElement
 const sheet = document.getElementById('sheet') as HTMLDivElement
 
@@ -52,6 +61,16 @@ let pendingNodes: SVGGElement[] = []
  * then its variations.
  */
 let currentGroup: number | null = null
+
+/**
+ * Seed confidence per outside span, keyed by its from-position. Display-only
+ * triage for the correction pass — not persisted, gone after a reload.
+ */
+const outsideConfidence = new Map<string, number>()
+
+let scalesShown = false
+let scaleData: EngineSeed['scales'] | null = null
+let scaleNodes: SVGGElement[] = []
 
 const spanKind = (m: Mode): SpanKind | null => (m === 'outside' ? 'outside' : m === 'stars' ? 'stars' : null)
 
@@ -214,6 +233,15 @@ function drawSpan(cls: string, span: { from: Position; to: Position }, label?: s
     const x1 = Math.max(...boxes.map((b) => b.x + b.width))
     const g = svgEl('g')
     g.setAttribute('class', cls)
+    // A seeded outside span wears its confidence: pale = check first, ignore
+    // last. Owner-added spans (no entry in the map) render at full strength.
+    const confidence = cls === 'ann-outside' ? outsideConfidence.get(formatPosition(span.from)) : undefined
+    if (confidence !== undefined) {
+      g.setAttribute('opacity', String(0.35 + confidence * 0.65))
+      const title = svgEl('title')
+      title.textContent = `engine seed, ${Math.round(confidence * 100)}% off-scale`
+      g.appendChild(title)
+    }
     const rect = svgEl('rect')
     rect.setAttribute('x', String(x0))
     rect.setAttribute('y', String(staff.bottom + 6))
@@ -249,6 +277,54 @@ function redrawSpans(): void {
   store.variations().forEach((group, g) => {
     group.forEach((span, i) => drawSpan('ann-variation', span, `${groupLetter(g)}${i + 1}`))
   })
+}
+
+// ---- scales ----
+
+/**
+ * The engine's chord scales (chart tensions win, else the function rule),
+ * printed under the staff at each chord's first solo note. Clicking one
+ * strikes it out: "the solo does not imply this scale" — the owner's filter
+ * the failed pitch-content detector never had. Fetched on demand so a file
+ * can still be marked without seeing any engine opinion.
+ */
+function redrawScales(): void {
+  for (const g of scaleNodes) g.remove()
+  scaleNodes = []
+  if (!scalesShown || !scaleData || !store) return
+  for (const scale of scaleData) {
+    const target = order(parsePosition(scale.at))
+    const entry = noteEntries.find((e) => order(e.pos) >= target)
+    const anchor = entry?.nodes[0]
+    const svg = anchor?.ownerSVGElement
+    const staff = entry && map?.staves.get(entry.pos.bar)
+    if (!entry || !anchor || !svg || !staff) continue
+    const g = svgEl('g')
+    g.setAttribute('class', 'ann-scale' + (store.scaleRejected(scale.at, scale.name) ? ' off' : ''))
+    const text = svgEl('text')
+    text.setAttribute('x', String(anchor.getBBox().x))
+    text.setAttribute('y', String(staff.bottom + 34))
+    text.textContent = scale.name
+    const title = svgEl('title')
+    title.textContent = scale.declared ? 'the chart says so' : scale.because
+    text.appendChild(title)
+    g.appendChild(text)
+    g.addEventListener('click', (e) => {
+      e.stopPropagation()
+      if (!store) return
+      store.toggleScaleRejected(scale.at, scale.name)
+      g.classList.toggle('off')
+      scheduleSave()
+    })
+    svg.appendChild(g)
+    scaleNodes.push(g)
+  }
+}
+
+async function fetchEngine(name: string): Promise<EngineSeed> {
+  const res = await fetch(`/__annotate/engine/${encodeURIComponent(name)}`)
+  if (res.status !== 200) throw new Error(`engine run failed (${res.status})`)
+  return await res.json() as EngineSeed
 }
 
 // ---- errors ----
@@ -407,6 +483,11 @@ async function openScore(bytes: Uint8Array, name: string): Promise<void> {
   tickNodes = []
   spanNodes = []
   highlightedNodes = []
+  scaleNodes = []
+  outsideConfidence.clear()
+  scaleData = null
+  scalesShown = false
+  scalesBtn.classList.remove('on')
   const xml = readScoreXml(bytes)
   sheet.replaceChildren()
   map = await mountScore(sheet, xml)
@@ -468,16 +549,26 @@ saveBtn.addEventListener('click', () => {
 engineBtn.addEventListener('click', async () => {
   if (!store || !filename) return
   const existing = store.counts()
-  const marked = existing.phrases + existing.ideas
-  if (marked > 0 && !window.confirm(`Replace your ${marked} start marks with the engine's? Spans and variations stay.`)) return
+  const marked = existing.phrases + existing.ideas + existing.outside + existing.variations
+  if (marked > 0 && !window.confirm(
+    `Replace your ${existing.phrases + existing.ideas} start marks, ` +
+    `${existing.outside} outside spans and ${existing.variations} variation groups ` +
+    'with the engine\'s? Stars and struck-out scales stay.',
+  )) return
   engineBtn.disabled = true
   try {
-    const res = await fetch(`/__annotate/engine/${encodeURIComponent(filename)}`)
-    if (res.status !== 200) throw new Error(`engine run failed (${res.status})`)
-    const seed = await res.json() as { phrases: string[]; ideas: string[] }
+    const seed = await fetchEngine(filename)
+    scaleData = seed.scales
     store.seedBoundaries(seed.phrases.map(parsePosition), seed.ideas.map(parsePosition))
+    store.seedSpans('outside', seed.outside.map((s) => ({ from: parsePosition(s.from), to: parsePosition(s.to) })))
+    outsideConfidence.clear()
+    for (const s of seed.outside) outsideConfidence.set(formatPosition(parsePosition(s.from)), s.confidence)
+    store.seedVariations(seed.variations.map((group) =>
+      group.map((s) => ({ from: parsePosition(s.from), to: parsePosition(s.to) }))))
     hideLoadError()
     redrawAllBoundaries()
+    redrawSpans()
+    redrawScales()
     updateCounts()
     scheduleSave()
   } catch (error) {
@@ -485,6 +576,28 @@ engineBtn.addEventListener('click', async () => {
     errorBox.hidden = false
   } finally {
     engineBtn.disabled = false
+  }
+})
+
+scalesBtn.addEventListener('click', async () => {
+  if (!store || !filename) return
+  if (scalesShown) {
+    scalesShown = false
+    scalesBtn.classList.remove('on')
+    redrawScales()
+    return
+  }
+  scalesBtn.disabled = true
+  try {
+    scaleData ??= (await fetchEngine(filename)).scales
+    scalesShown = true
+    scalesBtn.classList.add('on')
+    redrawScales()
+  } catch (error) {
+    errorBox.textContent = `could not fetch scales — ${String(error)}`
+    errorBox.hidden = false
+  } finally {
+    scalesBtn.disabled = false
   }
 })
 
