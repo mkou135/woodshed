@@ -515,3 +515,18 @@ a missing `~/dev/woodshed-data/` prints a skip and exits 0. Comparison
 verified by perturbing `segment` threshold 0.45→0.50 (155 solos moved,
 exit 1) and by hand-editing the golden for the added/removed/status
 paths. 420 tests, typecheck green.
+2026-08-27 · session 15 · PAUSED mid-sprint at owner's request. Branch
+`sprint/chorus-prior-and-design`, clean at a505aab. Deck-clearing: owner
+annotations committed alone (56425ca), the annotation export landed after
+browser verification on Blake (719a6db), and tsconfig.app.json now
+typechecks app/ and scripts/ (f98a8fe) — previously nothing outside src/
+was checked. Then, subagent-driven: T1 fixed the corpus:wjd `events`
+crash (b03f637 — `ensure(-1)` from a pickup's negative onset, not the
+overrun hypothesised; flooring + floor-modulo, bit-identical for
+onset >= 0), T2 pinned the 456-solo sweep with goldens/corpus-wjd.json
+(f546cef; a threshold nudge moves 155 solos, so the blast-radius tool
+works), T3 covered the annotation export (a505aab, 429 tests). T5's spec
+was revised before dispatch after a probe found all 13 chorus-start gaps
+across both annotated solos have rest == 0 — the original design would
+have deleted every chorus boundary. Full state, open items and rulings in
+.superpowers/sdd/2026-08-27-chorus-prior-sprint/progress.md.
