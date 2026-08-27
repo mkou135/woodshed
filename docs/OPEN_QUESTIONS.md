@@ -309,17 +309,6 @@ All of these are proposals; none is implemented.
   (e.g. chromatic enclosure into the 1 from above, 7 hits) as **star**
   candidates instead — recurring vocabulary is what drilling wants.
 
-## corpus:wjd `events` crash on three solos (2026-08-27, pre-existing)
-
-Solos 78 (Potter — Anthropology), 135 (Gillespie — Blue 'n Boogie) and
-189 (Higginbotham — Baby Won't You Please Come Home) throw "Cannot read
-properties of undefined (reading 'events')" at `loop.ts:50` `excerpt`
-(via `throughStep`). Reproduces at 823a4a9, before the common-language
-work — not a regression, a latent bar-indexing bug in `excerpt` on some
-WJD bar shapes. Resolve by probing melid 78 (`ensure(b)` returns
-undefined for a bar outside the excerpt's range?) and fixing with a
-regression test.
-
 ## Overlap merge consumes a multi-span device when one span converges
 
 Blake 2026-08-27: the new bar-92 b9-arpeggio shape hit absorbed the

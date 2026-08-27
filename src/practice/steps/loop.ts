@@ -18,8 +18,15 @@ export function excerpt(
   firstOffset: number,
 ): ExerciseBar[] {
   const ticks = barTicks(timeSig)
-  const shift = firstOffset - (notes[0].onset % ticks)
-  const base = notes[0].onset - (notes[0].onset % ticks)
+  // Floor semantics, not `%`: `throughStep` moves a line so its first chord
+  // meets the match's, which drags a pickup note before tick 0 when the
+  // match sits at the top of the form. JS `%` truncates towards zero, so a
+  // negative onset landed in bar -1 and `ensure` handed back `undefined`.
+  // Flooring puts the pickup in bar 0 of the excerpt, where it belongs.
+  const mod = (value: number): number => ((value % ticks) + ticks) % ticks
+  const offset = mod(firstOffset)
+  const shift = offset - mod(notes[0].onset)
+  const base = Math.floor(notes[0].onset / ticks) * ticks
   const bars: ExerciseBar[] = []
   const place = (absolute: number): { bar: number; at: number } => {
     const rel = absolute + shift - base

@@ -265,6 +265,15 @@ vector); pass 2 by overlap adds detectedBy/weights only, never spans.
     (`chordRunStart`). Only when `Tune.startBar` is set — `tuneFromScore`
     sets it to the chorus it took the changes from; a chart from elsewhere
     leaves it undefined and every occurrence stands.
+- Excerpt layout (`practice/steps/loop.ts` `excerpt`, shared by loop,
+  through, write and vary): notes go into bars as played, rests fill the
+  gaps, chords ride along at the same shift. Bar 0 is the bar **containing
+  the first note**, found by flooring, not by `%` — Through moves a line so
+  its first chord meets the match's, which puts a pickup note at a negative
+  absolute onset when the match sits at the top of the form, and truncating
+  division asked for bar −1 (DECISIONS 2026-08-27). The layout therefore
+  depends only on where the notes sit relative to each other and to the
+  chords, never on the timeline's origin.
 - Vary (`practice/steps/vary.ts`, step kind `vary`): the arrival is fixed,
   the way in varies (Ligon goal notes; Bergonzi ex. A–H; design
   2026-08-25-practice-variations). Four prepended eighth-note **on-ramps**
@@ -382,9 +391,9 @@ draws no ticks for a second pass. Segno / coda remain
 - Form labels (A1, B2, I1 …) become rehearsal marks (letters only) on the
   bar they start, so the phase comes from them.
 - A solo whose `period` changes is rejected (one meter per score).
-- Corpus, 2026-08-24: 453 solos run, 3 rejected (mixed meter), 0 unparsed
-  chords, form found in 305, findings median 13 (max 132), units median
-  35.
+- Corpus, 2026-08-27: 452 solos run, 4 rejected (mixed meter), 0 unparsed
+  chords, 0 crashes, form found in 305, findings median 13 (max 119),
+  units median 36 (max 655).
 
 ## Corpus frequency table (`src/data/corpusFrequency.ts`, `npm run corpus:freq`)
 

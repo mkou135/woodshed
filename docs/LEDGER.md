@@ -492,3 +492,14 @@ languageRuns helper (tested) merging mined-table windows for display.
 Verified live in Chrome on Blake: all lanes draw, tooltip shows "f3
 dominant arpeggio 3 to the b9 · 0.95 · shape+target · common language ·
 2%", no console errors. 417 tests, typecheck, build green; pushed.
+2026-08-27 · session 15 · Task 1 of the chorus-prior sprint: fixed the
+`corpus:wjd` `events` crash (melids 78/135/189). `throughStep` aligns a
+line's first chord to the match's, so a pickup note lands at a negative
+onset when the match is at the top of the form; `excerpt` used truncating
+`%` for its bar origin and asked `ensure` for bar −1. Now floors, and
+reduces `firstOffset` with the same floor-modulo — origin-independent
+layout, pickup in its own bar. New `practice/steps/loop.test.ts` (hand
+authored, failed before with the production error). ENGINE_SPEC gains an
+excerpt-layout bullet and refreshed WJD corpus numbers; the
+OPEN_QUESTIONS entry moved to DECISIONS. 420 tests, typecheck green;
+corpus:wjd 452 solos, 0 crashes (4 mixed-meter rejections).

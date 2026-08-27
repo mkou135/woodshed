@@ -575,3 +575,33 @@ inference — every hit is a literal degree-string match, so DECISIONS
 Evidence class: owner-approved design · owner + Claude · would reverse:
 lick hits mislabelling on real solos (a wrong name is worse than none), or
 the summary split confusing rather than informing practice.
+
+2026-08-27 · **`excerpt` lays bars out by flooring, not by `%`** · Question:
+why did `corpus:wjd` throw "Cannot read properties of undefined (reading
+'events')" at `loop.ts:50` on melids 78 (Potter), 135 (Gillespie) and 189
+(Higginbotham), and where does it belong fixed? Mechanism: `throughStep`
+moves a line by `match.chords[0].onset − sourceStart` so the line's first
+*chord* meets the match's chord. When the idea begins with a pickup — its
+first note before its first chord — and the match sits at the top of the
+form, that puts the pickup at a **negative** absolute onset (melid 78:
+−480 ticks in a 3840-tick bar). `excerpt` derived its bar origin with
+`onset − (onset % ticks)`, and JS `%` truncates towards zero, so the
+pickup came out at bar **−1**; `ensure(−1)` never enters its grow loop and
+returns `bars[−1]` — `undefined` — and the `.events!` assertion threw. Not
+"a note spilling past the end", which `ensure` grows to cover: the failure
+is at the bottom of the range. Decision: fix it in `excerpt`, not at the
+call site — negative onsets are the honest consequence of aligning a line
+to a chord, and an excerpt is defined only up to its origin. `firstOffset`
+and `notes[0].onset` are both reduced with the floor-modulo the codebase
+already uses in `vary.ts`, and `base` becomes
+`Math.floor(onset / ticks) * ticks`, so `rel(notes[0]) === offset` for
+either sign and bar 0 is always the bar holding the first note. The pickup
+now gets its own leading bar and the match's chord lands on the next
+downbeat. Identical arithmetic for `onset ≥ 0`, so nothing else moved
+(420 tests green, Blake and St Thomas pins unchanged); `corpus:wjd` runs
+452 solos with 0 crashes, the 4 remaining errors all being the deliberate
+mixed-meter rejection. Regression test `practice/steps/loop.test.ts` from
+hand-authored notes — it failed before the fix with the production error.
+Evidence class: reproduced and instrumented on the corpus · Claude · would
+reverse: an excerpt whose pickup bar reads wrong on a real solo (then the
+line wants trimming to the bar, not a pickup bar).
