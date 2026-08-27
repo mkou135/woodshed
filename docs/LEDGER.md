@@ -382,3 +382,14 @@ the pipeline lazily, page replaces start marks after a confirm, JSON carries
 seeded: true and eval:owner prints the (seeded) tag (DECISIONS "Seeded
 annotation"). 391 tests, typecheck, build green; browser-verified on 26-2
 (44 phrases + 5 ideas seeded, toggle works, test file deleted).
+2026-08-27 · session 13 (cont. 3) · Read of the seeded Mintzer blues
+annotation (F1 0.96, inflated as expected — the corrections are the signal).
+Root-caused the owner's "phrases split at the double bar" complaint: form
+chorusStarts are forced segment boundaries (analyse/index.ts:88); owner
+deleted 3 of ~14 forced cuts (13.1/25.1/73.1, cue 0.00) — logged in
+OPEN_QUESTIONS as "prior, not a wall". Harmonic audit of the 13 outside
+spans against the changes: ~4 genuinely outside (33.1 + 129.1 thirds-stack
+extension past the chord — both engine-tagged "maj7 arpeggio from the b3";
+52.3 + 112.1 half-step side-steps), ~5 altered-dominant vocabulary, ~4
+blues/Lydian colour. 11 of 13 overlap engine recurring findings — the
+owner's "outside" is mostly systematic vocabulary, not random departure.

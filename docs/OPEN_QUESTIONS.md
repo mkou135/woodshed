@@ -278,3 +278,13 @@ All of these are proposals; none is implemented.
   sounded note by default; mark the rest only when the silence itself is
   the point (the line "plays the rest"). Resolve: decide whether eval
   should treat "owner on rest, engine on next sounded note" as a match.
+- **Chorus starts force phrase breaks — should be a prior, not a wall.**
+  `analyse/index.ts:87-88` passes `form.chorusStarts` into `segment` as
+  forced boundaries. Blues in All Keys owner annotation: the owner deleted
+  the forced starts at 13.1, 25.1, 73.1 (boundary cue 0.00 at all three)
+  because the line plays through the double bar; the other ~11 chorus
+  boundaries they kept — Mintzer usually does breathe at the top of a
+  chorus, just not always. Resolve: replace the hard cut with a
+  chorus-start bonus term in the cue (breaks only when the surface at
+  least weakly agrees), score against eval:owner blind files + eval:wjd +
+  brackets.
