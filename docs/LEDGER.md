@@ -366,3 +366,11 @@ B1, emptied groups vanish. eval:owner reports end-mark agreement (engine
 last-note positions, same matcher, never pooled) and lists variation groups.
 389 tests green; browser-verified on Autumn Leaves (end ticks 0.1⌉/0⌉, groups
 A1 A2 B1, 7 coloured notes); test annotation deleted after.
+2026-08-27 · session 13 (cont.) · Sticky annotate toolbar. First real read of
+the hey-lock owner annotation (16 phrases F1 0.81, ideas 0.72): three findings
+logged in OPEN_QUESTIONS — repetition should suppress boundary cues (bars
+116–120 sequence split by the engine), long-range variation return at 110–112
+uncaught, and the rest-vs-first-note phrase-start convention (mark the sounded
+note unless the silence is the point). Zero-cue downbeat idea starts (75.1,
+79.1, 109.1, totals ≤0.09) add evidence for the queued metric/form-position
+term. Outside span 82.3–82.4½ overlaps no engine finding.

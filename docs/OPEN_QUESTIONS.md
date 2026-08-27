@@ -257,3 +257,24 @@ All of these are proposals; none is implemented.
   Mixolydian #9, and b9/#9/n9/b5 sit inside default scales elsewhere in the
   form. The full-coverage layer will mislabel blues unless it knows the form is
   a blues. Resolve: detect a blues from the changes and swap the I7 default.
+- **Repetition binds — boundaryCue has no similarity term.** Hey Lock
+  owner annotation, bars 116–120: the owner hears one phrase built from a
+  4× varied sequence (variation group C); the engine splits it into
+  phrases at 117.4½ / 118.4½ / 119.4½ because each repeat sits behind an
+  8th rest + leap (totals 0.72–0.79, threshold 0.45). The rest cue is
+  strongest exactly where repetition says "same breath". Resolve: prototype
+  a parallelism term (interval-shape similarity of the material either
+  side of a candidate gap) that suppresses boundary strength, score it
+  against eval:owner + eval:wjd + brackets.
+- **Long-range variation tracking.** Owner group B links 97.1/99.1 to a
+  return at 110.4½–112.3; the engine's recurring detectors caught 97↔99
+  (major triad 1-3-5) but nothing 11 bars later. The variations field in
+  annotations is the ground truth for any future "this idea comes back"
+  detector.
+- **Where does a phrase philosophically start — the rest or the note?**
+  Owner marked the solo's opening phrase at 63.1 (silent downbeat), the
+  engine at 63.2 (first sounded note) — scored as a miss + false start,
+  1 beat > 0.5 tolerance. Convention adopted 2026-08-27: mark the first
+  sounded note by default; mark the rest only when the silence itself is
+  the point (the line "plays the rest"). Resolve: decide whether eval
+  should treat "owner on rest, engine on next sounded note" as a match.
