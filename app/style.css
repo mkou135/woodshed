@@ -31,6 +31,9 @@
 }
 
 * { box-sizing: border-box }
+/* Every panel on this page is shown and hidden with the `hidden` attribute,
+   and any `display` we set would quietly outrank the UA rule for it. */
+[hidden] { display: none !important }
 
 body {
   margin: 0;
