@@ -435,3 +435,15 @@ overlapping spans (opening motif matched against its own offset copy) and
 enclosure/approach-finding notes from outside weight, damp repeated pitches,
 half-weight blue notes over major, and a minimum-substance rule (≥4 notes)
 plus overlap-dedup for variation/star seeding.
+2026-08-27 · session 13 (cont. 8) · Implemented the four re-audit rules:
+enclosure/approach-finding notes weigh 0 (resolving chromaticism is grammar),
+repeated-pc runs weigh once, blue notes over major weigh 0.5, and variation/
+star seeding is substance-gated (≥ 4 notes per occurrence, overlapping
+occurrences dropped). Re-audit: mintzer 12 tight spans with pedal and
+blues-note false positives gone, variations now all multi-note worked cells
+(incl. the 82.4½/83.4½/85.1½ sequence); sandu 5 → 2 proposals (cost: its one
+good altered span at 22.3½ now falls under threshold — enclosure zeroing +
+half-weight alterations combined); 26-2 overlap group and triad groups gone,
+1 substantial star. mintzer.json reseeded — NOTE: the working copy differed
+from HEAD before the reseed (possible owner corrections overwritten; owner
+asked to check their open tab and press save if their marks are still there).

@@ -458,12 +458,20 @@ Owner ground truth on the score, dev-only.
   baseline + 0.15 (absolute thresholds flooded: the 2026-08-27 mintzer
   audit marked 40% of notes), windows never cross a seeded phrase start,
   runs trim to their weighted notes (≥ 3), top 12 by density; rendered at
-  opacity 0.35 + 0.65·confidence with a tooltip. It finds the
+  opacity 0.35 + 0.65·confidence with a tooltip. Three grammar exemptions
+  (2026-08-27 three-solo re-audit): a note inside a detected enclosure or
+  approach finding weighs 0 (chromaticism that resolves is grammar — Sandu
+  was flooded by F#-A-G over Gm7); a repeated pitch carries weight only on
+  the first note of its same-pc run (the mintzer C-pedal); the blue notes
+  (b3/b7) over a major-family chord weigh 0.5. It finds the
   chromatic-intense species only (DECISIONS 2026-08-25 stands: nothing
   stronger is inferred from pitch content). **Variation groups**:
   occurrences of one finding within 16 printed bars of the previous
-  occurrence (development, not vocabulary), clusters of ≥ 2, top 6.
-  **Stars**: findings with ≥ 3 occurrences — the player's recurring
+  occurrence (development, not vocabulary), clusters of ≥ 2, top 6 —
+  substance-gated: every occurrence must run ≥ 4 notes (3-note enclosures
+  and triad spellings are vocabulary), and an occurrence overlapping the
+  previous one is dropped (a passage matched against its own offset copy,
+  26-2's opening). **Stars**: substance-gated findings with ≥ 3 occurrences — the player's recurring
   vocabulary, what drilling wants — one star at the first occurrence,
   top 5 by occurrence count. One confirm replaces starts + outside +
   stars + variations; scale strike-outs survive. That file's JSON carries `seeded: true`

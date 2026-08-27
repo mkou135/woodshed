@@ -82,15 +82,36 @@ async function engineSeed(name: string): Promise<EngineSeedResult> {
   // half: still detectable as a dense altered run, cooled enough that a
   // rhythm-changes bridge doesn't flood (the mintzer audit's conflation), and
   // the natural 7 — the one truly wrong pc — counts in full.
-  const outWeight = notes.map((n) => {
+  const MAJOR_FAMILY = new Set(['major', 'major-seventh', 'major-sixth'])
+  const outWeight = notes.map((n): number => {
     let s: (typeof scaleSpans)[0] | null = null
     for (const sc of scaleSpans) if (sc.chord.onset <= n.onset && (!s || sc.chord.onset > s.chord.onset)) s = sc
     if (!s) return 0
     const pc = ((n.midi % 12) + 12) % 12
     if (s.pcs.includes(pc)) return 0
     if (s.chord.quality === 'dominant') return pc === (s.chord.rootPc + 11) % 12 ? 1 : 0.5
+    // The blue notes over a major-family chord are genre grammar, like
+    // altered tensions over a dominant — half spicy, not departure.
+    if (MAJOR_FAMILY.has(s.chord.quality)) {
+      const above = (pc - s.chord.rootPc + 12) % 12
+      if (above === 3 || above === 10) return 0.5
+    }
     return 1
   })
+  // A repeated pitch is one tension, however long the pedal: only the first
+  // note of a same-pc run carries weight (the mintzer C-pedal flagged itself).
+  for (let i = notes.length - 1; i > 0; i--) {
+    if (notes[i].midi % 12 === notes[i - 1].midi % 12) outWeight[i] = 0
+  }
+  // Chromaticism that resolves is grammar, not departure: any note the target
+  // detectors already claimed as part of an enclosure or approach figure
+  // stops counting as outside (Sandu's proposals were mostly F#-A-G over Gm7).
+  for (const f of analysis.findings) {
+    if (!/enclosure|approach/.test(f.name)) continue
+    for (const span of f.spans) {
+      for (let k = span.startIndex; k <= span.endIndex; k++) outWeight[k] = 0
+    }
+  }
   const baseline = outWeight.reduce((a, b) => a + b, 0) / (outWeight.length || 1)
   const hotAt = baseline + SPICE_MARGIN
   const phraseRanges: { start: number; end: number }[] = []
@@ -143,8 +164,13 @@ async function engineSeed(name: string): Promise<EngineSeedResult> {
   // whole solo is vocabulary, not variation (mintzer audit paired bar 3 with
   // bar 119): those seed stars below instead.
   const printedBar = (idx: number): number => writtenBar(score, notes[idx].bar).bar
+  // Substance gate: a 3-note enclosure or triad spelling is vocabulary, not
+  // an idea being developed — only findings whose occurrences run ≥ 4 notes
+  // seed variations or stars (26-2's triad-permutation groups were noise).
+  const substantial = (f: (typeof analysis.findings)[0]) =>
+    f.spans.every((s) => s.endIndex - s.startIndex + 1 >= 4)
   const clusters = analysis.findings
-    .filter((f) => f.spans.length >= 2)
+    .filter((f) => f.spans.length >= 2 && substantial(f))
     .sort((a, b) => b.confidence - a.confidence)
     .flatMap((f) => {
       const sorted = [...f.spans].sort((a, b) => a.startIndex - b.startIndex)
@@ -152,6 +178,9 @@ async function engineSeed(name: string): Promise<EngineSeedResult> {
       for (const span of sorted) {
         const current = groups[groups.length - 1]
         const prev = current?.[current.length - 1]
+        // An occurrence overlapping the previous is the same passage matched
+        // against its own offset copy (26-2's opening motif) — drop it.
+        if (prev && span.startIndex <= prev.endIndex) continue
         if (prev && printedBar(span.startIndex) - printedBar(prev.startIndex) <= VARIATION_NEAR_BARS) {
           current.push(span)
         } else {
@@ -171,7 +200,7 @@ async function engineSeed(name: string): Promise<EngineSeedResult> {
   // occurrences is what drilling wants. One star at the first occurrence;
   // the finding list carries the rest.
   const stars = analysis.findings
-    .filter((f) => f.spans.length >= STAR_MIN_OCCURRENCES)
+    .filter((f) => f.spans.length >= STAR_MIN_OCCURRENCES && substantial(f))
     .sort((a, b) => b.spans.length - a.spans.length || b.confidence - a.confidence)
     .slice(0, STAR_CAP)
     .map((f) => {
