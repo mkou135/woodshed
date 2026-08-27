@@ -99,9 +99,30 @@ export async function renderNotation(container: HTMLElement, xml: string): Promi
     const osmd = new OpenSheetMusicDisplay(container, { autoResize: false, drawTitle: false, drawPartNames: false })
     await osmd.load(xml)
     osmd.render()
+    trimNotation(container)
   } catch (error) {
     container.appendChild(el('p', 'empty', `Could not render this exercise: ${(error as Error).message}`))
   }
+}
+
+/**
+ * OSMD sizes an exercise canvas for a page of music, so a two-bar snippet
+ * arrives with a third of its height in blank paper above and below — which
+ * pushes the transcription that far down the page. Crop the box to what was
+ * actually drawn. Presentation only: the notes, their positions and the
+ * MusicXML behind the download link are all untouched.
+ */
+function trimNotation(container: HTMLElement): void {
+  const svg = container.querySelector('svg')
+  if (!svg) return
+  const width = Number(svg.getAttribute('width'))
+  const box = svg.getBBox()
+  if (!(width > 0) || !(box.height > 0)) return
+  const pad = 8
+  const top = Math.max(0, box.y - pad)
+  const height = box.height + pad * 2
+  svg.setAttribute('viewBox', `0 ${top} ${width} ${height}`)
+  svg.setAttribute('height', String(height))
 }
 
 /**

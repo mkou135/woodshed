@@ -43,7 +43,9 @@ main { max-width: 92rem; margin: 0 auto; padding: 0 1.25rem 6rem }
 
 h1, h2, h3 { margin: 0; font-family: var(--disp) }
 button { font: inherit; cursor: pointer }
-button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--idea); outline-offset: 2px }
+button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--idea); outline-offset: 2px }
+/* Fields sit on paper, so the focused one also darkens its own box. */
+.field select:focus-visible, .field input:focus-visible { border-color: var(--ink) }
 .mono { font-family: var(--mono); font-variant-numeric: tabular-nums }
 .label {
   font: 600 0.8rem/1 var(--disp);
@@ -197,16 +199,64 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
 
 /* ---- score sheet ---- */
 .sheet { background: var(--paper); padding: 1.2rem 1.4rem 1rem; box-shadow: var(--shadow) }
-.legend { display: flex; gap: 1.4rem; align-items: center; margin-bottom: 0.8rem; flex-wrap: wrap }
-.legend span { font: 500 0.8rem/1 var(--disp); letter-spacing: 0.1em; text-transform: uppercase; color: var(--pencil) }
-.legend i { display: inline-block; width: 3px; height: 14px; vertical-align: -3px; margin-right: 0.4rem; border-radius: 1px }
-.legend .ph i { background: var(--phrase) }
-.legend .id i { background: var(--idea) }
-.legend .hl i { width: 14px; height: 10px; background: var(--marker) }
-.legend .scales { display: inline-flex; gap: 0.4rem; align-items: center; letter-spacing: 0.04em }
-.legend .scales select { font: 0.85rem var(--mono); padding: 0.2rem 0.3rem; border: 1px solid var(--rule); background: none; color: inherit }
-.legend .goto { margin-left: auto; display: inline-flex; gap: 0.4rem; align-items: center; letter-spacing: 0.04em }
-.legend .goto input { width: 4rem; font: 0.85rem var(--mono); padding: 0.2rem 0.4rem; border: 1px solid var(--rule) }
+
+/* The score's control bar. Two rows in one frame: what the engine marks on
+   the score, then how to read it and take it away. Both rows share the field
+   and swatch vocabulary so they read as one instrument, not two strips. */
+.controls {
+  margin: -0.4rem -0.4rem 1rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--ground) 30%, var(--paper));
+}
+.ctl-row { display: flex; gap: 0.5rem 0.9rem; align-items: center; flex-wrap: wrap; min-height: 2rem }
+.ctl-read { margin-top: 0.4rem; padding-top: 0.45rem; border-top: 1px solid var(--rule) }
+.ctl-lbl {
+  font: 700 0.72rem/1 var(--disp);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pencil);
+  width: 6.5rem;
+  flex: none;
+}
+.ctl-read .export-annotations { margin-left: auto }
+
+/* A field: label outside, control inside a box that matches .btn's weight. */
+.field { display: inline-flex; align-items: center; gap: 0.45rem }
+.field-lbl {
+  font: 600 0.72rem/1 var(--disp);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pencil);
+}
+.field select, .field input, .agent-key input, .pop .paste input, .ann-head select {
+  font: 500 0.9rem/1.15 var(--disp);
+  letter-spacing: 0.03em;
+  padding: 0.35rem 0.55rem;
+  border: 1.5px solid var(--rule);
+  border-radius: 3px;
+  background: var(--paper);
+  color: var(--ink);
+}
+.field select:hover, .ann-head select:hover { border-color: var(--ink) }
+/* Native selects paint their own chrome; the caret is drawn back on so the
+   control keeps the same 1.5px box as every other field. */
+.field select, .ann-head select {
+  appearance: none;
+  padding-right: 1.7rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%235a5f68' stroke-width='1.4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.55rem center;
+  background-size: 0.6rem;
+}
+.field .goto input, .goto input { width: 4.5rem; font-family: var(--mono); font-size: 0.8rem }
+.goto input { width: 4.5rem }
+
+/* A static key — a mark the player does not toggle, so it gets no box. */
+.key { display: inline-flex; align-items: center; gap: 0.4rem; font: 500 0.78rem/1 var(--disp); letter-spacing: 0.1em; text-transform: uppercase; color: var(--pencil) }
+.key i { display: inline-block; width: 14px; height: 10px; border-radius: 1px }
+.key.hl i { background: var(--marker) }
 .solo { overflow-x: auto }
 .solo g.hit path { fill: var(--marker-ink); stroke: var(--marker-ink) }
 .solo rect.hl-bar { fill: var(--marker); opacity: 0.85 }
@@ -393,14 +443,62 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
   --ov-device: #d97706;
   --ov-recurring: #2f855a;
   --ov-language: #b83280;
+  /* The stock wash already had this value inline; naming it lets the control
+     swatch quote the same grey the score is shaded with. */
+  --ov-stock: #8892a0;
 }
-.overlays { display: inline-flex; gap: 0.55rem; align-items: center; flex-wrap: wrap; color: var(--pencil) }
-.overlays .ov { display: inline-flex; gap: 0.25rem; align-items: center; cursor: pointer }
-.overlays .ov input { accent-color: var(--pencil); margin: 0 }
-.overlays .ov-cells input { accent-color: var(--ov-cell) }
-.overlays .ov-devices input { accent-color: var(--ov-device) }
-.overlays .ov-recurring input { accent-color: var(--ov-recurring) }
-.overlays .ov-language input { accent-color: var(--ov-language) }
+
+/* Each toggle wears the colour of the mark it draws, so the row is the legend.
+   The box is the real checkbox with its chrome removed — keyboard and screen
+   reader behaviour is untouched, only the paint is ours. */
+.overlays { display: flex; gap: 0.15rem 0.2rem; align-items: center; flex-wrap: wrap; min-width: 0 }
+.overlays .ov {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 3px;
+  font: 500 0.78rem/1 var(--disp);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pencil);
+}
+.overlays .ov:hover { background: color-mix(in srgb, var(--ground) 70%, var(--paper)) }
+.overlays .ov:has(input:checked) { color: var(--ink); background: var(--paper); box-shadow: inset 0 0 0 1px var(--rule) }
+/* The ring goes on the chip: a 2px outline round a 13px box is unreadable,
+   and --idea is too close to --ov-cell to show against that swatch. */
+.overlays .ov:has(input:focus-visible) { outline: 2px solid var(--ink); outline-offset: 1px }
+.overlays .ov input {
+  appearance: none;
+  margin: 0;
+  flex: none;
+  width: 13px;
+  height: 13px;
+  border: 1.5px solid var(--sw, var(--pencil));
+  border-radius: 2px;
+  background: transparent;
+}
+.overlays .ov input:checked { background: var(--sw, var(--pencil)) }
+.overlays .ov-ticks { --sw: var(--phrase) }
+/* One toggle, two marks: the swatch is split rather than picking a favourite. */
+.overlays .ov-ticks input:checked { background: linear-gradient(90deg, var(--phrase) 0 50%, var(--idea) 50% 100%) }
+.overlays .ov-cells { --sw: var(--ov-cell) }
+.overlays .ov-devices { --sw: var(--ov-device) }
+.overlays .ov-recurring { --sw: var(--ov-recurring) }
+.overlays .ov-language { --sw: var(--ov-language) }
+/* Boundary candidates are drawn as small pencil carets, not bars. */
+.overlays .ov-candidates input {
+  border: 0;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--pencil) 42%, var(--paper));
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+.overlays .ov-candidates input:checked { background: var(--pencil) }
+/* Stock passages are shaded, not underlined; the swatch is a wash of the
+   same grey rather than a solid block that would overstate the mark. */
+.overlays .ov-stock { --sw: var(--ov-stock) }
+.overlays .ov-stock input:checked { background: color-mix(in srgb, var(--ov-stock) 32%, var(--paper)) }
 .eng-overlay { cursor: pointer }
 .eng-overlay.ov-cell rect { fill: var(--ov-cell) }
 .eng-overlay.ov-device rect { fill: var(--ov-device) }
@@ -408,7 +506,7 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
 .eng-overlay.ov-language rect { fill: var(--ov-language) }
 .cand-caret { cursor: pointer }
 .cand-caret path { fill: var(--pencil); opacity: 0.8 }
-.stock-shade { fill: #8892a0; fill-opacity: 0.13; cursor: pointer }
+.stock-shade { fill: var(--ov-stock); fill-opacity: 0.13; cursor: pointer }
 .ov-badge { font: 700 9px var(--disp, sans-serif) }
 .eng-overlay.ov-cell .ov-badge { fill: var(--ov-cell) }
 .eng-overlay.ov-device .ov-badge { fill: var(--ov-device) }

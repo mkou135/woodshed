@@ -173,17 +173,19 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
 
   // Layout first: OSMD measures its container, so it must be in the document.
   const sheet = el('section', 'sheet')
-  const legend = el('div', 'legend')
-  const goto = el('label', 'goto')
+  // One bar, two lines: what the score marks (line 1), how to read and take
+  // it away (line 2). The old split — a colour legend beside a separate
+  // checkbox strip — said the same thing twice in two visual languages.
+  const controls = el('div', 'controls')
+  const goto = el('label', 'field goto')
   const gotoInput = el('input')
   gotoInput.type = 'number'
   gotoInput.min = '1'
   gotoInput.setAttribute('aria-label', 'Go to bar')
-  goto.append(el('span', undefined, 'go to bar'), gotoInput)
-  const ph = el('span', 'ph'); ph.append(el('i'), document.createTextNode('Phrase'))
-  const id = el('span', 'id'); id.append(el('i'), document.createTextNode('Idea'))
-  const hl = el('span', 'hl'); hl.append(el('i'), document.createTextNode('Now practising'))
-  const scales = el('label', 'scales')
+  goto.append(el('span', 'field-lbl', 'Go to bar'), gotoInput)
+  // The only mark on the score nothing toggles: it follows the selected idea.
+  const hl = el('span', 'key hl'); hl.append(el('i'), document.createTextNode('Now practising'))
+  const scales = el('label', 'field scales')
   const scalesSelect = document.createElement('select')
   for (const [value, label] of [
     ['declared', 'where the chart says'],
@@ -196,18 +198,21 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
     scalesSelect.appendChild(option)
   }
   scalesSelect.setAttribute('aria-label', 'Which scales to show')
-  scales.append(el('span', undefined, 'scales'), scalesSelect)
+  scales.append(el('span', 'field-lbl', 'Scales'), scalesSelect)
 
   // Engine-evidence overlays: opt-in checkboxes for auditing what the
   // detectors guessed, drawn where they guessed it. Choices stick per browser.
+  // Each box is styled as the swatch of the mark it toggles, so the row is
+  // its own legend — nothing else on the page has to repeat these colours.
   const overlays = el('span', 'overlays')
-  overlays.append(el('span', undefined, 'engine:'))
   const overlaySettings: OverlaySettings = { ...OVERLAY_DEFAULTS }
   try {
     Object.assign(overlaySettings, JSON.parse(localStorage.getItem(OVERLAYS_KEY) ?? '{}'))
   } catch { /* defaults stand */ }
+  // 'ticks' draws both the phrase and the idea marks, which is why its swatch
+  // is split between the two colours rather than carrying one of them.
   const overlayBoxes: [keyof OverlaySettings, string][] = [
-    ['ticks', 'phrases'],
+    ['ticks', 'phrases & ideas'],
     ['cells', 'cells'],
     ['devices', 'devices'],
     ['recurring', 'recurring'],
@@ -231,9 +236,13 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
   }
 
   const exportButton = button('btn quiet export-annotations', 'Export annotations', () => {})
-  legend.append(ph, id, hl, scales, overlays, exportButton, goto)
+  const marks = el('div', 'ctl-row ctl-marks')
+  marks.append(el('span', 'ctl-lbl', 'Engine marks'), overlays)
+  const reading = el('div', 'ctl-row ctl-read')
+  reading.append(el('span', 'ctl-lbl', 'Score'), hl, scales, goto, exportButton)
+  controls.append(marks, reading)
   const solo = el('div', 'solo')
-  sheet.append(legend, solo)
+  sheet.append(controls, solo)
 
   const deskHost = el('section', 'desk')
   const drawer = el('section', 'drawer')
