@@ -99,14 +99,18 @@ describe('buildUnits on the Blake solo', () => {
 })
 
 describe.skipIf(!existsSync(ST_THOMAS))('buildUnits on the St Thomas solo', () => {
-  it('takes the top line through the matching dominant–minor–dominant resolution slot', () => {
+  it('takes the top line through the matching turnaround slot', () => {
+    // Since the 2026-08-27 lick entries, the top unit is the one with the
+    // dominant arpeggio 3 to the b9 over B7 (printed bar 114) — checked by
+    // ear: Eb Gb A C resolving to Bb is the real cliché, and vocabulary
+    // outranking the old scalar top line is the point of the naming.
     const result = run(new Uint8Array(readFileSync(ST_THOMAS)))
     const through = result.units[0].steps.find((step) => step.kind === 'through')
     const line = through?.kind === 'through'
       ? through.exercises.find((exercise) => exercise.transformation === 'through-tune')
       : undefined
     expect(line?.bars).toHaveLength(3)
-    expect(line?.rationale).toContain('bars 11–13 (Bb7 → Em7 → A7 → D)')
+    expect(line?.rationale).toContain('bars 1 and 4 (D → G7 → Gbm7 → B7 → Em7)')
   })
 })
 

@@ -131,3 +131,50 @@ describe('matchShapes: quality, not just family', () => {
     expect(matchShapes(ctx).map((h) => h.name)).not.toContain('major-seventh arpeggio from the b3')
   })
 })
+
+describe('lick entries', () => {
+  it('matches the ii–V digital pattern as one cross-chord hit', () => {
+    // D E F A over Dm7, B D F A over G7 — the classic 1235 into 3-5-7-9.
+    const chords = [chord(1, 2, 'minor-seventh'), chord(2, 7, 'dominant')]
+    const notes = line([62, 64, 65, 69, 71, 74, 77, 81]).map((n, i) =>
+      i < 4 ? n : { ...n, onset: (i % 4) * Q + 4 * Q, bar: 2, beat: i % 4 })
+    const hits = matchShapes(contextualise(notes, chords))
+    expect(hits).toHaveLength(1)
+    expect(hits[0]).toMatchObject({
+      startIndex: 0,
+      length: 8,
+      name: 'ii–V digital pattern 1235 into 3-5-7-9',
+      language: 'bebop',
+    })
+    expect(hits[0].degrees).toEqual(['1', '2', '3', '5', '3', '5', 'b7', '2'])
+  })
+
+  it('matches the dominant b9 resolution across V to I', () => {
+    // B Ab over G7 resolving to G, the 5 of C.
+    const chords = [chord(1, 7, 'dominant'), { ...chord(1, 0, 'major'), onset: 2 * Q }]
+    const hits = matchShapes(contextualise(line([71, 68, 67]), chords))
+    expect(hits.map((h) => h.name)).toContain('dominant b9 resolution')
+  })
+
+  it('rejects the b9 resolution when the root moves elsewhere', () => {
+    const chords = [chord(1, 7, 'dominant'), { ...chord(1, 11, 'major'), onset: 2 * Q }]
+    const hits = matchShapes(contextualise(line([71, 68, 67]), chords))
+    expect(hits.map((h) => h.name)).not.toContain('dominant b9 resolution')
+  })
+
+  it('never matches a lick across an idea boundary', () => {
+    const chords = [chord(1, 2, 'minor-seventh'), chord(2, 7, 'dominant')]
+    const notes = line([62, 64, 65, 69, 71, 74, 77, 81]).map((n, i) =>
+      i < 4 ? n : { ...n, onset: (i % 4) * Q + 4 * Q, bar: 2, beat: i % 4 })
+    const ctx = contextualise(notes, chords)
+    for (let i = 4; i < 8; i++) ctx[i].idea = 1
+    expect(matchShapes(ctx).some((h) => h.length === 8)).toBe(false)
+  })
+
+  it('matches the bebop dominant descent as a 5-note cell', () => {
+    // G F# F E D over G7: 1 7 b7 6 5.
+    const hits = matchShapes(contextualise(line([67, 66, 65, 64, 62]), [chord(1, 7, 'dominant')]))
+    expect(hits).toHaveLength(1)
+    expect(hits[0]).toMatchObject({ length: 5, name: 'bebop dominant descent', language: 'bebop' })
+  })
+})
