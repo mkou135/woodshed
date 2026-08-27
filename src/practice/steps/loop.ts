@@ -104,7 +104,9 @@ export function loopStep(unit: Omit<PracticeUnit, 'steps'>, score: Score): Step 
     transformation: 'loop',
     bars,
     sourceBar: first.bar,
-    rationale: unit.header,
+    rationale: unit.header + (unit.findings.some((f) => f.language)
+      ? ' A standard bebop cliché — worth having in every key; listen for where the player places it.'
+      : ''),
     timeSig: score.timeSig,
   }
   const beat = Math.floor((first.onset % ticks) / TICKS_PER_QUARTER) + 1

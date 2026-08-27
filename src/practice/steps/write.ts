@@ -115,6 +115,7 @@ export function writeTemplate(
     template: exerciseToMusicXml(exercise, instrument),
     examples,
     prompt:
+      `${unit.findings.some((f) => f.language) ? 'A standard bebop cliché — worth having in every key; listen for where the player places it. ' : ''}` +
       `${examples.length > 0 ? `${examples.length === 1 ? 'One way' : `${examples.length} ways`} the line already knows how to change — now write a fourth. ` : ''}` +
       `Write three lines of your own using ${names.join(' and ')}, landing on the small notes. ` +
       'Then drop the file back here to check the device is really in them.',

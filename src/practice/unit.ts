@@ -1,4 +1,5 @@
 import { corpusShare } from './corpus.ts'
+import { languageShare } from '../analyse/language.ts'
 import { barLabel, barRange, writtenBar } from '../core/bars.ts'
 import type { Chord, Note, Score } from '../core/types.ts'
 import type { Analysis, Finding } from '../analyse/index.ts'
@@ -37,6 +38,13 @@ export interface PracticeUnit {
   arrival: { degree: string; chordTone: boolean } | null
   /** Share of the notes inside a scale run or plain arpeggio, 0-1. */
   stock: number
+  /**
+   * The stock signal by source: `run` = stockShare, `corpus` = corpusShare,
+   * `language` = languageShare over the mined degree-pattern table. `stock`
+   * (and the rank penalty) remains max(run, corpus); `language` is
+   * description only.
+   */
+  stockParts: { run: number; corpus: number; language: number }
   rank: number
   /** One line a teacher would write above the excerpt. */
   header: string
@@ -56,6 +64,12 @@ export interface UnitSummary {
   alsoAt: string[]
   /** Mostly a scale run or plain arpeggio (stock ≥ STOCK_SHOWN). */
   stock: boolean
+  /**
+   * Which signal dominates when any of the three shares reaches STOCK_SHOWN:
+   * the run rule reads as "mostly a scale run", the corpus/table shares as
+   * "mostly common jazz language". Absent below the threshold.
+   */
+  stockKind?: 'scale-run' | 'common-language'
 }
 
 /** Stock share at or above this reads as "mostly a scale run" on the page. */
@@ -79,7 +93,13 @@ function summary(
     landing: unit.arrival?.degree ?? null,
     alsoAt: [...also].sort((a, b) => parseInt(a) - parseInt(b)),
     stock: unit.stock >= STOCK_SHOWN,
+    stockKind: stockKind(unit.stockParts),
   }
+}
+
+function stockKind(parts: PracticeUnit['stockParts']): UnitSummary['stockKind'] {
+  if (Math.max(parts.run, parts.corpus, parts.language) < STOCK_SHOWN) return undefined
+  return parts.run >= Math.max(parts.corpus, parts.language) ? 'scale-run' : 'common-language'
 }
 
 const NOTE_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
@@ -216,7 +236,12 @@ export function buildUnits(analysis: Analysis, score: Score, options: BuildOptio
           for (let k = sp.startIndex; k <= sp.endIndex; k++) exempt.add(k - startIndex)
         }
       }
-      const stock = Math.max(stockShare(partNotes, exempt), corpusShare(partNotes, exempt))
+      const stockParts = {
+        run: stockShare(partNotes, exempt),
+        corpus: corpusShare(partNotes, exempt),
+        language: languageShare(slice),
+      }
+      const stock = Math.max(stockParts.run, stockParts.corpus)
       const partial = {
         phrase: p,
         idea: i,
@@ -229,6 +254,7 @@ export function buildUnits(analysis: Analysis, score: Score, options: BuildOptio
         findings: inside,
         arrival,
         stock,
+        stockParts,
       }
       // Strongest finding first, then breadth, recurrence, a clean landing,
       // and a bonus for having something that can be taken through a tune:

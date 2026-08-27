@@ -103,7 +103,10 @@ function ideaHead(unit: PracticeUnit, index: number, total: number): HTMLElement
     if (i > 0) what.appendChild(document.createTextNode(' '))
     what.appendChild(el('span', 'cell', name))
   })
-  if (s.cells.length === 0) what.appendChild(el('span', 'faint', s.stock ? 'Mostly a scale run — the language, not the player' : 'No named vocabulary — still the player’s idea'))
+  if (s.cells.length === 0) what.appendChild(el('span', 'faint',
+    s.stockKind === 'common-language' ? 'Mostly common jazz language — the language, not the player'
+      : s.stock ? 'Mostly a scale run — the language, not the player'
+        : 'No named vocabulary — still the player’s idea'))
   if (s.landing) what.appendChild(document.createTextNode(` · lands on the ${s.landing}`))
   if (s.alsoAt.length > 0) what.appendChild(el('span', 'faint', ` · same shape at bar${s.alsoAt.length > 1 ? 's' : ''} ${s.alsoAt.join(', ')}`))
   line.append(where, what)

@@ -69,6 +69,25 @@ describe('buildUnits on the Blake solo', () => {
     expect(unit.summary.alsoAt).toEqual(['73', '102'])
   })
 
+  it('splits the stock signal into parts and a kind', () => {
+    for (const u of result.units) {
+      const { run: runPart, corpus, language } = u.stockParts
+      for (const v of [runPart, corpus, language]) {
+        expect(v).toBeGreaterThanOrEqual(0)
+        expect(v).toBeLessThanOrEqual(1)
+      }
+      // Ranking input unchanged: stock is still the max of run and corpus.
+      expect(u.stock).toBeCloseTo(Math.max(runPart, corpus))
+      const top = Math.max(runPart, corpus, language)
+      if (top >= 0.5) {
+        expect(u.summary.stockKind)
+          .toBe(runPart >= Math.max(corpus, language) ? 'scale-run' : 'common-language')
+      } else {
+        expect(u.summary.stockKind).toBeUndefined()
+      }
+    }
+  })
+
   it('gives every unit with a degree-cell a through step over this solo', () => {
     for (const u of result.units) {
       if (!u.findings.some((f) => f.degrees)) continue
@@ -146,5 +165,26 @@ describe('stockShare', () => {
   it('does not mix steps and thirds in one run', () => {
     // 1-2-3-5-7: steps then thirds; neither run reaches four notes
     expect(stockShare(midis([60, 62, 64, 67, 71]))).toBe(0)
+  })
+})
+
+describe.skipIf(!existsSync(ST_THOMAS))('common-language framing on St Thomas', () => {
+  const result = run(new Uint8Array(readFileSync(ST_THOMAS)))
+  const cliche = 'A standard bebop cliché — worth having in every key; listen for where the player places it.'
+
+  it('frames the loop step of a unit holding a named cliché', () => {
+    const top = result.units[0]
+    expect(top.findings.some((f) => f.language === 'bebop')).toBe(true)
+    const loop = top.steps.find((s) => s.kind === 'loop')
+    expect(loop?.kind === 'loop' && loop.exercise.rationale).toContain(cliche)
+  })
+
+  it('frames the write step too, and only for cliché units', () => {
+    const top = result.units[0]
+    const write = top.steps.find((s) => s.kind === 'write')
+    expect(write?.kind === 'write' && write.prompt).toContain(cliche)
+    const plain = result.units.find((u) => !u.findings.some((f) => f.language))
+    const plainLoop = plain?.steps.find((s) => s.kind === 'loop')
+    expect(plainLoop?.kind === 'loop' && plainLoop.exercise.rationale).not.toContain(cliche)
   })
 })

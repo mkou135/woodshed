@@ -29,7 +29,7 @@ const unit: Omit<PracticeUnit, 'steps'> = {
     degrees: ['1', '3', '5', '7'], intervals: [3, 4, 3], quality: 'minor-seventh',
     detectedBy: ['shape'], weights: { shape: 1 }, confidence: 1,
   }],
-  arrival: { degree: '3', chordTone: true }, stock: 0, rank: 1, header: '',
+  arrival: { degree: '3', chordTone: true }, stock: 0, stockParts: { run: 0, corpus: 0, language: 0 }, rank: 1, header: '',
   summary: { bars: 'Bars 1–2', chords: ['Dm7', 'G7'], cells: ['minor seventh arpeggio'], landing: '3', alsoAt: [], stock: false },
 }
 
