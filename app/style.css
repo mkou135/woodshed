@@ -334,7 +334,14 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
 .agent-mood select { font: inherit; padding: 0.2rem 0.3rem; }
 
 /* ---- annotate ---- */
-.ann-head { display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0 0.6rem; flex-wrap: wrap }
+.ann-head {
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  /* Pinned: the mode switcher must stay reachable however deep the scroll. */
+  position: sticky; top: 0; z-index: 10;
+  margin: 0 0 0.6rem; padding: 1rem 0 0.6rem;
+  background: var(--ground);
+  border-bottom: 1px solid var(--rule);
+}
 .ann-head h1 { font: 700 1.6rem/1 var(--disp); letter-spacing: 0.02em; text-transform: uppercase }
 .ann-head select { font: 0.9rem var(--mono); padding: 0.3rem 0.5rem; border: 1px solid var(--rule); background: var(--paper); color: inherit }
 #modes { display: flex; gap: 0.3rem }
