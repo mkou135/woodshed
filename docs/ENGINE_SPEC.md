@@ -393,7 +393,9 @@ draws no ticks for a second pass. Segno / coda remain
 - A solo whose `period` changes is rejected (one meter per score).
 - Corpus, 2026-08-27: 452 solos run, 4 rejected (mixed meter), 0 unparsed
   chords, 0 crashes, form found in 305, findings median 13 (max 119),
-  units median 36 (max 655).
+  units median 36 (max 655). One more mixed-meter rejection than the
+  2026-08-24 line recorded (453/3); `ingest/wjd.ts` has not changed since,
+  so the move is unexplained — re-measure before trusting either count.
 
 ## Corpus frequency table (`src/data/corpusFrequency.ts`, `npm run corpus:freq`)
 
