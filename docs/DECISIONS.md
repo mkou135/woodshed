@@ -639,3 +639,50 @@ review · would reverse: a later task wanting `periodBars`, bar counts, or
 any other per-solo musical fact in the golden — re-open this rather than
 extending it by analogy, and if the fields here ever grow past a few bits
 per solo, re-open regardless.
+
+## 2026-08-27 — The chorus wall becomes `wChorus`, and its equivalence gate is unsatisfiable as written
+
+Question: the spec revision required that `wChorus = 0.45` reproduce the
+hard wall's phrase-boundary positions exactly, while also requiring the new
+boundary to record the boosted cue total (min(1, total + wChorus)) instead
+of the constant 0.6. Decision: **the two cannot both hold, and the
+confidence requirement wins.** `enforceMinimum` (GPR 1) dissolves the
+*weaker* of the two edges around an undersized group, and "weaker" is read
+straight off `Boundary.strength` — the number the revision changed. So a
+confidence change propagates into positions, which the revision assumed it
+could not. Evidence: with `strength` pinned at 0.6 and everything else as
+shipped, the new code is **byte-identical to the wall on all 456 WJD
+solos** (0 phrase and 0 idea position differences) — so the rewiring
+itself, the fourth if-chain slot and the retained `!pickupInto` are exactly
+faithful. With `strength` at the boosted total, 32 of 456 solos differ:
+19 phrase starts lost, 21 gained, phrase F1 unchanged at 80.8. Pinning 0.6
+would have resurrected the magic constant this task exists to delete and
+made `wChorus` invisible in the output. Evidence class: exhaustive
+corpus comparison, isolated control · Claude, advisor-reviewed, flagged to
+the owner in the task report · would reverse: a decision that GPR-1
+dissolution should not read the chorus prior's strength — the fix would be
+a separate tie-break field, not a constant.
+
+## 2026-08-27 — Chorus-start prior value: `wChorus` stays at 0.45, against the corpus
+
+Question: the sweep over {0, 0.15, 0.20, 0.25, 0.30, 0.35, 0.45} on 456
+WJD solos is monotone downward — phrase F1 82.49 at 0, 82.2 at 0.35, 80.8
+at 0.45. Selecting by corpus F1 alone would set `wChorus` to 0, switching
+the chorus rule off. Decision: **keep 0.45.** The two targets disagree and
+the owner's is the one that governs this app. On the owner's annotated
+blues (the `44f60e0` reading, the one not contaminated by the reseed) the
+owner kept 7 chorus-start phrase marks: at 0.45 the engine finds all 7, at
+0 it finds 1 of 7. `npm run brackets` and the Blake pins in
+`pipeline.test.ts` are silent at every value in the sweep, so the owner's
+chorus marks are the only owner-ear evidence available, and they are not
+close. The corpus finding is not softened: **the wall costs 1.7 phrase F1
+across 456 solos, all of it precision, and the WJD prefers it off.** Note
+also that everything from 0 to 0.35 behaves alike — 72% of the corpus's
+1188 chorus-start gaps have a cue total of 0.00, so nothing fires until
+`wChorus` reaches `threshold` — and that the 0.012 F1 gap between 0 and
+0.15 is noise, not an optimum. Evidence class: 456-solo corpus sweep plus
+the owner's own annotations on one solo, in conflict · Claude,
+advisor-reviewed, returned to the controller as the task's one open
+concern · would reverse: the owner saying the WJD's precision matters more
+than their chorus marks, or a second blind-annotated solo agreeing with the
+corpus. Flipping is one number, one ENGINE_SPEC row and a golden re-pin.

@@ -544,3 +544,22 @@ them), so unlike the two annotated solos the corpus does give the prior
 something to weigh. 37 gaps (3.1%) clear the idea branch and never reach
 the fourth slot today, which is what makes the if-chain position
 load-bearing.
+2026-08-27 · session 15 (cont.) · Task 5b: the chorus wall is now the
+`wChorus` prior. `STRUCTURAL_CONFIDENCE` and `kind: 'structural'` are
+gone; the branch keeps its fourth slot in the if-chain and its
+`!pickupInto` exemption, and fires when min(1, total + wChorus) >=
+threshold. `kind` is now `'chorus'` rather than folded into `'rest'`,
+because riff binding demotes rest boundaries to arrivals and its
+`gap > riffMaxGap` guard cannot catch a rest-free chorus gap. Sweep on
+456 solos: phrase F1 82.49 at wChorus 0, 82.2 at 0.35, 80.8 at 0.45 —
+the corpus wants the rule off, and the wall costs 1.7 F1 in precision.
+Kept at 0.45 anyway: on the owner's annotated blues (44f60e0 reading) the
+owner kept 7 chorus-start marks and 0.45 finds all 7 where 0 finds 1.
+Both findings in DECISIONS, along with the ruling that the revision's
+equivalence gate is unsatisfiable — `enforceMinimum` reads
+`Boundary.strength`, so the specified confidence change moves positions
+(32/456 solos; byte-identical on all 456 with strength pinned at 0.6,
+which proves the rewiring itself faithful). 432 tests, typecheck green,
+brackets unchanged at every swept value, corpus golden re-pinned
+(29 solos moved). `app/score.ts:286` and `app/export.ts:25` still
+describe the deleted 0.6 distinction — deferred to the controller.

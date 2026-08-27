@@ -132,6 +132,7 @@ function printCueAt(
   score: PipelineResult['score'],
   medianDuration: number,
   beatsPerBar: number,
+  chorusStarts: Set<number> = new Set(),
 ): void {
   const i = nearestNoteIndex(notes, score, mark, beatsPerBar)
   if (i <= 0) {
@@ -139,10 +140,17 @@ function printCueAt(
     return
   }
   const cue = boundaryCue(notes, i - 1, medianDuration)
+  // The chorus prior is applied at segment()'s call site, not inside
+  // boundaryCue, so a cue printed at a chorus start does not on its own
+  // explain the engine's decision there: say what the prior added.
+  const atChorusStart = chorusStarts.has(notes[i].bar) && notes[i - 1].bar !== notes[i].bar
+  const chorus = atChorusStart
+    ? `, chorus start: +${DEFAULTS.wChorus} → ${Math.min(1, cue.total + DEFAULTS.wChorus).toFixed(2)}`
+    : ''
   console.log(
     `  ${label} ${level} ${formatPosition(mark)} → gap before n${i}: rest ${cue.rest.toFixed(2)} ` +
     `length ${cue.length.toFixed(2)} leap ${cue.leap.toFixed(2)} total ${cue.total.toFixed(2)} ` +
-    `(threshold ${DEFAULTS.threshold}), beat ${mark.beat} of ${beatsPerBar}`,
+    `(threshold ${DEFAULTS.threshold})${chorus}, beat ${mark.beat} of ${beatsPerBar}`,
   )
 }
 
@@ -224,10 +232,11 @@ for (const file of files) {
   if (showMisses) {
     const notes = analysis.contexts.map((c) => c.note)
     const medianDuration = median(notes.map((n) => n.duration))
-    for (const m of phraseResult.missed) printCueAt('missed', 'phrase', m, notes, score, medianDuration, beatsPerBar)
-    for (const f of phraseResult.falseStarts) printCueAt('false', 'phrase', f, notes, score, medianDuration, beatsPerBar)
-    for (const m of ideaResult.missed) printCueAt('missed', 'idea', m, notes, score, medianDuration, beatsPerBar)
-    for (const f of ideaResult.falseStarts) printCueAt('false', 'idea', f, notes, score, medianDuration, beatsPerBar)
+    const chorusStarts = new Set(result.report.form?.chorusStarts ?? [])
+    for (const m of phraseResult.missed) printCueAt('missed', 'phrase', m, notes, score, medianDuration, beatsPerBar, chorusStarts)
+    for (const f of phraseResult.falseStarts) printCueAt('false', 'phrase', f, notes, score, medianDuration, beatsPerBar, chorusStarts)
+    for (const m of ideaResult.missed) printCueAt('missed', 'idea', m, notes, score, medianDuration, beatsPerBar, chorusStarts)
+    for (const f of ideaResult.falseStarts) printCueAt('false', 'idea', f, notes, score, medianDuration, beatsPerBar, chorusStarts)
   }
 
   // End marks are sparse — the owner only places one where the implicit end

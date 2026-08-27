@@ -121,14 +121,51 @@ describe('segment', () => {
     for (const p of segment(notes)) expect(p.notes.length).toBeGreaterThanOrEqual(3)
   })
 
-  it('forces a boundary before a listed bar and marks it lower confidence', () => {
-    // Eight quarter notes, no rests: bars 1 and 2.
+  it('breaks at a listed bar with no rest at all, on the prior alone', () => {
+    // Eight quarter notes, no rests: bars 1 and 2. Cue total is 0, so only
+    // wChorus can carry it, and at the default it exactly reaches threshold.
     const notes = notesFrom(Array.from({ length: 8 }, () => [60, 1, 0] as [number, number, number]))
     const phrases = segment(notes, [2])
     expect(phrases).toHaveLength(2)
     expect(phrases[0].notes).toHaveLength(4)
     expect(phrases[1].startBar).toBe(2)
-    expect(phrases[1].confidence).toBe(0.6)
+    // The confidence is the boosted total, not a fixed structural constant.
+    expect(phrases[1].confidence).toBeCloseTo(0.45, 5)
+  })
+
+  it('leaves a listed bar alone when the prior cannot reach the threshold', () => {
+    const notes = notesFrom(Array.from({ length: 8 }, () => [60, 1, 0] as [number, number, number]))
+    expect(segment(notes, [2], { wChorus: 0.2 })).toHaveLength(1)
+  })
+
+  it('still breaks at a weak prior when the surface makes up the difference', () => {
+    // Same bar line, but the note before it is held 4x the median, so the
+    // held-note cue is 0.45 * 0.5 = 0.225; 0.225 + 0.25 clears 0.45, and a
+    // bar line with nothing behind it (wChorus 0) does not.
+    const notes = notesFrom([
+      [60, 0.5, 0], [62, 0.5, 0], [64, 0.5, 0], [65, 0.5, 0], [67, 2, 0],
+      [69, 0.5, 0], [71, 0.5, 0], [72, 0.5, 0], [74, 0.5, 0],
+    ])
+    expect(segment(notes, [2], { wChorus: 0 })).toHaveLength(1)
+    expect(segment(notes, [2], { wChorus: 0.25 })[1]?.startBar).toBe(2)
+  })
+
+  it('does not cut a phrase that opened as a pickup into the listed bar', () => {
+    // The exemption the wall carried, kept: a rest in bar 2, then two eighths
+    // on beats 3 and 3.5 landing on the downbeat of the chorus. The pickup and
+    // its landing are one gesture and the double bar does not split them.
+    const e = (m: number, gap = 0): [number, number, number] => [m, 0.5, gap]
+    const notes = notesFrom([
+      e(60), e(62), e(64), e(65), e(67), e(69), e(71), e(72),
+      e(74), e(76), e(77), e(79, 1), e(81), e(83),
+      e(84), e(86), e(87), e(88),
+    ])
+    const phrases = segment(notes, [3])
+    expect(phrases.some((p) => p.startBar === 3)).toBe(false)
+    // Without the pickup rest the same bar line does break, so the exemption
+    // is what suppressed it, not a missing cue.
+    const straight = notesFrom(Array.from({ length: 24 }, (_, i) => e(60 + (i % 5))))
+    expect(segment(straight, [3]).some((p) => p.startBar === 3)).toBe(true)
   })
 
   it('records the bar range each phrase covers', () => {
