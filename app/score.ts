@@ -1,5 +1,5 @@
 import { OpenSheetMusicDisplay } from 'opensheetmusicdisplay'
-import { writtenBar } from '../src/core/bars.ts'
+import { barLabel, writtenBar } from '../src/core/bars.ts'
 import { TICKS_PER_QUARTER, boundaryCandidates, languageRuns, soloistNotes } from '../src/index.ts'
 import type { Finding, PipelineResult, PracticeUnit } from '../src/index.ts'
 import { el, svgEl } from './dom.ts'
@@ -18,6 +18,24 @@ export interface ScoreView {
   showLookFors(lookFors: { unitId: string; text: string }[], units: PracticeUnit[]): void
   /** Engine-evidence overlays: what the detectors saw, drawn where they saw it. */
   showOverlays(settings: OverlaySettings): void
+  /**
+   * Snapshot for the annotation export: every overlay drawn with id badges,
+   * the SVG markup and the item list returned. Leaves the score in the
+   * everything-on state — the caller restores with `showOverlays`.
+   */
+  exportAnnotations(): { svg: string; items: OverlayItem[] } | null
+}
+
+/** One engine annotation, as the export lists it. */
+export interface OverlayItem {
+  /** Engine id where one exists (f3, u5, b41), else per-export (L1…). */
+  id: string
+  vector: 'cell' | 'device' | 'recurring' | 'language' | 'candidate' | 'stock'
+  /** The device or judgement, in the engine's own words. */
+  label: string
+  /** Printed bars. */
+  where: string
+  detail: string
 }
 
 /**
@@ -394,7 +412,7 @@ export async function renderScore(container: HTMLElement, result: PipelineResult
     return [...systems.values()]
   }
 
-  const underline = (startIndex: number, endIndex: number, lane: number, cls: string, opacity: number, text: () => string): void => {
+  const underline = (startIndex: number, endIndex: number, lane: number, cls: string, opacity: number, text: () => string, badge?: string): void => {
     for (const { staff, nodes } of bySystem(startIndex, endIndex)) {
       const svg = nodes[0]?.ownerSVGElement
       if (!svg) continue
@@ -412,6 +430,15 @@ export async function renderScore(container: HTMLElement, result: PipelineResult
       line.setAttribute('height', '3')
       line.setAttribute('rx', '1.5')
       g.appendChild(line)
+      if (badge) {
+        const label = svgEl('text')
+        label.setAttribute('class', 'ov-badge')
+        label.setAttribute('x', String(x0 - 2))
+        label.setAttribute('y', String(y + 3))
+        label.setAttribute('text-anchor', 'end')
+        label.textContent = badge
+        g.appendChild(label)
+      }
       attachTip(g, 'agent-tip', text)
       svg.appendChild(g)
     }
@@ -440,7 +467,8 @@ export async function renderScore(container: HTMLElement, result: PipelineResult
 
   let shades: SVGRectElement[] = []
 
-  const showOverlays = (settings: OverlaySettings): void => {
+  /** Draw the overlays; with a collector, badge each annotation and list it. */
+  const draw = (settings: OverlaySettings, collect: ((item: OverlayItem) => void) | null): void => {
     const svg = map?.anchors.values().next().value?.ownerSVGElement
     if (!map || !svg) return
     for (const old of svg.querySelectorAll('g.eng-overlay, g.cand-caret')) old.remove()
@@ -450,20 +478,50 @@ export async function renderScore(container: HTMLElement, result: PipelineResult
       (node as SVGGElement).style.display = settings.ticks ? '' : 'none'
     }
 
+    const printedBars = (spans: { bar: number }[]): string =>
+      [...new Set(spans.map((s) => barLabel(result.score, s.bar)))].join(', ')
+
     const wants = { cell: settings.cells, device: settings.devices, recurring: settings.recurring, language: settings.language }
     for (const f of result.analysis.findings) {
       const { lane, cls } = findingLane(f)
-      if (!wants[(['cell', 'device', 'recurring', 'language'] as const)[lane]]) continue
+      const vector = (['cell', 'device', 'recurring', 'language'] as const)[lane]
+      if (!wants[vector]) continue
       for (const span of f.spans) {
-        underline(span.startIndex, span.endIndex, lane, cls, overlayOpacity(f.confidence), () => findingTip(f))
+        underline(span.startIndex, span.endIndex, lane, cls, overlayOpacity(f.confidence), () => findingTip(f),
+          collect ? f.id : undefined)
       }
+      collect?.({
+        id: f.id,
+        vector,
+        label: f.name,
+        where: `bars ${printedBars(f.spans)}`,
+        detail: [
+          `confidence ${f.confidence.toFixed(2)}`,
+          `detected by ${f.detectedBy.join('+')}`,
+          f.degrees ? `degrees ${f.degrees.join(' ')}` : null,
+          f.spans.length > 1 ? `${f.spans.length} occurrences` : null,
+          f.language ? 'common language' : null,
+          f.lickShare !== undefined ? `in ${(f.lickShare * 100).toFixed(0)}% of recorded solos` : null,
+        ].filter(Boolean).join(' · '),
+      })
     }
 
     if (settings.language) {
-      for (const run of languageRuns(result.analysis.contexts, LANGUAGE_RUN_MIN)) {
+      languageRuns(result.analysis.contexts, LANGUAGE_RUN_MIN).forEach((run, i) => {
+        const id = `L${i + 1}`
         underline(run.start, run.end, LANES.language, 'ov-language faint', overlayOpacity(run.share),
-          () => `common jazz language · pattern in ${(run.share * 100).toFixed(0)}% of recorded solos`)
-      }
+          () => `common jazz language · pattern in ${(run.share * 100).toFixed(0)}% of recorded solos`,
+          collect ? id : undefined)
+        const from = result.analysis.contexts[run.start]?.note
+        const to = result.analysis.contexts[run.end]?.note
+        if (from && to) collect?.({
+          id,
+          vector: 'language',
+          label: 'common jazz language (mined pattern, unnamed)',
+          where: `bars ${printedBars([{ bar: from.bar }, { bar: to.bar }])}`,
+          detail: `degree pattern found in ${(run.share * 100).toFixed(0)}% of recorded solos`,
+        })
+      })
     }
 
     if (settings.candidates) {
@@ -482,9 +540,24 @@ export async function renderScore(container: HTMLElement, result: PipelineResult
         const path = svgEl('path')
         path.setAttribute('d', `M ${x} ${staff.top - 10} l 4 -7 l 4 7 z`)
         g.appendChild(path)
+        if (collect) {
+          const label = svgEl('text')
+          label.setAttribute('class', 'ov-badge')
+          label.setAttribute('x', String(x + 10))
+          label.setAttribute('y', String(staff.top - 11))
+          label.textContent = c.id
+          g.appendChild(label)
+        }
         attachTip(g, 'agent-tip', () =>
           `boundary candidate (near the phrase threshold) · total ${c.cue.total.toFixed(2)} · rest ${c.cue.rest.toFixed(2)} · length ${c.cue.length.toFixed(2)} · leap ${c.cue.leap.toFixed(2)}`)
         svg.appendChild(g)
+        collect?.({
+          id: c.id,
+          vector: 'candidate',
+          label: 'boundary candidate — a gap the engine could not call',
+          where: `bar ${barLabel(result.score, c.bar)}, beat ${c.beat + 1}`,
+          detail: `cue total ${c.cue.total.toFixed(2)} vs threshold 0.45 · rest ${c.cue.rest.toFixed(2)} · length ${c.cue.length.toFixed(2)} · leap ${c.cue.leap.toFixed(2)}`,
+        })
       }
     }
 
@@ -513,8 +586,25 @@ export async function renderScore(container: HTMLElement, result: PipelineResult
           owner.insertBefore(rect, owner.firstChild)
           shades.push(rect)
         }
+        collect?.({
+          id: u.id,
+          vector: 'stock',
+          label: kind,
+          where: u.summary.bars.toLowerCase(),
+          detail: `stock parts: run ${run.toFixed(2)}, corpus ${corpus.toFixed(2)}, language ${language.toFixed(2)} (shown at ≥ 0.5)`,
+        })
       }
     }
+  }
+
+  const showOverlays = (settings: OverlaySettings): void => draw(settings, null)
+
+  const exportAnnotations = (): { svg: string; items: OverlayItem[] } | null => {
+    const svg = map?.anchors.values().next().value?.ownerSVGElement
+    if (!svg) return null
+    const items: OverlayItem[] = []
+    draw({ ticks: true, cells: true, devices: true, recurring: true, language: true, candidates: true, stock: true }, (item) => items.push(item))
+    return { svg: svg.outerHTML, items }
   }
 
   const showLookFors = (lookFors: { unitId: string; text: string }[], units: PracticeUnit[]): void => {
@@ -555,5 +645,5 @@ export async function renderScore(container: HTMLElement, result: PipelineResult
     }
   }
 
-  return { highlight, goTo, showScales, showLookFors, showOverlays }
+  return { highlight, goTo, showScales, showLookFors, showOverlays, exportAnnotations }
 }

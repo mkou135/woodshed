@@ -5,6 +5,7 @@ import { button, el } from './dom.ts'
 import { renderScore } from './score.ts'
 import type { OverlaySettings, ScaleMode } from './score.ts'
 import { OVERLAY_DEFAULTS } from './score.ts'
+import { annotationExportHtml, downloadHtml } from './export.ts'
 import { tuneChip } from './tune.ts'
 import { detailsDrawer, whereOf } from './details.ts'
 import { doneStore } from './done.ts'
@@ -229,7 +230,8 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
     overlays.appendChild(wrap)
   }
 
-  legend.append(ph, id, hl, scales, overlays, goto)
+  const exportButton = button('btn quiet export-annotations', 'Export annotations', () => {})
+  legend.append(ph, id, hl, scales, overlays, exportButton, goto)
   const solo = el('div', 'solo')
   sheet.append(legend, solo)
 
@@ -265,6 +267,18 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
 
   onOverlayChange.fn = () => view.showOverlays(overlaySettings)
   view.showOverlays(overlaySettings)
+
+  // Everything on, badged, snapshotted to a standalone file — then the
+  // score is put back the way the checkboxes have it.
+  exportButton.addEventListener('click', () => {
+    const snap = view.exportAnnotations()
+    if (snap) {
+      const title = soloTitle(result, filename)
+      downloadHtml(`${title.replace(/[^\w-]+/g, '-').toLowerCase()}-annotations.html`,
+        annotationExportHtml(title, snap.svg, snap.items))
+    }
+    view.showOverlays(overlaySettings)
+  })
 
   const desk = practiceDesk(deskHost, result, view, done)
   let units = agent?.ranking ? agentOrder(result.units, agent) : result.units
