@@ -528,8 +528,9 @@ onset >= 0), T2 pinned the 456-solo sweep with goldens/corpus-wjd.json
 works), T3 covered the annotation export (a505aab, 429 tests). T5's spec
 was revised before dispatch after a probe found all 13 chorus-start gaps
 across both annotated solos have rest == 0 — the original design would
-have deleted every chorus boundary. Rulings and parked items: see the
-section at the end of this file.
+have deleted every chorus boundary. Rulings and parked items: see
+"Chorus-prior sprint (2026-08-27, session 15) — rulings and parked items"
+below.
 2026-08-27 · session 15 (cont.) · Task 5a: `eval:wjd` now passes chorus
 starts into `segment()` instead of an empty list, so the 456-solo corpus
 scores the chorus rule for the first time. Starts come from
@@ -593,7 +594,8 @@ F1 across 456 solos, measured for the first time because eval:wjd had
 never scored the chorus rule at all. Shipped at wChorus 0.45 (= the wall)
 because the owner's 7 kept chorus marks all sit at rest-free gaps and can
 only be produced at wChorus >= threshold — the owner's call to flip, and
-it is one number. Rulings and parked items: see the section below.
+it is one number. Rulings and parked items: see "Chorus-prior sprint
+(2026-08-27, session 15) — rulings and parked items" below.
 
 ## Chorus-prior sprint (2026-08-27, session 15) — rulings and parked items
 

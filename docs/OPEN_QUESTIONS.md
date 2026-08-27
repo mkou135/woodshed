@@ -289,9 +289,14 @@ All of these are proposals; none is implemented.
   which is what a real annotating session looks like and no seeder would
   produce; (b) reseed clobber — `scripts/viteAnnotate.ts` seeds from engine
   output, the engine had the chorus wall, so a reseed restores a phrase
-  mark at every chorus downbeat, which is exactly and only those three; the
-  same diff also moves stars 0 → 5 and variation groups 2 → 4, which is
-  seed output. The two halves are not separable from outside the owner's
+  mark at any chorus downbeat the rule fires on, and 13, 25 and 73 are
+  chorus downbeats in this 12-bar form; the same diff also moves stars
+  0 → 5 and variation groups 2 → 4, which is seed output. Reading (b) is
+  not clean, though: the entry below records the owner also deleting 61.1
+  and 109.1, equally chorus downbeats, and those did **not** come back. The
+  likeliest reason is the rule's `!pickupInto` exemption suppressing the
+  mark where the line picks up into the downbeat — that has not been
+  checked, and checking it would sharpen this question without closing it. The two halves are not separable from outside the owner's
   ear, so the file was deliberately left unedited — it is owner data, and a
   second automated guess is how it got here. Both readings are preserved in
   git: `44f60e0` is the uncontaminated one, `56425ca` the one committed.

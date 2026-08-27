@@ -464,7 +464,8 @@ draws no ticks for a second pass. Segno / coda remain
   measured before it and are unchanged by it, so the line mixes a
   pre- and a post-`wChorus` reading that happen to agree everywhere the
   medians look. Only the crash count is attributable to a
-  measured change (DECISIONS 2026-08-27 `excerpt` flooring; the three
+  measured change (DECISIONS 2026-08-27 "`excerpt` lays bars out by
+  flooring"; the three
   solos that threw now run). The rest of the drift since 2026-08-24 is
   **unattributed**: `ingest/wjd.ts` has not changed in the window, so the
   extra mixed-meter rejection has no explanation at all, and while
