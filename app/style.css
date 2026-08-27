@@ -439,9 +439,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   border-bottom: 1px solid var(--rule);
 }
 .ann-head h1 { font: 700 1.6rem/1 var(--disp); letter-spacing: 0.02em; text-transform: uppercase }
-/* The solo picker is a list of filenames, not the row's growth column. */
-.ann-head select { flex: 0 1 20rem; min-width: 10rem }
-.ann-head select { font: 0.9rem var(--mono); padding: 0.3rem 0.5rem; border: 1px solid var(--rule); background: var(--paper); color: inherit }
+/* The solo picker is a list of filenames, so it keeps the mono face — but only
+   the face: box, padding and drawn caret come from the shared field rule
+   above, and a `background` or `padding` shorthand here would reset the
+   chevron background-image to none and leave the select with no affordance at
+   all. `appearance: none` also removes the intrinsic width a select sizes by,
+   so the cap stays: this is a list of filenames, not the row's growth column. */
+.ann-head select { flex: 0 1 20rem; min-width: 10rem; font-family: var(--mono); letter-spacing: 0 }
 #modes { display: flex; gap: 0.3rem }
 #modes button {
   padding: 0.3rem 0.7rem;
