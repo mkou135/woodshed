@@ -391,11 +391,22 @@ draws no ticks for a second pass. Segno / coda remain
 - Form labels (A1, B2, I1 …) become rehearsal marks (letters only) on the
   bar they start, so the phase comes from them.
 - A solo whose `period` changes is rejected (one meter per score).
+- Corpus, 2026-08-24: 453 solos run, 3 rejected (mixed meter), 0 unparsed
+  chords, form found in 305, findings median 13 (max 132), units median
+  35.
 - Corpus, 2026-08-27: 452 solos run, 4 rejected (mixed meter), 0 unparsed
-  chords, 0 crashes, form found in 305, findings median 13 (max 119),
-  units median 36 (max 655). One more mixed-meter rejection than the
-  2026-08-24 line recorded (453/3); `ingest/wjd.ts` has not changed since,
-  so the move is unexplained — re-measure before trusting either count.
+  chords, **0 crashes**, form found in 305, findings median 13 (max 119),
+  units median 36 (max 655). Only the crash count is attributable to a
+  measured change (DECISIONS 2026-08-27 `excerpt` flooring; the three
+  solos that threw now run). The rest of the drift since 2026-08-24 is
+  **unattributed**: `ingest/wjd.ts` has not changed in the window, so the
+  extra mixed-meter rejection has no explanation at all, and while
+  `src/analyse/` changed in some sixteen commits over the same days — any
+  of which could move findings max 132 → 119 — none was measured against
+  the corpus, so naming one would be a guess. Both lines stand until
+  someone re-measures the intermediate points. Going forward the golden
+  (`goldens/corpus-wjd.json`) makes this drift visible per solo, so a
+  future line should not need this note.
 
 ## Corpus frequency table (`src/data/corpusFrequency.ts`, `npm run corpus:freq`)
 
