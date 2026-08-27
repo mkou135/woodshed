@@ -25,6 +25,10 @@ export interface FindingView {
   confidence: number
   confidenceLabel: 'strong' | 'moderate' | 'weak'
   detectedBy: string[]
+  /** Set when the finding is a named cliché — identification, not discovery. */
+  language?: 'bebop'
+  /** Share of WJD solos containing the pattern, when the mined table has it. */
+  lickShare?: number
 }
 
 export interface PipelineResult {
@@ -65,6 +69,8 @@ export function describeFinding(finding: Finding, score: Pick<Score, 'repeats'> 
     confidence: finding.confidence,
     confidenceLabel,
     detectedBy: finding.detectedBy,
+    language: finding.language,
+    lickShare: finding.lickShare,
   }
 }
 

@@ -139,3 +139,17 @@ describe('runWithAgent: the Blake solo through replay fixtures', () => {
     expect(result.agent.boundaries?.size).toBe(3)
   })
 })
+
+describe('describeFinding language', () => {
+  it('carries the language marker and corpus share to the view', () => {
+    const view = describeFinding(finding({ language: 'bebop', lickShare: 0.47 }))
+    expect(view.language).toBe('bebop')
+    expect(view.lickShare).toBeCloseTo(0.47)
+  })
+
+  it('leaves both unset on an unmarked finding', () => {
+    const view = describeFinding(finding())
+    expect(view.language).toBeUndefined()
+    expect(view.lickShare).toBeUndefined()
+  })
+})

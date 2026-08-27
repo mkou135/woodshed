@@ -32,6 +32,10 @@ export interface Finding {
   /** Bent or inverted forms of a recurring cell; their spans are already in `spans`. */
   variants?: Variant[]
   quality?: Quality
+  /** Set when the finding is a named cliché from the pedagogy literature. */
+  language?: 'bebop'
+  /** Share of WJD solos containing this degree pattern, when the mined table has it. */
+  lickShare?: number
   detectedBy: string[]
   /**
    * Each detector's own confidence in its best occurrence, 0-1. Shape and
@@ -121,6 +125,8 @@ export function analyse(score: Score, report: CleanupReport, options: AnalyseOpt
       degrees: hit.degrees,
       intervals: hit.intervals,
       quality: hit.quality,
+      language: hit.language,
+      lickShare: hit.lickShare,
       detectedBy: ['shape'],
       weights: { shape: 1 },
       confidence: 0,
@@ -245,6 +251,8 @@ function absorb(into: Finding, from: Finding, takeSpans = true): void {
     into.name = from.name
     into.kind = from.kind
   }
+  into.language ??= from.language
+  into.lickShare ??= from.lickShare
   // Never graft another detector's interval vector onto a cell that already
   // has degrees: the vectors have different lengths, and the generators would
   // build a figure that no longer spells the cell.

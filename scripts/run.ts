@@ -85,9 +85,12 @@ for (const f of analysis.findings) {
     .slice(0, 3)
     .map((s) => analysis.contexts.slice(s.startIndex, s.endIndex + 1).map((c) => note(c.note.midi)).join(' '))
     .join('  /  ')
+  const common = f.language
+    ? `  · common language${f.lickShare !== undefined ? ` (in ${(f.lickShare * 100).toFixed(0)}% of recorded solos)` : ''}`
+    : ''
   console.log(
     `  ${f.confidence.toFixed(2)}  ${f.detectedBy.join('+').padEnd(22)} ` +
-    `${f.name.padEnd(44)} bars ${bars.padEnd(14)} ${played}`,
+    `${f.name.padEnd(44)} bars ${bars.padEnd(14)} ${played}${common}`,
   )
 }
 

@@ -108,3 +108,15 @@ describe('finding merge rules', () => {
     }
   })
 })
+
+import { existsSync } from 'node:fs'
+
+const ST_THOMAS = '/Users/michaelkourkov/dev/woodshed-data/peers/st-thomas-sonny-rollins-solo-transcription.mxl'
+
+describe.skipIf(!existsSync(ST_THOMAS))('language marker', () => {
+  it('carries language through the merge to the finding', () => {
+    const a = analysed(ST_THOMAS)
+    const named = a.findings.filter((f) => f.language === 'bebop')
+    expect(named.map((f) => f.name)).toContain('dominant arpeggio 3 to the b9')
+  })
+})
