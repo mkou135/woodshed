@@ -294,16 +294,19 @@ All of these are proposals; none is implemented.
   the signal — candidates are metric/form position, whether the preceding
   phrase has resolved, and repetition across the double bar (spec §6's
   two unbuilt terms). Until then the prior is a wall with a dial on it.
-- **Chorus boundaries are now GPR 1's default sacrifice.** A rest-free
-  chorus boundary carries strength exactly `threshold`, and every rest
-  boundary carries at least that, so `enforceMinimum` drops the chorus
-  edge whenever the two compete (ties drop the left edge). Under the old
-  0.6 wall the chorus edge won against any rest boundary below 0.6. This
-  fell out of the prior rather than being chosen: it is why the refactor
-  moves 19 phrase starts out and 21 in with F1 unmoved. Resolve: decide
-  whether GPR-1 dissolution should read the chorus prior's strength at
-  all, or whether the tie-break wants its own field. See DECISIONS
-  2026-08-27 "The chorus wall becomes `wChorus`".
+- **A cue-free chorus boundary is now GPR 1's first sacrifice.** A chorus
+  boundary carries a strength in [0.45, 0.90) and a rest boundary one in
+  [0.45, 1], so they share a floor. A chorus gap with no cue at all sits
+  exactly on it and loses to any rest neighbour above 0.45 — which is the
+  common case, 72% of corpus chorus gaps — while one carrying a partial
+  length or leap cue can outrank a rest neighbour (a bare full-rest
+  boundary is 0.60). Under the old 0.6 wall the chorus edge's rank was
+  constant instead: it beat every rest boundary below 0.6 whatever the
+  music did. This fell out of the prior rather than being chosen, and it
+  is why the refactor moves 19 phrase starts out and 21 in with F1
+  unmoved. Resolve: decide whether GPR-1 dissolution should read the
+  chorus prior's strength at all, or whether the tie-break wants its own
+  field. See DECISIONS 2026-08-27 "The chorus wall becomes `wChorus`".
 - **`eval-owner`'s chorus annotation ignores the pickup exemption.**
   `printCueAt`'s `atChorusStart` test does not check `pickupInto`, so the
   printed `chorus start: +0.45 → X` can appear at a gap the exemption

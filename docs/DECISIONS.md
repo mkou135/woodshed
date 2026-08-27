@@ -667,8 +667,10 @@ a separate tie-break field, not a constant.
 
 Question: the sweep over {0, 0.15, 0.20, 0.25, 0.30, 0.35, 0.45} on 456
 WJD solos trends downward — phrase F1 82.49 at 0, 82.2 at 0.35, 80.8 at
-0.45. It is not monotone: 0.10 scores 82.477 and 0.15 scores 82.479, which
-is the noise floor, not a local optimum. Selecting by corpus F1 alone would set `wChorus` to 0, switching
+0.45. It is not monotone: two extra runs off the sweep grid (0.05 and
+0.10, measured the same way, not interpolated) score 82.485 and 82.477
+against 82.491 at 0 and 82.479 at 0.15 — the noise floor, not a local
+optimum. Selecting by corpus F1 alone would set `wChorus` to 0, switching
 the chorus rule off. Decision: **keep 0.45.** The two targets disagree and
 the owner's is the one that governs this app. On the owner's annotated
 blues (the `44f60e0` reading, the one not contaminated by the reseed) the

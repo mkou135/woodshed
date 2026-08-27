@@ -84,16 +84,32 @@ chorus-start gaps have a cue total of 0.00 and nothing fires until
 
 `wChorus` moves two things at once — which chorus gaps fire, and the
 strength each surviving one carries into `enforceMinimum` — so the F1
-deltas are not attributable to the gate alone. The second is a rule
-change worth stating plainly: the phrase branch requires `total ≥
-threshold`, so **every rest boundary carries strength ≥ 0.45, and a
-rest-free chorus boundary carries exactly 0.45**; `enforceMinimum` drops
-the weaker edge and ties drop the *left* one. A chorus boundary therefore
-now loses to any neighbouring rest boundary, always, where under the wall
-at 0.6 it beat every rest boundary below 0.6. Chorus boundaries went from
-GPR 1's protected edge to its default sacrifice — which is why the change
-moves 19 phrase starts out and 21 in with F1 unmoved: it is the identity
-of the surviving edge flipping, not boundaries appearing and disappearing.
+deltas are not attributable to the gate alone. The second is a rule change
+worth stating carefully, because the ranges matter.
+
+A chorus boundary reaches its branch only after the phrase and idea
+branches have both declined the gap, and either way that implies
+`total < threshold`: with a rest, because the phrase branch would have
+taken it; without one, because `total` and `idea` are then the same number
+(`wIdeaRest` and `wRhythm` are both 0) and the idea branch would have. So
+a chorus boundary carries a strength in **[0.45, 0.90)** — `threshold` at
+the floor, `threshold + wChorus` never reached — where a rest boundary
+carries `total` in **[0.45, 1]**. `enforceMinimum` drops the weaker edge
+of an undersized group and ties drop the *left* one.
+
+The consequence is conditional, not universal. A chorus boundary with **no
+cue at all** sits exactly on the shared floor, so it loses to every rest
+neighbour above 0.45 (and on an exact tie only when it is the left edge) —
+and that is the common case: 72% of the corpus's chorus-start gaps have a
+cue total of 0.00. A chorus gap carrying a partial length or leap cue is
+ranked above them and can outlast a rest neighbour; a bare full-rest
+boundary is only 0.60. What actually changed is that the chorus edge's
+rank stopped being constant: under the wall every chorus boundary sat at
+0.6 whatever the music did, beating every rest boundary below 0.6 and
+losing to every one above. Now the cue-free ones fall to the floor and the
+cue-bearing ones can rise past 0.6. That is why the change moves 19 phrase
+starts out and 21 in with F1 unmoved — the identity of the surviving edge
+flips, boundaries do not appear or disappear.
 
 Excluding gaps that are
 also phrase boundaries, only ~25% of WJD idea boundaries are found; the
