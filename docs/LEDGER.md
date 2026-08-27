@@ -530,3 +530,17 @@ was revised before dispatch after a probe found all 13 chorus-start gaps
 across both annotated solos have rest == 0 — the original design would
 have deleted every chorus boundary. Full state, open items and rulings in
 .superpowers/sdd/2026-08-27-chorus-prior-sprint/progress.md.
+2026-08-27 · session 15 (cont.) · Task 5a: `eval:wjd` now passes chorus
+starts into `segment()` instead of an empty list, so the 456-solo corpus
+scores the chorus rule for the first time. Starts come from
+`beats.chorus_id`, not the `form` column: `form` records a label only
+where the label changes, so on a one-section form (every blues) it names
+"A1" once and never again — the form derivation finds a single chorus on
+121 of the 456 solos and agrees with `chorus_id` on the other 335.
+Numbers: no chorus rule at all, phrase F1 82.5; hard wall wired in, 80.8
+(precision 81.4 → 78.1, predicted phrases 10923 → 11385). 1188
+chorus-start gaps; **28% carry a real rest** (rest = 1.00 at 240 of
+them), so unlike the two annotated solos the corpus does give the prior
+something to weigh. 37 gaps (3.1%) clear the idea branch and never reach
+the fourth slot today, which is what makes the if-chain position
+load-bearing.

@@ -10,6 +10,11 @@
  * rebuilt on the metrical grid (bar, beat, tatum) so the input looks like a
  * score, which is what the engine normally sees. Boundaries are compared as
  * note indices; "near" allows one note of slack either way.
+ *
+ * Chorus starts are passed to `segment()` the way `analyse/index.ts` passes
+ * `form.chorusStarts`, so the corpus scores the chorus rule instead of
+ * silently skipping it. `--no-chorus` restores the old empty-list behaviour
+ * for a before/after.
  */
 import { DatabaseSync } from 'node:sqlite'
 import { notesFromWjd } from '../src/ingest/wjd.ts'
@@ -24,11 +29,35 @@ const limit = limitArg > -1 ? Number(process.argv[limitArg + 1]) : Infinity
 const verbose = process.argv.includes('--verbose')
 const optsArg = process.argv.indexOf('--opts')
 const opts: Partial<SegmentOptions> = optsArg > -1 ? JSON.parse(process.argv[optsArg + 1]) : {}
+const noChorus = process.argv.includes('--no-chorus')
 
 const db = new DatabaseSync(dbPath)
 
 type Row = WjdMelodyRow
 const toNotes = (rows: Row[]): Note[] => notesFromWjd(rows, Math.min(...rows.map((r) => r.bar)))
+
+interface BeatRow { bar: number; chorus_id: number }
+
+/**
+ * Chorus starts, as internal bar numbers on the same origin `toNotes` uses.
+ *
+ * From `beats.chorus_id`, not the `form` column. `form` carries a label only
+ * where the label *changes*, so a one-section form (every blues here) records
+ * "A1" at the first chorus and nothing after: deriving starts from it finds a
+ * single chorus on 121 of the 456 solos. `chorus_id` is the annotators' own
+ * per-chorus counter and agrees with the form derivation on the other 335.
+ */
+function chorusStarts(beats: BeatRow[], minBar: number): number[] {
+  const out: number[] = []
+  let last: number | null = null
+  for (const b of beats) {
+    if (b.chorus_id === last) continue
+    last = b.chorus_id
+    // 0 is the intro; a chorus start before the first note produces no gap.
+    if (b.chorus_id >= 1) out.push(b.bar - minBar + 1)
+  }
+  return out
+}
 
 interface Tally { tp: number; fp: number; fn: number }
 const tally = (): Tally => ({ tp: 0, fp: 0, fn: 0 })
@@ -78,8 +107,15 @@ for (const solo of solos.slice(0, limit)) {
   const actualIdea = new Set(sections.filter((s) => s.type === 'IDEA').map((s) => s.start))
   if (actualPhrase.size === 0) continue
 
+  const beats = noChorus ? [] : db.prepare(
+    'select bar, chorus_id from beats where melid = ? order by onset',
+  ).all(solo.melid) as unknown as BeatRow[]
+
   const notes = toNotes(rows)
-  const phrases = segment(notes, [], opts)
+  const forced = chorusStarts(beats, Math.min(...rows.map((r) => r.bar)))
+  // beatsPerBar stays at the default 4 so this number remains comparable with
+  // every earlier corpus run; 437 of the 456 solos are in 4/4 anyway.
+  const phrases = segment(notes, forced, opts)
   const predictedPhrase = new Set<number>()
   const predictedIdea = new Set<number>()
   let index = 0
