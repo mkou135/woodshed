@@ -1,0 +1,116 @@
+import { describe, expect, it } from 'vitest'
+import { annotationExportHtml } from './export.ts'
+import type { OverlayItem } from './score.ts'
+
+// annotationExportHtml is a pure string function — no DOM required — so it
+// is tested directly. downloadHtml and ScoreView.exportAnnotations need a
+// live browser (Blob, URL.createObjectURL, a rendered OSMD SVG) and are not
+// covered here; see task-3-report.md.
+
+const SVG = '<svg viewBox="0 0 100 50"><rect class="phrase-tick" width="4" height="4"/></svg>'
+
+/** One item per vector but 'stock', so the "no section when empty" case is real. */
+const ITEMS: OverlayItem[] = [
+  { id: 'f3', label: 'digital pattern 1235', where: 'b12', detail: 'degrees 1 2 3 5 over Cmaj7', vector: 'cell' },
+  { id: 'f7', label: 'major-seventh arpeggio from the b3', where: 'b73', detail: 'degrees b3 5 7 9', vector: 'cell' },
+  { id: 'u5', label: 'approach into the 3rd', where: 'b20', detail: 'chromatic enclosure, target strength 0.62', vector: 'device' },
+  { id: 'b41', label: 'recurring cell [2, -2, -5]', where: 'b31, b55', detail: 'intervals [2, -2, -5], 2 occurrences', vector: 'recurring' },
+  { id: 'L2', label: 'dominant arpeggio 3 to the b9', where: 'b92', detail: 'degrees 3 5 b7 b9', vector: 'language' },
+  { id: 'c1', label: 'boundary candidate', where: 'b44', detail: 'phrase-cue total 0.38, within 0.15 of threshold', vector: 'candidate' },
+]
+
+describe('annotationExportHtml', () => {
+  it('embeds the SVG markup verbatim', () => {
+    const html = annotationExportHtml('Hey Lock!', SVG, ITEMS)
+    expect(html).toContain(SVG)
+  })
+
+  it('sets the title argument in both <title> and <h1>', () => {
+    const html = annotationExportHtml('Hey Lock!', SVG, ITEMS)
+    expect(html).toContain('<title>Hey Lock! — engine annotations</title>')
+    expect(html).toContain('<h1>Hey Lock! — what the engine heard</h1>')
+  })
+
+  it('emits one section per non-empty vector with the item count in its heading', () => {
+    const html = annotationExportHtml('Hey Lock!', SVG, ITEMS)
+    expect(html).toContain('<h3>Named cells (2)</h3>')
+    expect(html).toContain('<h3>Target devices (1)</h3>')
+    expect(html).toContain('<h3>Recurring cells (1)</h3>')
+    expect(html).toContain('<h3>Common language (1)</h3>')
+    expect(html).toContain('<h3>Boundary candidates (1)</h3>')
+  })
+
+  it('omits the section heading for a vector with no items', () => {
+    const html = annotationExportHtml('Hey Lock!', SVG, ITEMS)
+    expect(html).not.toContain('Stock stretches')
+  })
+
+  it('renders every item id, label, where and detail', () => {
+    const html = annotationExportHtml('Hey Lock!', SVG, ITEMS)
+    for (const item of ITEMS) {
+      expect(html).toContain(item.id)
+      expect(html).toContain(item.label)
+      expect(html).toContain(item.where)
+      expect(html).toContain(item.detail)
+    }
+  })
+
+  it('renders the full legend, one entry per vector including phrase and idea ticks', () => {
+    const html = annotationExportHtml('Hey Lock!', SVG, ITEMS)
+    expect(html).toContain('Phrase tick (amber, numbered)')
+    expect(html).toContain('Idea tick (blue, numbered n.2, n.3 …)')
+    expect(html).toContain('Named cell (blue underline)')
+    expect(html).toContain('Target device (orange underline)')
+    expect(html).toContain('Recurring cell (green underline)')
+    expect(html).toContain('Common language (magenta underline)')
+    expect(html).toContain('Boundary candidate (grey caret)')
+    expect(html).toContain('Stock shading (grey wash)')
+    // The legend explains detection parameters too, not just names.
+    expect(html).toContain('How it is detected:')
+  })
+
+  it('escapes <, > and & in item labels and details rather than emitting them raw', () => {
+    const dangerous: OverlayItem[] = [
+      {
+        id: 'x1',
+        label: 'dominant b9 <script>alert(1)</script> & sharp-9',
+        where: 'b1',
+        detail: 'degrees 3 5 b7 b9 <also & more>',
+        vector: 'cell',
+      },
+    ]
+    const html = annotationExportHtml('Hey Lock!', SVG, dangerous)
+
+    // The raw dangerous substrings must not appear unescaped anywhere.
+    expect(html).not.toContain('<script>')
+    expect(html).not.toContain('alert(1)</script>')
+
+    // The escaped forms must be present in place of the raw label and detail.
+    // esc() replaces '&' first, so a literal '&' becomes '&amp;' before any
+    // '<'/'>' next to it are escaped — this is the order that matters.
+    expect(html).toContain('dominant b9 &lt;script&gt;alert(1)&lt;/script&gt; &amp; sharp-9')
+    expect(html).toContain('degrees 3 5 b7 b9 &lt;also &amp; more&gt;')
+  })
+
+  it('escapes < and > in the title, in both <title> and <h1>', () => {
+    const html = annotationExportHtml('A <weird> & unusual title', SVG, ITEMS)
+    expect(html).toContain('<title>A &lt;weird&gt; &amp; unusual title — engine annotations</title>')
+    expect(html).toContain('<h1>A &lt;weird&gt; &amp; unusual title — what the engine heard</h1>')
+    expect(html).not.toContain('<weird>')
+  })
+
+  // esc() does not escape '"'. That is not a bug: every esc() call site sits
+  // between '>' and '<' (text content — <title>, <h1>, <h3>, <td>, <p>), and
+  // the one attribute interpolation in the file, style="background:${swatch}",
+  // uses LEGEND's hardcoded hex colours, never a caller-supplied string. A
+  // literal '"' in text content is well-formed HTML, so nothing here can
+  // corrupt the document. If esc() is later changed to escape quotes too,
+  // this one line updates — that is not a regression.
+  it('leaves double quotes literal — every interpolation site is text content, where a quote is legal', () => {
+    const html = annotationExportHtml('Hey Lock!', SVG, [
+      { id: 'x2', label: 'a "quoted" label', where: 'b1', detail: 'a "quoted" detail', vector: 'cell' },
+    ])
+    expect(html).toContain('a "quoted" label')
+    expect(html).toContain('a "quoted" detail')
+  })
+})
