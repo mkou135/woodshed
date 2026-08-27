@@ -547,3 +547,31 @@ experiments. The ends mode shipped the same morning is retired unused (file
 format keeps the fields). Evidence class: owner request in session ·
 owner + Claude · would reverse: seeded files disagreeing with blind files
 systematically (then seeding is retuning the owner's ear, not saving time).
+
+2026-08-27 · **Corpus-derived lick table** · Question: may Bopland and the
+WJD notes power common-language matching, given DECISIONS 2026-08-24 keeps
+both corpora out of the repo? Owner's position: the language itself is
+nobody's property. Decision: mine locally, commit the abstraction — a new
+`npm run corpus:licks` emits `src/data/corpusLicks.ts`, degree-string
+patterns (single-chord and one-chord-change) with document frequency per
+corpus, attribution in the header. Raw lick files still never enter the
+repo or bundle, so 2026-08-24 stands unreversed; names come only from the
+hand-written dictionary. Spec
+docs/superpowers/specs/2026-08-27-common-language-design.md. Evidence
+class: owner decision in session · owner + Claude · would reverse: the
+table's patterns proving too generic to identify anything (then the named
+dictionary alone carries the feature).
+
+2026-08-27 · **Common-language identification is descriptive, exact-match
+only** · Question: how does the engine say "this is common bebop
+language"? Decision: cross-chord lick matcher + longer single-chord cells
+in the shape detector (named, hand-written entries), `languageShare` from
+the mined table, unit summary split ("mostly a scale run" vs "mostly
+common jazz language"), one framing sentence in step rationales, and the
+per-finding/per-unit language fields serialized into the agent's analysis
+document. No ranking change (`STOCK_PENALTY` untouched); no statistical
+inference — every hit is a literal degree-string match, so DECISIONS
+2026-08-25 (pitch-content inference fires at chance) is not contradicted.
+Evidence class: owner-approved design · owner + Claude · would reverse:
+lick hits mislabelling on real solos (a wrong name is worse than none), or
+the summary split confusing rather than informing practice.

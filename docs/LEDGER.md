@@ -457,3 +457,10 @@ overwritten by the cont.-8 reseed (owner's open tab + save button was the
 recovery path); (4) metric/form-position idea term (zero-cue downbeat
 starts). Annotate app is feature-complete for now: five modes, seeding
 with grammar exemptions, scales strike-out, sticky toolbar.
+2026-08-27 · session 14 · Common-language identification designed and
+approved (spike → design with owner: reframe commonness positively +
+named-cliché dictionary, cross-chord now, corpus-derived lick table from
+Bopland + WJD, descriptive + practice framing, agent document wiring).
+Spec written: docs/superpowers/specs/2026-08-27-common-language-design.md.
+Owner away; instruction is to run spec → plan → implementation → verified
+production autonomously for review on return.
