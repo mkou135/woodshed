@@ -4,9 +4,13 @@ export default defineConfig({
   test: {
     // The engine is DOM-free by design, so everything runs in node.
     environment: 'node',
-    // app/export.ts's annotationExportHtml is a pure string function with
-    // no DOM dependency, so its test lives in app/ alongside the module —
-    // widened just enough to pick it up, not all of app/.
-    include: ['src/**/*.test.ts', 'app/export.test.ts'],
+    // app/ tests live alongside the modules they cover (app/export.test.ts
+    // today). Pinning that one filename would mean the next app/ test
+    // someone adds silently never runs — no error, just missing coverage —
+    // so this is a glob, not a literal path. Environment stays 'node': the
+    // only app/ tests expected here are pure functions like
+    // annotationExportHtml; anything needing a real DOM (downloadHtml,
+    // ScoreView.exportAnnotations) isn't unit-tested this way regardless.
+    include: ['src/**/*.test.ts', 'app/**/*.test.ts'],
   },
 })

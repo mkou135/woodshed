@@ -86,8 +86,13 @@ const VECTOR_TITLE: Record<OverlayItem['vector'], string> = {
   stock: 'Stock stretches',
 }
 
+// '&' first, always, so it doesn't re-escape the entities the other
+// replacements introduce. No current call site interpolates into an HTML
+// attribute — every one lands in text content, where '"' is legal — but
+// escaping it anyway makes this safe by construction rather than safe only
+// because of how it happens to be called today.
 const esc = (s: string): string =>
-  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
 /** The SVG classes the score markup carries, inlined so the file stands alone. */
 const SVG_CSS = `

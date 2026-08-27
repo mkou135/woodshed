@@ -99,18 +99,22 @@ describe('annotationExportHtml', () => {
     expect(html).not.toContain('<weird>')
   })
 
-  // esc() does not escape '"'. That is not a bug: every esc() call site sits
-  // between '>' and '<' (text content — <title>, <h1>, <h3>, <td>, <p>), and
-  // the one attribute interpolation in the file, style="background:${swatch}",
-  // uses LEGEND's hardcoded hex colours, never a caller-supplied string. A
-  // literal '"' in text content is well-formed HTML, so nothing here can
-  // corrupt the document. If esc() is later changed to escape quotes too,
-  // this one line updates — that is not a regression.
-  it('leaves double quotes literal — every interpolation site is text content, where a quote is legal', () => {
+  // esc() escapes '"' to '&quot;' too, even though today every esc() call
+  // site sits between '>' and '<' (text content — <title>, <h1>, <h3>,
+  // <td>, <p>) and the file's one attribute interpolation,
+  // style="background:${swatch}", uses LEGEND's hardcoded hex colours, never
+  // a caller-supplied string — so no live injection reaches an attribute
+  // right now. The escaping is here anyway so esc() is safe by construction
+  // for whoever next interpolates a label into an attribute (a title=
+  // tooltip, say), rather than safe only because of how it happens to be
+  // called today.
+  it('escapes double quotes as &quot;, safe by construction for a future attribute interpolation', () => {
     const html = annotationExportHtml('Hey Lock!', SVG, [
       { id: 'x2', label: 'a "quoted" label', where: 'b1', detail: 'a "quoted" detail', vector: 'cell' },
     ])
-    expect(html).toContain('a "quoted" label')
-    expect(html).toContain('a "quoted" detail')
+    expect(html).not.toContain('a "quoted" label')
+    expect(html).not.toContain('a "quoted" detail')
+    expect(html).toContain('a &quot;quoted&quot; label')
+    expect(html).toContain('a &quot;quoted&quot; detail')
   })
 })
