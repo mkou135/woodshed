@@ -424,3 +424,14 @@ findings seeding stars (top 5, first occurrence). Results: mintzer 40% of
 notes → 12 one-bar spans; blues recovers 6 of the owner's 13 marks; hey-lock
 5 tight spans. mintzer.json reseeded (was untouched pure seed). Browser-
 verified incl. star seeding; spec updated.
+2026-08-27 · session 13 (cont. 7) · Re-audit of recalibrated seeds on
+mintzer + sandu + 26-2 (harmonic read of every proposed span). Mintzer: ~10
+of 12 outside spans defensible; weak ones are a repeated-note pedal and the
+blues b3/b7 over the I. Sandu: proposals are mostly bebop enclosure
+chromaticism (F#-A-G over Gm7), not departure. 26-2: correctly sparse (4
+low-conf spans — Coltrane plays the changes), but variation groups include
+overlapping spans (opening motif matched against its own offset copy) and
+3-note triad permutations. Four refinement candidates identified: exclude
+enclosure/approach-finding notes from outside weight, damp repeated pitches,
+half-weight blue notes over major, and a minimum-substance rule (≥4 notes)
+plus overlap-dedup for variation/star seeding.
