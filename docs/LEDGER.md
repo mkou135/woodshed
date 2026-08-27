@@ -503,3 +503,15 @@ authored, failed before with the production error). ENGINE_SPEC gains an
 excerpt-layout bullet and refreshed WJD corpus numbers; the
 OPEN_QUESTIONS entry moved to DECISIONS. 420 tests, typecheck green;
 corpus:wjd 452 solos, 0 crashes (4 mixed-meter rejections).
+2026-08-27 · session 15 (cont.) · Task 2 of the chorus-prior sprint: the
+456-solo sweep now has a blast-radius pin. `goldens/corpus-wjd.json`
+holds melid → {findings, units, phrases, ideas, form} — derived counts
+only, ODbL attribution at its head, one solo per line so a diff reads as
+a list of solos that moved. Solos the engine refuses record a stable
+reason code (`mixed-meter`, `too-few-notes`), never the thrown message,
+which interpolates the recording's actual meters. `npm run corpus:wjd`
+compares and exits 1 on any difference; `-- --write-golden` re-pins;
+a missing `~/dev/woodshed-data/` prints a skip and exits 0. Comparison
+verified by perturbing `segment` threshold 0.45→0.50 (155 solos moved,
+exit 1) and by hand-editing the golden for the added/removed/status
+paths. 420 tests, typecheck green.
