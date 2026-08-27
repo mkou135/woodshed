@@ -163,11 +163,40 @@ brief for this task and supersedes this summary.
 ## Task 5 — the chorus-start prior
 
 **Depends on Tasks 1 and 2.** **Files:** `src/analyse/segment.ts`,
-`src/analyse/index.ts`, `scripts/eval-wjd.ts`, `docs/ENGINE_SPEC.md`,
-segmentation tests, possibly `src/pipeline.test.ts`.
+`src/analyse/index.ts`, `scripts/eval-wjd.ts`, `scripts/eval-owner.ts`,
+`app/score.ts`, `app/export.ts`, `docs/ENGINE_SPEC.md`, segmentation
+tests, possibly `src/pipeline.test.ts`.
 
-Read the spec at `docs/superpowers/specs/2026-08-27-chorus-start-prior.md`
-in full. It is the authority; this task text summarises it.
+Read **both** spec files in full, the revision second — it amends §3.2,
+§4 and §5 of the original and is the authority where they differ:
+
+- `docs/superpowers/specs/2026-08-27-chorus-start-prior.md`
+- `docs/superpowers/specs/2026-08-27-chorus-start-prior-revision.md`
+
+The revision exists because a probe over the owner's annotated solo found
+that **all 12 chorus-start gaps have `rest == 0`**, which makes the
+original design delete every chorus boundary at any `wChorus`. Do not
+implement §3.2 of the original.
+
+### Surfaces the original file list missed
+
+- **`boundaryCue` has three other callers.** `boundaryCandidates()` tests
+  `Math.abs(cue.total - o.threshold) <= band`; `boundaryStrength()`
+  returns `cue.total`; `scripts/eval-owner.ts` imports `boundaryCue` and
+  `DEFAULTS` to print cues at misses. Putting `wChorus` inside
+  `boundaryCue.total` would silently shift the boundary-candidate
+  population — which feeds the score overlays and the agent's adjudication
+  set — and make eval-owner's diagnostics disagree with what `segment()`
+  did. **Rule on this explicitly and say which you chose:** bonus inside
+  `boundaryCue`, or applied at the `segment()` call site only. The call
+  site is the safer default; justify it either way.
+- **`app/export.ts` is a second copy of the spec prose.** Its legend says
+  *"A half-opacity tick is a structural boundary (a chorus start) rather
+  than one the music itself forced"* and quotes the boundary formula and
+  the 0.45 threshold. Deleting `STRUCTURAL_CONFIDENCE` makes that legend
+  document a rule the engine no longer has. Update it, and check
+  `app/score.ts` for the same assumption (it draws structural ticks at
+  half opacity).
 
 ### 5a — wire chorus starts into `eval:wjd` first
 
@@ -183,25 +212,57 @@ cannot be derived reliably from the WJD form column, say so with evidence,
 and fall back to `eval:owner` + `brackets` as the acceptance harness —
 that is a legitimate outcome, recorded, not a reason to stop.
 
+5a must **additionally report the distribution of `rest` at chorus-start
+gaps across the 456 solos** (revision, "Task 5a becomes a decision gate").
+If the corpus looks like the owner's solo — `rest` ≈ 0 nearly everywhere —
+then the prior can only ever be a tunable wall, and your report says so in
+those words. That is a legitimate finding, not a failure.
+
 ### 5b — the prior
 
-Per spec §3: `wChorus` in `SegmentOptions` (start 0.30), an
-`atChorusStart` term in `boundaryCue`, and the `kind: 'structural'` branch
-plus `STRUCTURAL_CONFIDENCE` deleted. Find every consumer of
-`'structural'` and of the 0.6 confidence before deleting.
+Per the **revision**, not the original §3.2. `wChorus` in
+`SegmentOptions`; at a chorus start the rest gate is relaxed and the test
+becomes `min(1, total + wChorus) >= threshold`; everywhere else is
+untouched. The `kind: 'structural'` branch and `STRUCTURAL_CONFIDENCE`
+come out. Find every consumer of `'structural'` and of the 0.6 confidence
+before deleting — including `app/score.ts` and `app/export.ts`.
 
-### Acceptance (all three, per spec §4)
+Two conditions on the rewiring, both in the revision and both easy to get
+wrong: the chorus test **keeps the structural branch's position in the
+if-chain** (fourth, after the idea/peak/pickup branch), and
+`!pickupInto(i + 1)` **stays** on it.
+
+`wChorus = 0.45` must reproduce the current wall's **boundary positions**
+— not its confidences, which change by design. **Verify that first**,
+before tuning: it is a free regression check on the refactor, and if it
+does not hold, your rewiring is wrong and nothing downstream is
+trustworthy.
+
+### Acceptance
+
+Hard gates:
 
 1. `npm run eval:wjd` phrase F1 within **0.5** of the hard-wall number.
-2. `npm run eval:owner` on `annotations/blues-in-all-keys-bob-mintzer.json`:
-   the owner's deletions at **13.1, 25.1 and 73.1** are no longer engine
-   phrase starts; the chorus boundaries they kept survive.
-3. `npm run brackets` does not regress.
+2. `npm run brackets` does not regress.
+3. `wChorus = 0.45` produces the same set of phrase-boundary positions as
+   the current wall.
+
+Reported, not gated (revision, "Revised acceptance"): for each `wChorus`
+in the sweep, which of the owner's chorus marks it reproduces, and whether
+13.1, 25.1 and 73.1 are engine phrase starts at your chosen value. **The
+cue provably cannot separate the owner's kept from deleted marks on that
+solo** — total 0.00 appears on both sides — so do not contort the rule
+trying to reproduce them. Report the table and move on.
 
 Sweep `wChorus` over {0, 0.15, 0.20, 0.25, 0.30, 0.35, 0.45} on
-`eval:wjd`, pick by phrase F1, and **disqualify any value that re-breaks
-the owner's three deletions regardless of F1**. Put the sweep table in your
-report and in ENGINE_SPEC.
+`eval:wjd` and pick by phrase F1. Put the sweep table in your report and
+in ENGINE_SPEC.
+
+Note on `eval:owner`: the annotation file
+`annotations/blues-in-all-keys-bob-mintzer.json` has disputed provenance
+(revision, Finding 3 — part owner correction, part reseed clobber). Run
+it for information; do not treat its score as a gate, and **do not edit
+it**.
 
 Then run `npm run corpus:wjd` and report the golden's diff — that is the
 blast radius, and Task 2 exists to give you it.
