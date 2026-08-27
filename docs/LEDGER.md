@@ -447,3 +447,13 @@ half-weight alterations combined); 26-2 overlap group and triad groups gone,
 1 substantial star. mintzer.json reseeded — NOTE: the working copy differed
 from HEAD before the reseed (possible owner corrections overwritten; owner
 asked to check their open tab and press save if their marks are still there).
+2026-08-27 · session 13 · CLOSED. Working tree clean at 2cf3a24; 393 tests,
+typecheck, build green. Next session candidates, in rough value order:
+(1) chorus-start forcing → prior (OPEN_QUESTIONS; owner deletions at
+13.1/25.1/73.1 on the blues are the test set); (2) repetition-binds
+boundary term (hey-lock 116–120); (3) owner corrects the seeded mintzer /
+sandu / 26-2 annotations — check whether mintzer corrections were
+overwritten by the cont.-8 reseed (owner's open tab + save button was the
+recovery path); (4) metric/form-position idea term (zero-cue downbeat
+starts). Annotate app is feature-complete for now: five modes, seeding
+with grammar exemptions, scales strike-out, sticky toolbar.
