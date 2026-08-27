@@ -440,6 +440,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   border-bottom: 1px solid var(--rule);
 }
 .ann-head h1 { font: 700 1.6rem/1 var(--disp); letter-spacing: 0.02em; text-transform: uppercase }
+/* The solo picker is a list of filenames, not the row's growth column. */
+.ann-head select { flex: 0 1 20rem; min-width: 10rem }
 .ann-head select { font: 0.9rem var(--mono); padding: 0.3rem 0.5rem; border: 1px solid var(--rule); background: var(--paper); color: inherit }
 #modes { display: flex; gap: 0.3rem }
 #modes button {
