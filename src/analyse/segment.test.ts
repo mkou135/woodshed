@@ -150,24 +150,6 @@ describe('segment', () => {
     expect(segment(notes, [2], { wChorus: 0.25 })[1]?.startBar).toBe(2)
   })
 
-  it('does not cut a phrase that opened as a pickup into the listed bar', () => {
-    // The exemption the wall carried, kept: a rest in bar 2, then two eighths
-    // on beats 3 and 3.5 landing on the downbeat of the chorus. The pickup and
-    // its landing are one gesture and the double bar does not split them.
-    const e = (m: number, gap = 0): [number, number, number] => [m, 0.5, gap]
-    const notes = notesFrom([
-      e(60), e(62), e(64), e(65), e(67), e(69), e(71), e(72),
-      e(74), e(76), e(77), e(79, 1), e(81), e(83),
-      e(84), e(86), e(87), e(88),
-    ])
-    const phrases = segment(notes, [3])
-    expect(phrases.some((p) => p.startBar === 3)).toBe(false)
-    // Without the pickup rest the same bar line does break, so the exemption
-    // is what suppressed it, not a missing cue.
-    const straight = notesFrom(Array.from({ length: 24 }, (_, i) => e(60 + (i % 5))))
-    expect(segment(straight, [3]).some((p) => p.startBar === 3)).toBe(true)
-  })
-
   it('records the bar range each phrase covers', () => {
     const notes = notesFrom([[60, 1, 0], [62, 1, 0], [64, 1, 0], [65, 1, 0], [67, 1, 0]])
     const [phrase] = segment(notes)
@@ -252,6 +234,52 @@ describe('chorus start after a pickup', () => {
   it('still cuts at the chorus start when the line runs straight through', () => {
     const notes = notesFrom(Array.from({ length: 16 }, (_, i) => e(60 + (i % 5))))
     expect(segment(notes, [2])).toHaveLength(2)
+  })
+})
+
+describe('chorus start, the two conditions on where the test sits', () => {
+  const e = (m: number): [number, number, number] => [m, 0.5, 0]
+
+  it('leaves a chorus-start gap that already reads as an idea an idea', () => {
+    // The chorus test holds the *fourth* slot in the if-chain, after the idea
+    // branch. Bar 1 ends on a note held 4x the median (length cue 0.225); the
+    // only thing that changes between the two runs is the interval into the
+    // chorus downbeat. An octave leap adds 0.25, taking the idea profile to
+    // 0.475 — over ideaThreshold, so the gap is claimed as an idea and never
+    // reaches the chorus test. Move the chorus test earlier and this becomes
+    // a phrase break, which is what the corpus refactor had to avoid.
+    const bar1: [number, number, number][] = [e(60), e(62), e(64), e(65), [67, 2, 0]]
+    const leaping = notesFrom([...bar1, e(79), e(80), e(81), e(83), e(84), e(86), e(87), e(89)])
+    const phrases = segment(leaping, [2])
+    expect(phrases).toHaveLength(1)
+    expect(phrases[0].ideas.map((i) => i.notes.length)).toEqual([5, 8])
+
+    // Same shape, a fourth into the chorus instead of an octave: the idea
+    // profile is 0.225, under the threshold, so the gap falls through to the
+    // chorus test and the double bar breaks the phrase.
+    const stepping = notesFrom([...bar1, e(71), e(72), e(74), e(76), e(77), e(79), e(81), e(83)])
+    const cut = segment(stepping, [2])
+    expect(cut).toHaveLength(2)
+    expect(cut[1].startBar).toBe(2)
+  })
+
+  it('does not let riff binding demote a chorus boundary to an idea', () => {
+    // Riff binding folds a *rest* boundary between two statements of one
+    // figure back into the phrase. A chorus boundary keeps its own kind so
+    // that cannot happen — and it matters because the guard is
+    // `gap > riffMaxGap`, which a rest-free chorus gap passes.
+    const figure = (last: number, gap = 0): [number, number, number][] =>
+      [[69, 1, 0], [64, 1, 0], [69, 1, 0], [last, 1, gap]]
+
+    // The same two statements either side of a quarter rest: riff binding is
+    // live on this figure pair and demotes the rest boundary, one phrase.
+    expect(segment(notesFrom([...figure(71, 1), ...figure(72)]))).toHaveLength(1)
+
+    // The same two statements either side of a chorus downbeat: two phrases.
+    const across = notesFrom([...figure(71), ...figure(72)])
+    const phrases = segment(across, [2])
+    expect(phrases).toHaveLength(2)
+    expect(phrases[1].startBar).toBe(2)
   })
 })
 

@@ -71,15 +71,29 @@ measured with the chorus rule unwired and are not comparable:
 | **0.45 (in force)** | 78.1 / 83.7 / **80.8** | 76.5 | 11387 |
 
 Human ceiling on phrases is .83. The corpus prefers the prior off: the
-wall costs **1.7 phrase F1** across 456 solos, all of it precision. It is
+wall costs **1.7 phrase F1** across 456 solos, all of it precision. That
+cost is measured with the annotators' own chorus starts (`beats.chorus_id`
+— an oracle); the app derives its own from `prepare/form.ts`, so 1.7 is
+probably a lower bound on what production pays. The prior is
 kept at 0.45 because the owner's own annotated blues says the opposite —
 at 0.45 the engine finds all 7 chorus-start phrase marks the owner kept,
 at 0 it finds 1 of 7 (DECISIONS 2026-08-27 "Chorus-start prior value").
 Everything from 0 to 0.35 behaves alike, because 72% of the corpus's 1188
 chorus-start gaps have a cue total of 0.00 and nothing fires until
-`wChorus` reaches `threshold`. `wChorus` moves two things at once — which
-chorus gaps fire, and the strength each surviving one carries into
-`enforceMinimum` — so the F1 deltas are not attributable to the gate alone.
+`wChorus` reaches `threshold`.
+
+`wChorus` moves two things at once — which chorus gaps fire, and the
+strength each surviving one carries into `enforceMinimum` — so the F1
+deltas are not attributable to the gate alone. The second is a rule
+change worth stating plainly: the phrase branch requires `total ≥
+threshold`, so **every rest boundary carries strength ≥ 0.45, and a
+rest-free chorus boundary carries exactly 0.45**; `enforceMinimum` drops
+the weaker edge and ties drop the *left* one. A chorus boundary therefore
+now loses to any neighbouring rest boundary, always, where under the wall
+at 0.6 it beat every rest boundary below 0.6. Chorus boundaries went from
+GPR 1's protected edge to its default sacrifice — which is why the change
+moves 19 phrase starts out and 21 in with F1 unmoved: it is the identity
+of the surviving edge flipping, not boundaries appearing and disappearing.
 
 Excluding gaps that are
 also phrase boundaries, only ~25% of WJD idea boundaries are found; the

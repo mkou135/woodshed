@@ -278,16 +278,37 @@ All of these are proposals; none is implemented.
   sounded note by default; mark the rest only when the silence itself is
   the point (the line "plays the rest"). Resolve: decide whether eval
   should treat "owner on rest, engine on next sounded note" as a match.
-- **Chorus starts force phrase breaks — should be a prior, not a wall.**
-  `analyse/index.ts:87-88` passes `form.chorusStarts` into `segment` as
-  forced boundaries. Blues in All Keys owner annotation: the owner deleted
-  the forced starts at 13.1, 25.1, 73.1 (boundary cue 0.00 at all three)
-  because the line plays through the double bar; the other ~11 chorus
-  boundaries they kept — Mintzer usually does breathe at the top of a
-  chorus, just not always. Resolve: replace the hard cut with a
-  chorus-start bonus term in the cue (breaks only when the surface at
-  least weakly agrees), score against eval:owner blind files + eval:wjd +
-  brackets.
+- **What separates a chorus start the owner keeps from one they delete?**
+  Not rest, length or leap: on Blues in All Keys the boundary cue total is
+  **0.00 on both sides of the owner's split** — kept at 97.1, 121.1, 145.1
+  and deleted at 13.1, 25.1, 61.1, 109.1. So no weighting of the present
+  cue terms can reproduce their marks. This replaces the "chorus starts
+  force phrase breaks — should be a prior, not a wall" entry, resolved
+  2026-08-27 (DECISIONS "Chorus-start prior value"): `wChorus` replaces
+  the wall, but its value in force is 0.45 — the value at which the prior
+  always wins — so the wall is now a dial, not a judgement. That entry
+  also said "the other ~11 chorus boundaries they kept"; the verified
+  count on the uncontaminated `44f60e0` reading is **7 kept, 5 deleted**.
+  Resolve:
+  a second blind-annotated solo with chorus starts marked, then look for
+  the signal — candidates are metric/form position, whether the preceding
+  phrase has resolved, and repetition across the double bar (spec §6's
+  two unbuilt terms). Until then the prior is a wall with a dial on it.
+- **Chorus boundaries are now GPR 1's default sacrifice.** A rest-free
+  chorus boundary carries strength exactly `threshold`, and every rest
+  boundary carries at least that, so `enforceMinimum` drops the chorus
+  edge whenever the two compete (ties drop the left edge). Under the old
+  0.6 wall the chorus edge won against any rest boundary below 0.6. This
+  fell out of the prior rather than being chosen: it is why the refactor
+  moves 19 phrase starts out and 21 in with F1 unmoved. Resolve: decide
+  whether GPR-1 dissolution should read the chorus prior's strength at
+  all, or whether the tie-break wants its own field. See DECISIONS
+  2026-08-27 "The chorus wall becomes `wChorus`".
+- **`eval-owner`'s chorus annotation ignores the pickup exemption.**
+  `printCueAt`'s `atChorusStart` test does not check `pickupInto`, so the
+  printed `chorus start: +0.45 → X` can appear at a gap the exemption
+  suppressed. Diagnostic-only, no effect on segmentation. Resolve: share
+  the predicate with `segment()`, or drop the annotation at pickup gaps.
 - **Outside seeding needs a relative threshold and a dominant rule.** Audit
   of the untouched mintzer.mxl seed (2026-08-27): 40% of the solo's notes
   fell inside proposed outside spans (the owner's hand marks on the blues

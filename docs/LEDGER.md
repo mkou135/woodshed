@@ -563,3 +563,19 @@ which proves the rewiring itself faithful). 432 tests, typecheck green,
 brackets unchanged at every swept value, corpus golden re-pinned
 (29 solos moved). `app/score.ts:286` and `app/export.ts:25` still
 describe the deleted 0.6 distinction — deferred to the controller.
+2026-08-27 · session 15 (cont.) · Task 5 fix round 1, review-driven, no
+behaviour change. The two conditions the revision called easy to get
+wrong now have tests with their own controls, each verified to fail under
+the exact refactor it guards: moving the chorus test above the idea
+branch, and folding `kind: 'chorus'` back into `'rest'`. ENGINE_SPEC now
+names the rule change the measurement had only implied — a rest-free
+chorus boundary carries exactly `threshold` and every rest boundary
+carries at least that, so chorus boundaries went from GPR 1's protected
+edge to its default sacrifice, which is why the churn is 19 out / 21 in
+with F1 unmoved. The 1.7 F1 cost is qualified in both ENGINE_SPEC and
+DECISIONS as measured under oracle chorus starts, so a lower bound.
+OPEN_QUESTIONS: the answered entry removed, replaced by the live question
+(the signal at a chorus start is not rest, length or leap — cue 0.00 sits
+on both sides of the owner's split) with the corrected count, 7 kept and
+5 deleted, not "~11 kept"; plus the GPR-1 degeneracy and a parked
+eval-owner diagnostic inconsistency. 433 tests, typecheck green.

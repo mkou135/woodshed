@@ -666,8 +666,9 @@ a separate tie-break field, not a constant.
 ## 2026-08-27 — Chorus-start prior value: `wChorus` stays at 0.45, against the corpus
 
 Question: the sweep over {0, 0.15, 0.20, 0.25, 0.30, 0.35, 0.45} on 456
-WJD solos is monotone downward — phrase F1 82.49 at 0, 82.2 at 0.35, 80.8
-at 0.45. Selecting by corpus F1 alone would set `wChorus` to 0, switching
+WJD solos trends downward — phrase F1 82.49 at 0, 82.2 at 0.35, 80.8 at
+0.45. It is not monotone: 0.10 scores 82.477 and 0.15 scores 82.479, which
+is the noise floor, not a local optimum. Selecting by corpus F1 alone would set `wChorus` to 0, switching
 the chorus rule off. Decision: **keep 0.45.** The two targets disagree and
 the owner's is the one that governs this app. On the owner's annotated
 blues (the `44f60e0` reading, the one not contaminated by the reseed) the
@@ -676,7 +677,9 @@ owner kept 7 chorus-start phrase marks: at 0.45 the engine finds all 7, at
 `pipeline.test.ts` are silent at every value in the sweep, so the owner's
 chorus marks are the only owner-ear evidence available, and they are not
 close. The corpus finding is not softened: **the wall costs 1.7 phrase F1
-across 456 solos, all of it precision, and the WJD prefers it off.** Note
+across 456 solos, all of it precision, and the WJD prefers it off** — a
+cost measured with the annotators' own chorus starts, so probably a lower
+bound on what the app pays with `prepare/form.ts`'s derived ones. Note
 also that everything from 0 to 0.35 behaves alike — 72% of the corpus's
 1188 chorus-start gaps have a cue total of 0.00, so nothing fires until
 `wChorus` reaches `threshold` — and that the 0.012 F1 gap between 0 and
