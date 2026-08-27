@@ -605,3 +605,37 @@ hand-authored notes — it failed before the fix with the production error.
 Evidence class: reproduced and instrumented on the corpus · Claude · would
 reverse: an excerpt whose pickup bar reads wrong on a real solo (then the
 line wants trimming to the bar, not a pickup bar).
+
+2026-08-27 · **What may live in a corpus golden** · Question: `corpus:wjd`
+now pins itself against `goldens/corpus-wjd.json`, a committed file derived
+from the ODbL Weimar Jazz Database, which under CLAUDE.md may never enter
+the repo. The counts (`findings`, `units`, `phrases`, `ideas`) are plainly
+derived aggregate statistics and are permitted. Two further per-solo fields
+are not counts: `form` (the chorus grid's phase provenance — `rehearsal`,
+`double-bar`, `pickup`, `none`, `no-form`) and, for the solos the engine
+refuses, `rejected` (`mixed-meter`, `too-few-notes`, `error`). May they be
+committed, and by what test? Decision: yes, both, and the test is **derived
+and de minimis** — not "it is about the engine, not the recording". That
+weaker distinction was the first justification written and it does not
+hold: `form: 'rehearsal'` reports that this melid's `beats.form` column
+carried rehearsal annotations, which is a fact about the source data's
+annotation coverage; `rejected: 'mixed-meter'` reports that four specific
+recordings change meter. Both are true facts about WJD entries. They are
+permitted because each is a single token from a closed five- or three-value
+vocabulary — a couple of bits per solo, reconstructing nothing about the
+music — and because the golden is not legible without them: a grid that
+silently re-locks while the counts hold would pass, and a deliberate
+rejection that silently stops happening is a regression the counts cannot
+see. On the same test, `periodBars` is excluded: the form length is a
+specific musical property of a specific tune, and one that a reader could
+act on. So is the thrown rejection message, which interpolates the
+recording's actual meters ("4/5 beats per bar") — hence a code, not the
+message. Anyone extending the golden should apply de-minimis-plus-derived,
+field by field, and not reason from "the engine computed it" — everything
+in the file was computed by the engine, including the parts that may not be
+committed. Evidence class: reading of CLAUDE.md's corpus rule and the ODbL,
+applied field by field; no external advice sought · Claude, at the owner's
+review · would reverse: a later task wanting `periodBars`, bar counts, or
+any other per-solo musical fact in the golden — re-open this rather than
+extending it by analogy, and if the fields here ever grow past a few bits
+per solo, re-open regardless.

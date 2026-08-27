@@ -49,11 +49,24 @@ const beatsQ = db.prepare("select bar, beat, coalesce(chord, '') as chord, coale
 
 /**
  * What the golden pins per solo: four counts and the provenance of the form
- * phase. `form` is not a count, but it names *which marks* the detector
- * locked the chorus grid to — the thing this engine is most likely to move —
- * and it is a four-value enum about the detector, not a fact about the
- * recording. A solo the engine refuses records why instead; a rejection that
- * silently stops happening is as much a regression as a count that moves.
+ * phase. `form` is not a count. It is kept because it names which marks the
+ * detector locked the chorus grid to, which is the thing this engine is most
+ * likely to move, and a grid that silently re-locks while the counts happen
+ * to hold would otherwise pass. A solo the engine refuses records why
+ * instead; a rejection that silently stops happening is as much a regression
+ * as a count that moves.
+ *
+ * The licensing test these two fields pass is **derived and de minimis**, not
+ * "it describes the engine rather than the recording" — that distinction does
+ * not hold and should not be reached for. `form: 'rehearsal'` does say
+ * something about the source: that this melid's `beats.form` column carried
+ * rehearsal annotations. `rejected: 'mixed-meter'` says a specific recording
+ * changes meter. Both are true facts about WJD entries. They are here because
+ * each is one token from a fixed four- or three-value vocabulary — a couple
+ * of bits per solo, reconstructing nothing — and because the file is
+ * unreadable without them. Anything richer (the meters themselves, the form
+ * length, bar counts) fails the same test and stays out. See DECISIONS
+ * 2026-08-27 "What may live in a corpus golden".
  */
 interface Counts {
   findings: number
@@ -69,9 +82,10 @@ const COUNT_FIELDS = ['findings', 'units', 'phrases', 'ideas'] as const
 
 /**
  * Rejections are stored as a stable code, not as the thrown message. The
- * message interpolates the solo's actual meters, which is a musical fact
- * about a specific recording and so may not live in the repo; a code also
- * survives rewording the message.
+ * message interpolates the solo's actual meters ("4/5 beats per bar") — a
+ * specific musical detail of a specific recording, well past de minimis. The
+ * code keeps the one bit the golden needs, and survives rewording the message
+ * besides.
  */
 function reasonCode(message: string): string {
   if (message.includes('changes meter')) return 'mixed-meter'
@@ -193,10 +207,17 @@ function report(golden: Map<number, Entry>, now: Map<number, Entry>): boolean {
   for (const [melid, was] of golden) {
     const is = now.get(melid)
     if (!is) continue
-    if (JSON.stringify(was) === JSON.stringify(is)) { unchanged++; continue }
-    // A solo crossing between analysed and rejected is the loudest kind of
-    // change there is, so it sorts above any numeric delta.
+    // Compared field by field, never by serialising both sides: the golden is
+    // a file people hand-edit — the verification runs for this pin did — and
+    // a reordered entry must not read as a solo that moved.
     if (!isCounts(was) || !isCounts(is)) {
+      // A solo crossing between analysed and rejected is the loudest kind of
+      // change there is, so it sorts above any numeric delta.
+      if (!isCounts(was) && !isCounts(is)) {
+        if (was.rejected === is.rejected) { unchanged++; continue }
+        changed.push({ melid, size: Infinity, text: `rejected: ${was.rejected} → ${is.rejected}` })
+        continue
+      }
       const label = (e: Entry): string => (isCounts(e) ? `analysed (${e.findings}f)` : `rejected: ${e.rejected}`)
       changed.push({ melid, size: Infinity, text: `${label(was)} → ${label(is)}` })
       continue
@@ -214,7 +235,8 @@ function report(golden: Map<number, Entry>, now: Map<number, Entry>): boolean {
       parts.push(`form ${was.form}→${is.form}`)
       fieldMoved.set('form', (fieldMoved.get('form') ?? 0) + 1)
     }
-    changed.push({ melid, size, text: parts.join('  ') })
+    if (parts.length === 0) unchanged++
+    else changed.push({ melid, size, text: parts.join('  ') })
   }
 
   const clean = changed.length === 0 && added.length === 0 && removed.length === 0
