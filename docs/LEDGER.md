@@ -579,3 +579,19 @@ OPEN_QUESTIONS: the answered entry removed, replaced by the live question
 on both sides of the owner's split) with the corrected count, 7 kept and
 5 deleted, not "~11 kept"; plus the GPR-1 degeneracy and a parked
 eval-owner diagnostic inconsistency. 433 tests, typecheck green.
+2026-08-27 · session 15 (cont.) · Sprint complete, all five tasks reviewed
+and their fix rounds closed. T1 excerpt flooring (b03f637), T2
+goldens/corpus-wjd.json pinning all 456 WJD solos (f546cef, e269c3f), T3
+export tests + esc() hardened for attribute safety (a505aab, ea892ae), T4
+the design pass — one control bar whose toggles wear their own marks, the
+landing page using its width, the weak phrase tick keyed to
+threshold+CANDIDATE_BAND instead of a meaningless 0.6 (dc0de52..a197363),
+T5 the chorus wall becomes wChorus (9b1e694, 92ae4d9, 9f8c540, 815a3dc).
+434 tests, typecheck both configs, build green; Blake reproduces the
+CLAUDE.md target exactly. Headline finding: the hard wall costs 1.7 phrase
+F1 across 456 solos, measured for the first time because eval:wjd had
+never scored the chorus rule at all. Shipped at wChorus 0.45 (= the wall)
+because the owner's 7 kept chorus marks all sit at rest-free gaps and can
+only be produced at wChorus >= threshold — the owner's call to flip, and
+it is one number. Rulings and parked items in
+.superpowers/sdd/2026-08-27-chorus-prior-sprint/progress.md.
