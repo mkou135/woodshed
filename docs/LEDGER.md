@@ -653,6 +653,44 @@ phrase confidence and the caret tests cue total, quantities that differ
 by `wChorus` — and the faint-tick rule is now in ENGINE_SPEC, where it
 had never been written down.
 
+2026-08-28 · session 16 (cont.) · Parked-minors fix round 1, review-driven,
+no behaviour change. The caretless-tick finding was recorded as an
+observation where a proof exists, and the proof is now in ENGINE_SPEC with
+the parameter equality each step stands on: faint means `total < WEAK −
+wChorus` = 0.15, a candidate needs `total >= 0.30`, so the predicates are
+disjoint whenever `wChorus >= 2 × CANDIDATE_BAND`; and `total >= wRest ×
+rest` with a nonzero rest cue floored at `minRest/fullRest` = 0.25 forces
+`rest = 0` **necessarily**. It rests on `wRest × 0.25` = 0.15 = `WEAK −
+wChorus` exactly, saved by the strict `<` at `score.ts:336` — which also
+excludes `rest = 1.00` from a faint rest boundary, so the measured 19/18
+split is a consequence, not a coincidence. Two claims in the DECISIONS
+entry were wrong and are corrected in an append: "a chorus boundary can
+never be a candidate at any confidence" is too broad (a `rest > 0`,
+`total < threshold` chorus gap *is* a candidate — but carries 0.75 and is
+never faint), and the reversal clause built on it reversed nothing. The
+real conditions: `wChorus < 2 × CANDIDATE_BAND`, any change to the
+`wRest`/`minRest`/`fullRest`/`CANDIDATE_BAND` equality, or `<` becoming
+`<=`. Also noted: at `wChorus = 0` the export legend's faint-tick sentence
+goes vacuous, not wrong.
+
+`eval-owner.ts`'s duplicated exemption no longer states a contingent
+guarantee as a structural one — it tests branch 2, so a branch-1 rest
+boundary (an `overrides` entry of `true` below threshold) would make it
+over-claim; unreachable only because this script passes no overrides, and
+the comment now says so. The `excerpt` follow-up in OPEN_QUESTIONS is
+reworded as the lookup-and-design question it is (`vary.ts:57` holds the
+wrong chord in exactly the pickup case; the right one needs a
+`score.chordTracks` lookup like `resolutionChord`). Two entries added
+there: that **nothing pins exercise output at all** — the golden pins
+counts, so the ~240 changed first bars were guarded only by one unit test
+and a hand read of the XML — and the `through-tune` concatenation case,
+checked across the ten peers (2 exercises, both blanking only at index 0,
+a real leading pickup; the join case is unobserved, not ruled out). The
+`rootPc: 0` placeholder stays and the comment says why: `ExerciseBar`
+requires those fields for the cell-per-bar path (`validity.ts`), the
+renderer is their only reader, and the empty list is the guard.
+435 tests, typecheck both configs.
+
 ## Chorus-prior sprint (2026-08-27, session 15) — rulings and parked items
 
 Made on the owner's behalf while they were away, and previously recorded

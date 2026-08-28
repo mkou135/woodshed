@@ -310,12 +310,35 @@ All of these are proposals; none is implemented.
 - **`excerpt` is never told the chord before the excerpt.** Fixed
   2026-08-28 so a chordless first bar prints no chord symbol rather than a
   fabricated "C", which is honest but not complete: on a `vary-approach`
-  exercise the ramp genuinely sounds over the tune's *previous* chord, and
-  the caller knows it (`vary.ts` already finds the chord at or before the
-  line's first note; `through.ts` could read the target tune's chord before
-  the slot). Resolve: decide whether `excerpt` should take an optional
-  "already sounding" chord and place it at bar 0, and whether printing it
-  helps a player or clutters an exercise whose point is the approach.
+  exercise the ramp genuinely sounds over some chord, and the page says
+  nothing. **This is a lookup-and-design question, not a wire-through.**
+  No caller currently holds the value: `vary.ts:57` finds the chord at or
+  before the line's first note, but in exactly this case that chord begins
+  *at* the landing downbeat — printing it is the guess the fix refused.
+  The chord actually sounding over the ramp has to be looked up in
+  `score.chordTracks`, the way `resolutionChord` does at `through.ts:25`,
+  and `throughStep` needs the *target tune's* chord before the slot, which
+  is a different lookup again. Resolve: decide whether `excerpt` takes an
+  optional "already sounding" chord at bar 0, who computes it per call
+  site, and whether printing it helps a player or clutters an exercise
+  whose whole point is the approach.
+- **Nothing pins exercise output.** The corpus golden pins per-solo
+  findings/units/phrases/ideas counts and `eval:*` scores boundaries;
+  neither looks at a generated exercise, so the ~240 exercises whose first
+  bar the 2026-08-28 chord fix changed were guarded only by one new unit
+  test and a hand read of the rendered MusicXML. This is the gap that item
+  shipped out of. Resolve: decide what a cheap pin looks like — a hash of
+  each solo's exercise MusicXML in the corpus golden would catch movement
+  without asserting on musical judgement, at the cost of a noisier diff.
+- **A `through-tune` line concatenates several excerpts into one exercise**
+  (`through.ts:76`), and every excerpt's bar 0 is now blanked when it has
+  no chord — so a blank at a *join* would read as "still under the previous
+  chord", which here is a chord from another part of the tune. Checked
+  2026-08-28 across the ten peers: 2 such exercises exist (Sandu u13,
+  mintzer u63) and both blank only at index 0, a real leading pickup, so
+  the case is unobserved rather than ruled out. Resolve: decide whether
+  bar 0 of a *later* segment should repeat its own segment's first chord
+  instead of blanking, and find a solo that produces one.
 - **Outside seeding needs a relative threshold and a dominant rule.** Audit
   of the untouched mintzer.mxl seed (2026-08-27): 40% of the solo's notes
   fell inside proposed outside spans (the owner's hand marks on the blues

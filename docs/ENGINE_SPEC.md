@@ -525,20 +525,39 @@ omitted (6,482 of 7,742). Regenerate after any ingest change.
     drawn on Blake), `all` (57), `off`. The default is the quiet one because
     three of the four sources say in print that marking every bar is the
     failure mode.
-- **Phrase ticks draw faint** (`score.ts`, class `phrase-tick weak`) when
-  the phrase's confidence is below `threshold + CANDIDATE_BAND` = **0.60**
-  — the same width the agent's segment job adjudicates within, so a faint
-  tick means "the engine opened this phrase on a call it would have taken
-  advice on". Note the two marks measure different quantities: the tick
-  tests **phrase confidence** against that ceiling, the boundary-candidate
-  caret tests **cue total** against a band around `threshold`, and for a
-  chorus boundary they differ by exactly `wChorus`. A faint tick with no
-  caret is therefore always a chorus start whose gap has no rest —
-  `boundaryCandidates` requires `rest > 0`, so such a gap cannot be a
-  candidate at any confidence. Measured over the ten peer solos
-  (2026-08-28): 37 faint ticks, 19 rest-free chorus starts with no caret
-  and 18 ordinary rest boundaries with one. DECISIONS 2026-08-28 "A faint
-  phrase tick with no caret is a rest-free chorus start".
+- **Phrase ticks draw faint** (`score.ts:336`, class `phrase-tick weak`)
+  when the phrase's confidence is **strictly below** `WEAK_CONFIDENCE` =
+  `threshold + CANDIDATE_BAND` = **0.60** — the same width the agent's
+  segment job adjudicates within, so a faint tick means "the engine opened
+  this phrase on a call it would have taken advice on". The two marks
+  measure different quantities: the tick tests **phrase confidence**
+  against that ceiling, the boundary-candidate caret tests **cue total**
+  against a band around `threshold`, and for a chorus boundary they differ
+  by exactly `wChorus`. What follows from that is provable, not just
+  observed, and each step names the parameter equality it stands on:
+  - A chorus boundary's strength is `min(1, total + wChorus)`, so faint
+    means `total < WEAK − wChorus` = **0.15**.
+  - A candidate needs `total >= threshold − CANDIDATE_BAND` = **0.30**.
+    0.15 ≤ 0.30, so the predicates are **disjoint**: a faint chorus tick
+    can never carry a caret. The general condition is
+    `wChorus >= 2 × CANDIDATE_BAND` (0.45 ≥ 0.30, margin 0.15).
+  - `total >= wRest × rest`, so `rest < 0.15 / 0.6` = **0.25**; and a
+    nonzero rest cue is at least `minRest / fullRest` = **0.25**
+    (`boundaryCue` floors anything shorter to 0). So `rest = 0`
+    *necessarily* — every faint chorus tick is rest-free. This one is a
+    knife edge: `wRest × (minRest/fullRest)` = 0.15 = `WEAK − wChorus`
+    **exactly**, and only the strict `<` at `score.ts:336` keeps a gap
+    with `rest = 0.25` and no length or leap out of it. (Such a gap would
+    still draw no caret — 0.15 < 0.30 — so `<=` would cost the
+    "rest-free" half of this rule, not the caret half.)
+  - Symmetrically, a faint **rest** boundary carries `total ∈ [0.45,
+    0.60)`, and a full quarter alone gives `wRest × 1` = 0.60 exactly — so
+    `rest = 1.00` is excluded, again by the strict `<`.
+  Measured over the ten peer solos (2026-08-28), and matching the
+  derivation: 37 faint ticks, 19 rest-free chorus starts with no caret and
+  18 rest boundaries with one, every one at `rest 0.50` (0.25 and 0.75 are
+  permitted too; 1.00 is not). DECISIONS 2026-08-28 "A faint phrase tick
+  with no caret is a rest-free chorus start" and its correction.
 - **Engine overlays** (`score.ts` `showOverlays`, strip in `main.ts`,
   `localStorage` `woodshed.overlays` JSON): opt-in audit view of what the
   detectors guessed, drawn where they guessed it. Checkboxes: phrases

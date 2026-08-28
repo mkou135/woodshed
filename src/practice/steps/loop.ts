@@ -104,6 +104,11 @@ export function excerpt(
   // 'major') over a bar whose chord nobody knows. An empty list says "no
   // chord symbol here", which is what a lead sheet does with a pickup — same
   // representation `write.ts` already emits for a chordless tune bar.
+  // The placeholder itself stays: `rootPc`/`quality` are required on every
+  // `ExerciseBar` because the cell-per-bar exercises read them (`validity.ts`
+  // re-detects a finding against them), so making them optional would churn
+  // that path to delete a value only this bar leaves meaningless. The empty
+  // list is the guard — the renderer is its only reader (`musicxml.ts:232`).
   if (bars.length > 0 && !bars[0].chords?.length) bars[0].chords = []
   return bars
 }

@@ -808,3 +808,54 @@ not committed · Claude · would reverse: `boundaryCandidates` dropping its
 `cue.rest > 0` gate, or a chorus gap that reaches the fourth branch with a
 rest (possible in principle — `rest > 0` with `total < threshold` — and
 absent from all ten peers).
+
+## 2026-08-28 — Correction: the caretless rule is provable, and its reversal clause was wrong
+
+Question: the entry above ("A faint phrase tick with no caret is a
+rest-free chorus start") argues from measurement — "which on these solos
+means `rest = 0.00` every time" — and closes by naming as a reversal "a
+chorus gap that reaches the fourth branch with a rest (possible in
+principle — `rest > 0` with `total < threshold`)". Is either right?
+Decision: **the conclusion holds and is stronger than measured, but two
+of its statements are wrong and are corrected here.** DECISIONS is
+append-only, so the entry above stands; this supersedes those two parts.
+
+First, the observation is a theorem. A chorus boundary's strength is
+`min(1, total + wChorus)`, so faint (`< 0.60`) means `total < 0.15`; a
+candidate needs `total >= 0.30`; the two are disjoint, which needs only
+`wChorus >= 2 × CANDIDATE_BAND` (0.45 ≥ 0.30). And `total >= wRest × rest`
+forces `rest < 0.25`, while a nonzero rest cue is at least
+`minRest / fullRest` = 0.25 — so `rest = 0` necessarily, not incidentally.
+The full derivation, with the parameter equality each step stands on, is
+now in ENGINE_SPEC under the faint-tick bullet. The measured 19/18 split
+is a consequence, not a coincidence: a faint rest boundary needs
+`total ∈ [0.45, 0.60)` and `wRest × 1` = 0.60 exactly, so `rest = 1.00`
+cannot be faint.
+
+Second, the entry's blanket claim that a chorus boundary "can never be a
+candidate, at any confidence" is **too broad**, and the reversal clause
+built on it is not a reversal. A gap can reach the fourth branch with
+`rest > 0` and `total < threshold` — say `rest = 0.5`, `total = 0.30` —
+and that gap *is* a candidate. But its strength is 0.75, so it is never
+faint and never touches the legend. The true statement is about **faint**
+chorus ticks, not all chorus boundaries.
+
+The reversal conditions, corrected:
+
+1. `wChorus` dropping below `2 × CANDIDATE_BAND` = 0.30, which opens the
+   overlap the disjointness argument closes.
+2. Any change to the `wRest × (minRest/fullRest)` = `WEAK − wChorus`
+   equality — that is, to `wRest`, `minRest`, `fullRest`, `threshold` or
+   `CANDIDATE_BAND` — which costs the "rest-free" half.
+3. `<` becoming `<=` at `app/score.ts:336`, which costs the same half (a
+   `rest = 0.25` gap would be faint with a rest, though still caretless).
+
+Note for the `wChorus = 0` checklist in "Correction: flipping `wChorus` is
+five things, not three": item 4's legend sentence — "A faint tick with no
+caret under it is a chorus start" — does not become *wrong* at
+`wChorus = 0`, it becomes **vacuous**, because no chorus boundary fires at
+all. It still needs editing, for the reason that entry gives.
+
+Evidence class: derivation from `DEFAULTS` and `boundaryCue` at HEAD,
+checked against the ten-peer enumeration that motivated it · Claude, fix
+round 1, review-driven · would reverse: the three conditions above.

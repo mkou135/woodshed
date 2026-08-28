@@ -135,12 +135,22 @@ function nearestNoteIndex(notes: Note[], score: PipelineResult['score'], mark: P
  *
  * One approximation: the engine asks whether the *last boundary it added*
  * was a rest boundary within three notes; here we look for the nearest gap
- * in that window where the rest branch would have fired
- * (`total >= threshold && rest > 0`). The two differ only when an arrival
- * or chorus boundary was added between that gap and this one, in which
- * case the engine's `last.kind !== 'rest'` would decline the exemption and
- * this returns true. So the message can under-claim the prior, never
- * over-claim it, which is the direction a diagnostic should err.
+ * in that window where segment()'s **second** branch would have fired
+ * (`total >= threshold && rest > 0`). Two ways that differs, in opposite
+ * directions:
+ *
+ * - An arrival or chorus boundary added between that gap and this one
+ *   makes the engine's `last.kind !== 'rest'` decline the exemption where
+ *   this grants it — the message under-claims the prior, which is the
+ *   direction a diagnostic should err.
+ * - segment()'s **first** branch also produces a rest boundary, from an
+ *   `overrides` entry of `true` with `rest > 0` but `total < threshold`.
+ *   This does not see it, so it would over-claim. That is unreachable
+ *   here only because `eval-owner.ts` never builds or passes
+ *   `SegmentOptions.overrides` — `agent/run.ts` and `eval-agent.ts` are
+ *   the only callers that do. The guarantee is contingent on this
+ *   script's call, not on the predicate: give this file overrides and it
+ *   must learn branch 1.
  */
 function pickupInto(notes: Note[], at: number, medianDuration: number, beatsPerBar: number): boolean {
   for (let back = 1; back <= 3; back++) {
