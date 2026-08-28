@@ -307,6 +307,15 @@ All of these are proposals; none is implemented.
   unmoved. Resolve: decide whether GPR-1 dissolution should read the
   chorus prior's strength at all, or whether the tie-break wants its own
   field. See DECISIONS 2026-08-27 "The chorus wall becomes `wChorus`".
+- **`excerpt` is never told the chord before the excerpt.** Fixed
+  2026-08-28 so a chordless first bar prints no chord symbol rather than a
+  fabricated "C", which is honest but not complete: on a `vary-approach`
+  exercise the ramp genuinely sounds over the tune's *previous* chord, and
+  the caller knows it (`vary.ts` already finds the chord at or before the
+  line's first note; `through.ts` could read the target tune's chord before
+  the slot). Resolve: decide whether `excerpt` should take an optional
+  "already sounding" chord and place it at bar 0, and whether printing it
+  helps a player or clutters an exercise whose point is the approach.
 - **Outside seeding needs a relative threshold and a dominant rule.** Audit
   of the untouched mintzer.mxl seed (2026-08-27): 40% of the solo's notes
   fell inside proposed outside spans (the owner's hand marks on the blues

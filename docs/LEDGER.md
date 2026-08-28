@@ -685,11 +685,17 @@ mechanics that produced them are not repo material.
 
 **Parked — minor, none load-bearing, none scheduled**
 
-- `bars[0]` keeps `rootPc: 0, quality: 'unknown'` on a chordless pickup
-  bar in `excerpt`. Pre-existing; the old arithmetic reached it too.
-- `practice/steps/loop.test.ts` calls `excerpt` in a `describe` body, so a
-  regression surfaces as a collection error rather than a named assertion.
-  Cosmetic, and it is how the fail-before was captured.
+- ~~`bars[0]` keeps `rootPc: 0, quality: 'unknown'` on a chordless pickup
+  bar in `excerpt`~~ — **fixed 2026-08-28, and it was not cosmetic**: the
+  renderer's fallback to those fields printed a bare **C major** over that
+  bar (54 exercises on Blake, 186 on St Thomas, every one a
+  `vary-approach` whose ramp fills the bar before the chord). `excerpt`
+  now gives such a bar an empty chord list — the same "no chord symbol"
+  representation `write.ts` already emits — because there is nothing to
+  carry: the harmony it is handed begins at or after the pickup.
+- ~~`practice/steps/loop.test.ts` calls `excerpt` in a `describe` body~~ —
+  moved into `beforeAll` 2026-08-28, so a regression names a test instead
+  of failing suite collection.
 - ~~An unnecessary spread on a readonly tuple in `scripts/corpus-wjd.ts`.~~
   Done 2026-08-28.
 - ~~The `too-few-notes` and `'error'` rejection codes in the corpus golden

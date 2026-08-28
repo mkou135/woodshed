@@ -95,6 +95,16 @@ export function excerpt(
       bars[i].quality = bars[i - 1].quality
     }
   }
+  // Bar 0 has no previous bar to carry from, and there is nothing to carry:
+  // a pickup that lands before the excerpt's first chord genuinely precedes
+  // the harmony we were given — `throughStep` passes the *target* slot's
+  // chords, whose first is the one the pickup leads into. Left alone the bar
+  // keeps its `rootPc: 0, quality: 'unknown'` placeholder, and the renderer's
+  // fallback to those fields prints a bare "C" (`kindOf` maps 'unknown' to
+  // 'major') over a bar whose chord nobody knows. An empty list says "no
+  // chord symbol here", which is what a lead sheet does with a pickup — same
+  // representation `write.ts` already emits for a chordless tune bar.
+  if (bars.length > 0 && !bars[0].chords?.length) bars[0].chords = []
   return bars
 }
 
