@@ -795,3 +795,19 @@ mechanics that produced them are not repo material.
 - The corpus golden's comparison was rewritten field by field over a closed
   union, so a hand-reordered golden no longer reads as spurious changes;
   the key-order-sensitive `JSON.stringify` form is gone.
+
+2026-08-28 · session (sprint/chorus-prior-and-design) · Multi-page build:
+`rollupOptions.input` now names index/annotate/engine, so `dist/` carries
+all three instead of the analyser alone. Shared `.sitenav` strip in every
+page's markup (not injected), current page marked by `aria-current` plus
+the highlighter underline. New `engine.html` + `app/engine.css` — the
+approved explainer draft ported onto the app's own tokens, dark mode and
+duplicated token definitions dropped, the detector colours aliased to
+`--ov-cell`/`--ov-device`/`--ov-recurring` so the diagrams quote the marks
+the score draws. Diagram detector colours moved from `stroke="var(--…)"`
+presentation attributes to CSS classes: `var()` does not resolve in a
+presentation attribute, so those boxes had no colour at all. `annotate.html`
+degrades honestly off the dev server — `import.meta.env.DEV` is exactly the
+`apply: 'serve'` condition, so the picker, seed, save and mode bar are
+hidden and a notice says the tool needs `npm run dev`; dropping a file to
+read the score still works, and a null store already meant "marking off".

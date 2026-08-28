@@ -7,6 +7,17 @@
     <link rel="stylesheet" href="./app/style.css" />
   </head>
   <body>
+    <!-- Written into every page's markup rather than injected by a script, so
+         it paints before any module loads and the site stays navigable if one
+         never does. It sits above `#top`, which appears only once a solo is
+         loaded: nav strip first, then that header, then the page. -->
+    <nav class="sitenav" aria-label="Pages">
+      <ul>
+        <li><a href="./index.html" aria-current="page">Analyse</a></li>
+        <li><a href="./annotate.html">Annotate</a></li>
+        <li><a href="./engine.html">How it works</a></li>
+      </ul>
+    </nav>
     <main>
       <header id="top" class="top" hidden></header>
 
