@@ -727,3 +727,84 @@ detail and needs no change) · Claude, final whole-branch review · would
 reverse: the export legend ceasing to quote parameter values, which is the
 only reason items 4 and 5 exist — see the header comment in `app/export.ts`
 that makes quoting them a standing obligation.
+
+## 2026-08-28 — The annotation files are tests, not owner data
+
+Question: OPEN_QUESTIONS asked whether
+`annotations/blues-in-all-keys-bob-mintzer.json` is owner data or reseed
+output — `56425ca` (a commit Claude made) re-added the three
+chorus-downbeat phrase marks **13.1, 25.1 and 73.1** that the reading at
+`44f60e0` records the owner deleting, and only the owner could say which
+reading is theirs. Decision: **the owner ruled the annotation files are
+"just tests" and not important — losing marks in them does not matter.**
+No recovery, no re-annotation, no revert: the file stands as committed at
+`56425ca`, and this question is closed rather than answered on the merits.
+The class ruling is the useful part — an `annotations/*.json` file is
+test input, so a reseed that overwrites one is a nuisance, not data loss,
+and nothing downstream may treat these files as ground truth about the
+owner's ear without saying so.
+
+Two consequences, recorded here so nobody has to re-derive them:
+
+1. **`wChorus = 0.45` does not change.** Its justification (DECISIONS
+   2026-08-27 "Chorus-start prior value") rests on the *uncontaminated*
+   `44f60e0` reading — 7 chorus-start marks kept, 5 deleted, all 7 found
+   at 0.45 and 1 of 7 at 0 — and those were the owner's own marks at that
+   commit. The contamination is entirely after it, so the shipped value's
+   evidence is untouched and the reversal checklist stands as written.
+2. **`npm run eval:owner` scores against the current file**, which is the
+   contaminated reading. Its phrase numbers on Blues in All Keys therefore
+   describe `56425ca`, not the owner's marks, and are not evidence about
+   chorus starts in either direction. Quote `44f60e0` for that, as the two
+   entries of 2026-08-27 already do.
+
+Evidence class: owner ruling, given directly · owner · would reverse: the
+owner saying a specific annotation file is precious after all, which would
+also mean re-opening how `scripts/viteAnnotate.ts` reseeds them.
+
+## 2026-08-28 — A faint phrase tick with no caret is a rest-free chorus start
+
+Question: the design pass measured 37 faint phrase ticks across the ten
+peer solos, 16 of which also draw a boundary-candidate caret on the same
+gap, and left two open — a tick at confidence 0.5437 and one at 0.4813,
+both inside the candidate band `[0.30, 0.60]` yet drawing no caret. The
+standing hypothesis was that riff binding and `enforceMinimum` had moved
+the boundary, so the phrase's opening gap was not the gap the candidate
+loop indexed. Decision: **the hypothesis is unnecessary and the rule is
+exact — every faint tick without a caret is a chorus boundary whose gap
+has no rest, and no such gap can ever be a candidate.**
+`boundaryCandidates` gates on `cue.rest > 0`; the chorus branch fires
+only where the rest and idea branches did not, which on these solos means
+`rest = 0.00` every time. The confidence is then `min(1, cue.total +
+wChorus)`, so a value other than exactly 0.45 says only that the gap
+carried some length or leap cue — 0.5437 = 0.0938 + 0.45 and
+0.4813 = 0.0313 + 0.45 — not that any boundary moved.
+
+Measured 2026-08-28 by re-running `run()` over `~/dev/woodshed-data/peers`
+and printing, for every phrase below `threshold + CANDIDATE_BAND`, its
+cue at the opening gap: 37 faint ticks, reproducing the design pass's
+count. All 37 partition cleanly — 19 are chorus starts with `rest 0.00`
+and 18 are ordinary rest boundaries with `rest 0.50`, and no gap is
+mixed. The two "resistant" confidences are in that table with everything
+else (0.5437 at Blues in All Keys 37 and 133 and St Thomas 49, 0.4813 at
+Blues in All Keys 73 and mintzer 97 — the design pass's file/bar pairing
+was off; the values are not).
+
+Two things worth keeping. First, the marks measure different quantities:
+the faint tick tests **phrase confidence** against `threshold +
+CANDIDATE_BAND` while the caret tests **cue total** against a band around
+`threshold`, and for a chorus boundary those differ by exactly `wChorus`
+— so "in the band" is not one predicate and the design pass's 16-of-37
+overlap was counting a coincidence, not a relationship. Second, the
+overlap count is sensitive to how a caret is associated with a tick: by
+bar the count is 18, because two chorus ticks (St Thomas 49,
+Tenor Madness 73) share a bar with a caret sitting on a different gap.
+This is the visual case the export legend already describes — "a faint
+tick with no caret under it is a chorus start" — now measured rather than
+asserted, and true of all ten peers.
+
+Evidence class: full enumeration over the ten peer solos, throwaway probe,
+not committed · Claude · would reverse: `boundaryCandidates` dropping its
+`cue.rest > 0` gate, or a chorus gap that reaches the fourth branch with a
+rest (possible in principle — `rest > 0` with `total < threshold` — and
+absent from all ten peers).

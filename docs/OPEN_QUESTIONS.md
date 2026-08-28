@@ -278,35 +278,6 @@ All of these are proposals; none is implemented.
   sounded note by default; mark the rest only when the silence itself is
   the point (the line "plays the rest"). Resolve: decide whether eval
   should treat "owner on rest, engine on next sounded note" as a match.
-- **Is `annotations/blues-in-all-keys-bob-mintzer.json` owner data or
-  reseed output? Only the owner can say.** The commit `56425ca` (made by
-  Claude, not the owner, while clearing the deck before the chorus-prior
-  sprint) re-adds exactly the three chorus-downbeat phrase marks
-  **13.1, 25.1 and 73.1** that this file previously recorded the owner
-  deleting; the reading at `44f60e0` does not have them. Two readings, both
-  supported: (a) genuine owner correction — the same diff deletes phrase
-  marks at 38.4½ and 43.1½ and idea 51.1 and rewrites every outside span,
-  which is what a real annotating session looks like and no seeder would
-  produce; (b) reseed clobber — `scripts/viteAnnotate.ts` seeds from engine
-  output, the engine had the chorus wall, so a reseed restores a phrase
-  mark at any chorus downbeat the rule fires on, and 13, 25 and 73 are
-  chorus downbeats in this 12-bar form; the same diff also moves stars
-  0 → 5 and variation groups 2 → 4, which is seed output. Reading (b) is
-  not clean, though: the entry below records the owner also deleting 61.1
-  and 109.1, equally chorus downbeats, and those did **not** come back. The
-  likeliest reason is the rule's `!pickupInto` exemption suppressing the
-  mark where the line picks up into the downbeat — that has not been
-  checked, and checking it would sharpen this question without closing it. The two halves are not separable from outside the owner's
-  ear, so the file was deliberately left unedited — it is owner data, and a
-  second automated guess is how it got here. Both readings are preserved in
-  git: `44f60e0` is the uncontaminated one, `56425ca` the one committed.
-  Live exposure: `npm run eval:owner` scores against the committed file and
-  says nothing about this, so its phrase numbers on this solo are
-  unreliable in an unknown direction; DECISIONS 2026-08-27 "Chorus-start
-  prior value" and the entry below therefore both quote the `44f60e0`
-  reading explicitly. Resolve: **the owner opens the file in the annotate
-  app and confirms whether 13.1, 25.1 and 73.1 are their marks** — nobody
-  else can. Then commit their answer and move this to DECISIONS.
 - **What separates a chorus start the owner keeps from one they delete?**
   Not rest, length or leap: on Blues in All Keys the boundary cue total is
   **0.00 on both sides of the owner's split** — kept at 97.1, 121.1, 145.1

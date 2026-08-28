@@ -539,7 +539,9 @@ where the label changes, so on a one-section form (every blues) it names
 "A1" once and never again — the form derivation finds a single chorus on
 121 of the 456 solos and agrees with `chorus_id` on the other 335.
 Numbers: no chorus rule at all, phrase F1 82.5; hard wall wired in, 80.8
-(precision 81.4 → 78.1, predicted phrases 10923 → 11385). 1188
+(precision 81.4 → 78.1, predicted phrases 10923 → 11385 — the hard wall's
+count, i.e. strength pinned at 0.6; the `wChorus` rule that replaced it in
+5b predicts 11387, which is the number ENGINE_SPEC carries). 1188
 chorus-start gaps; **28% carry a real rest** (rest = 1.00 at 240 of
 them), so unlike the two annotated solos the corpus does give the prior
 something to weigh. 37 gaps (3.1%) clear the idea branch and never reach
@@ -597,6 +599,21 @@ only be produced at wChorus >= threshold — the owner's call to flip, and
 it is one number. Rulings and parked items: see "Chorus-prior sprint
 (2026-08-27, session 15) — rulings and parked items" below.
 
+2026-08-28 · session 16 · Clearing the chorus-prior sprint's parked minors,
+on the owner's request. Documentation first: the owner ruled the annotation
+files are "just tests", so the OPEN_QUESTIONS entry about
+`annotations/blues-in-all-keys-bob-mintzer.json` is closed into DECISIONS
+rather than answered — with the two consequences written down, that
+`wChorus = 0.45` rests on the uncontaminated `44f60e0` reading and is
+unaffected, and that `eval:owner` scores the contaminated file. The
+11387/11385 disagreement between ENGINE_SPEC and this file is **not a
+mistake in either**: re-measured today, `eval:wjd` at the in-force
+configuration predicts **11387** phrases (P 78.1 R 83.7 F1 80.8), and with
+the chorus branch's strength pinned back at 0.6 — the hard wall 5b
+replaced — it predicts **11385**. Two configurations, two correct numbers;
+the 5a line is qualified in place, nothing is rewritten. The over-long
+line was inside the annotation entry and left with it.
+
 ## Chorus-prior sprint (2026-08-27, session 15) — rulings and parked items
 
 Made on the owner's behalf while they were away, and previously recorded
@@ -641,11 +658,13 @@ mechanics that produced them are not repo material.
   `wChorus` can reproduce their marks — gating on it would have driven an
   implementer to contort the rule. If wrong: the owner wanted their marks
   matched and got a table instead.
-- **The owner's damaged annotation file was left untouched.** Now an
-  OPEN_QUESTIONS entry in its own right ("Is
-  `annotations/blues-in-all-keys-bob-mintzer.json` owner data or reseed
-  output?"), which carries the positions, both commits and what would
-  resolve it. **`56425ca` is a commit Claude made; the owner decides.**
+- **The owner's damaged annotation file was left untouched.** ~~Now an
+  OPEN_QUESTIONS entry~~ — **ruled 2026-08-28**: the owner considers the
+  annotation files "just tests", so nothing is recovered and the file
+  stands as committed at `56425ca`. DECISIONS 2026-08-28 "The annotation
+  files are tests, not owner data", which also records why `wChorus`'s
+  justification is unaffected (it rests on the `44f60e0` reading) and that
+  `eval:owner`'s numbers on that solo are the contaminated reading.
 - **On one task the brief was wrong, not the implementer.** It asserted
   `esc()` escaped `"`; it did not. The implementer investigated instead of
   fudging an assertion to look compliant, and `esc()` was hardened anyway —
@@ -660,8 +679,11 @@ mechanics that produced them are not repo material.
   regression surfaces as a collection error rather than a named assertion.
   Cosmetic, and it is how the fail-before was captured.
 - An unnecessary spread on a readonly tuple in `scripts/corpus-wjd.ts`.
-- The `too-few-notes` and `'error'` rejection codes in the corpus golden
-  are dead today — nothing currently emits them.
+- ~~The `too-few-notes` and `'error'` rejection codes in the corpus golden
+  are dead today~~ — **reviewed 2026-08-28 and deliberately kept.** They
+  are correct handling for a corpus that changes: a WJD solo that loses
+  notes, or a file that fails to parse, must have somewhere to land in the
+  golden. A guard is not dead because it has not fired.
 - The corpus golden's comparison was rewritten field by field over a closed
   union, so a hand-reordered golden no longer reads as spurious changes;
   the key-order-sensitive `JSON.stringify` form is gone.
