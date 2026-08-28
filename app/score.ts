@@ -16,7 +16,7 @@ import { el, svgEl } from './dom.ts'
  * separated one. Derived rather than written out so it cannot drift from the
  * spec.
  */
-const WEAK_CONFIDENCE = SEGMENT_DEFAULTS.threshold + CANDIDATE_BAND
+export const WEAK_CONFIDENCE = SEGMENT_DEFAULTS.threshold + CANDIDATE_BAND
 
 /**
  * The solo on the page: OSMD renders it, phrase and idea ticks are drawn

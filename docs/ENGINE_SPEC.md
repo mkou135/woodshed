@@ -556,8 +556,12 @@ omitted (6,482 of 7,742). Regenerate after any ingest change.
   Measured over the ten peer solos (2026-08-28), and matching the
   derivation: 37 faint ticks, 19 rest-free chorus starts with no caret and
   18 rest boundaries with one, every one at `rest 0.50` (0.25 and 0.75 are
-  permitted too; 1.00 is not). DECISIONS 2026-08-28 "A faint phrase tick
-  with no caret is a rest-free chorus start" and its correction.
+  permitted too; 1.00 is not). **Both knife edges are pinned** by
+  `app/score.test.ts` — as relationships between the parameters, not their
+  values, so a tuning pass that breaks the rule fails a test that says
+  which product claim it just falsified. DECISIONS 2026-08-28 "A faint
+  phrase tick with no caret is a rest-free chorus start" and its
+  correction.
 - **Engine overlays** (`score.ts` `showOverlays`, strip in `main.ts`,
   `localStorage` `woodshed.overlays` JSON): opt-in audit view of what the
   detectors guessed, drawn where they guessed it. Checkboxes: phrases

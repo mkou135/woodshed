@@ -691,6 +691,30 @@ requires those fields for the cell-per-bar path (`validity.ts`), the
 renderer is their only reader, and the empty list is the guard.
 435 tests, typecheck both configs.
 
+2026-08-28 · session 16 (cont.) · Fix round 2: the knife edge is guarded.
+Yesterday's derivation was documented and unasserted, which is the shape of
+bug this whole wave has been finding, so `app/score.test.ts` now pins the
+two relationships the rule turns on — `wRest × (minRest/fullRest)` =
+`WEAK_CONFIDENCE − wChorus`, and `wChorus >= 2 × CANDIDATE_BAND` — plus the
+half that keeps a full rest out of the faint band (`wRest × 1` = `WEAK`).
+Written as relationships between parameters, never their values, so a
+tuning pass fails the test only when it breaks the rule, and each message
+names the product claim that goes false (the export legend's "a faint tick
+with no caret under it is a chorus start"), not that two numbers stopped
+matching. `toBeCloseTo`, not `toBe`: the equalities are exact in arithmetic
+but off by one ulp in binary, and the comment says so, so nobody tightens
+it into a spurious failure.
+
+It lives in `app/` because one of the four terms does — `WEAK_CONFIDENCE`
+is the app's rendering threshold, now exported. A `src/` test would have to
+reconstruct it, asserting the invariant against a copy of `score.ts`'s
+derivation, which is the drift the test exists to catch. `src/` stays
+DOM-free; the test touches no DOM. Seen to fail before being kept:
+perturbing `wRest` 0.6 → 0.55, `wChorus` 0.45 → 0.25 and `CANDIDATE_BAND`
+0.15 → 0.25 each fails the assertions they should, and no parameter was
+changed to make any relationship tidier. ENGINE_SPEC's faint-tick bullet
+cross-references the file. 438 tests, typecheck both configs.
+
 ## Chorus-prior sprint (2026-08-27, session 15) — rulings and parked items
 
 Made on the owner's behalf while they were away, and previously recorded
