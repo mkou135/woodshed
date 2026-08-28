@@ -811,3 +811,27 @@ degrades honestly off the dev server — `import.meta.env.DEV` is exactly the
 `apply: 'serve'` condition, so the picker, seed, save and mode bar are
 hidden and a notice says the tool needs `npm run dev`; dropping a file to
 read the score still works, and a null store already meant "marking off".
+2026-08-28 · session 15 (cont.) · PAUSED mid-ship at owner's request.
+Branch clean at 912ad39, 40 commits ahead of main, **nothing pushed** —
+prod is GitHub Pages off a push to main, so main is still the live site.
+Landed this round: all three pages now build (vite gained
+rollupOptions.input; annotate.html had never been in dist at all), a top
+nav across Analyse / Annotate / How it works, engine.html as a real
+in-app explainer of the pipeline, annotate degrading honestly in prod
+where its apply:'serve' bridge does not exist, and a README.
+
+Still open, in the order the owner asked for them:
+(1) a solo dropdown on the main analysis page, manifest-driven from
+    public/solos/ so it survives a production build — the annotate
+    picker's source (~/dev/woodshed-data/peers) is outside the repo and
+    its plugin is dev-only;
+(2) a checkbox making it explicit the app works without an API key;
+(3) merge to main and push, which deploys.
+Owner decision blocking (1)'s content, not its mechanism: the peers
+transcriptions are third-party work — the Blake carries "Transcripción
+Rémi Meurice · cancionesdejazz.com" inside the score — so committing
+them publishes someone else's transcriptions of copyrighted tunes.
+Also found and not yet fixed: a fresh clone's test suite is red rather
+than skipped — six test files readFileSync the absolute Blake path in a
+describe body with no guard, so collection throws. Matters now the repo
+is public and the README invites cloning.
