@@ -626,6 +626,33 @@ replaced — it predicts **11385**. Two configurations, two correct numbers;
 the 5a line is qualified in place, nothing is rewritten. The over-long
 line was inside the annotation entry and left with it.
 
+2026-08-28 · session 16 (cont.) · The last two parked minors, and the
+design pass's open investigation. `excerpt` gave a chordless first bar an
+empty chord list: it kept `rootPc: 0, quality: 'unknown'`, and the
+renderer's fallback to those fields printed a bare **C major** — 54
+exercises on Blake, 186 on St Thomas, all `vary-approach`. Carrying was
+not an option (the harmony passed in starts at or after the pickup), and
+printing the chord the pickup leads into would be a guess, so the bar
+prints nothing, as a lead sheet does. Read in the rendered MusicXML
+before and after, not inferred. The loop tests move their `excerpt` call
+into `beforeAll`; the new assertion was checked to fail without the fix
+and to name itself when it does. 435 tests, typecheck both configs,
+corpus golden **unchanged on all 456 solos** — it pins counts, and no
+count moved. Blake still reproduces the CLAUDE.md target exactly.
+
+The design pass's two "resistant" faint ticks are explained, and not by
+the standing hypothesis: `boundaryCandidates` gates on `cue.rest > 0`, so
+a rest-free chorus boundary can never be a candidate whatever its
+confidence, and confidences other than exactly 0.45 only mean the gap
+carried some length or leap cue (0.5437 = 0.0938 + 0.45,
+0.4813 = 0.0313 + 0.45). Nothing moved; riff binding and `enforceMinimum`
+are not involved. Enumerated over all ten peers: 37 faint ticks, 19
+rest-free chorus starts without a caret and 18 rest boundaries with one,
+no mixed case. In DECISIONS with the second-order point — the tick tests
+phrase confidence and the caret tests cue total, quantities that differ
+by `wChorus` — and the faint-tick rule is now in ENGINE_SPEC, where it
+had never been written down.
+
 ## Chorus-prior sprint (2026-08-27, session 15) — rulings and parked items
 
 Made on the owner's behalf while they were away, and previously recorded
