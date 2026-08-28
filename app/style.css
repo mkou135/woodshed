@@ -509,7 +509,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   font-size: 0.95rem;
   max-width: 62ch;
 }
-.ann-offline b { display: block; margin-bottom: 0.15rem; font: 600 1.05rem/1.2 var(--disp); letter-spacing: 0.03em }
+/* Condensed at 1.05rem read smaller than the serif paragraph under it,
+   which inverted the hierarchy on the first line a stranger sees here. */
+.ann-offline b { display: block; margin-bottom: 0.2rem; font: 600 1.25rem/1.2 var(--disp); letter-spacing: 0.03em }
 .ann-offline code { font-family: var(--mono); font-size: 0.85em }
 .ann-idea rect { fill: var(--idea) }
 .ann-idea text { fill: var(--idea); font: 600 12px var(--disp) }
