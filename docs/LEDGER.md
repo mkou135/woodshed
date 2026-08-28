@@ -539,9 +539,9 @@ where the label changes, so on a one-section form (every blues) it names
 "A1" once and never again — the form derivation finds a single chorus on
 121 of the 456 solos and agrees with `chorus_id` on the other 335.
 Numbers: no chorus rule at all, phrase F1 82.5; hard wall wired in, 80.8
-(precision 81.4 → 78.1, predicted phrases 10923 → 11385 — the hard wall's
-count, i.e. strength pinned at 0.6; the `wChorus` rule that replaced it in
-5b predicts 11387, which is the number ENGINE_SPEC carries). 1188
+(precision 81.4 → 78.1, predicted phrases 10923 → 11385 — the hard
+wall's count, i.e. strength pinned at 0.6; the `wChorus` rule that
+replaced it in 5b predicts 11387, the number ENGINE_SPEC carries). 1188
 chorus-start gaps; **28% carry a real rest** (rest = 1.00 at 240 of
 them), so unlike the two annotated solos the corpus does give the prior
 something to weigh. 37 gaps (3.1%) clear the idea branch and never reach
@@ -598,6 +598,18 @@ because the owner's 7 kept chorus marks all sit at rest-free gaps and can
 only be produced at wChorus >= threshold — the owner's call to flip, and
 it is one number. Rulings and parked items: see "Chorus-prior sprint
 (2026-08-27, session 15) — rulings and parked items" below.
+
+2026-08-28 · session 16 (cont.) · Two script minors. `corpus-wjd.ts` maps
+`COUNT_FIELDS` directly instead of spreading a readonly tuple first.
+`eval-owner.ts`'s `printCueAt` loses its dead `chorusStarts = new Set()`
+default (all four call sites pass it) and stops claiming a prior the
+engine did not apply: the chorus branch's `!pickupInto` exemption is
+reproduced next to the existing `median` copy, with the approximation
+named — it looks for the nearest firing rest gap in the three-note window
+rather than the engine's running boundary list, so it can only
+under-claim the prior. Latent today: no missed or false start in
+`annotations/` currently lands on a chorus start, so the annotation never
+prints on live data. The OPEN_QUESTIONS entry parking it is removed.
 
 2026-08-28 · session 16 · Clearing the chorus-prior sprint's parked minors,
 on the owner's request. Documentation first: the owner ruled the annotation
@@ -678,7 +690,8 @@ mechanics that produced them are not repo material.
 - `practice/steps/loop.test.ts` calls `excerpt` in a `describe` body, so a
   regression surfaces as a collection error rather than a named assertion.
   Cosmetic, and it is how the fail-before was captured.
-- An unnecessary spread on a readonly tuple in `scripts/corpus-wjd.ts`.
+- ~~An unnecessary spread on a readonly tuple in `scripts/corpus-wjd.ts`.~~
+  Done 2026-08-28.
 - ~~The `too-few-notes` and `'error'` rejection codes in the corpus golden
   are dead today~~ — **reviewed 2026-08-28 and deliberately kept.** They
   are correct handling for a corpus that changes: a WJD solo that loses

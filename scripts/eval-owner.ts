@@ -124,6 +124,36 @@ function nearestNoteIndex(notes: Note[], score: PipelineResult['score'], mark: P
   return best
 }
 
+/**
+ * The chorus branch's `!pickupInto` exemption, reproduced from
+ * `src/analyse/segment.ts` (the `pickupInto` closure inside `segment()`):
+ * a phrase that opened with a pickup into the chorus is not cut at the bar
+ * line, so the prior does not apply there. Duplicated rather than imported
+ * because it is a closure over `segment()`'s running boundary list and is
+ * not exported — the same reason `median` above is a copy, and a
+ * diagnostic is not worth widening the engine's surface for.
+ *
+ * One approximation: the engine asks whether the *last boundary it added*
+ * was a rest boundary within three notes; here we look for the nearest gap
+ * in that window where the rest branch would have fired
+ * (`total >= threshold && rest > 0`). The two differ only when an arrival
+ * or chorus boundary was added between that gap and this one, in which
+ * case the engine's `last.kind !== 'rest'` would decline the exemption and
+ * this returns true. So the message can under-claim the prior, never
+ * over-claim it, which is the direction a diagnostic should err.
+ */
+function pickupInto(notes: Note[], at: number, medianDuration: number, beatsPerBar: number): boolean {
+  for (let back = 1; back <= 3; back++) {
+    const j = at - back
+    if (j <= 0) return false
+    const cue = boundaryCue(notes, j - 1, medianDuration)
+    if (cue.total < DEFAULTS.threshold || cue.rest <= 0) continue
+    const first = notes[j]
+    return first.bar === notes[at - 1].bar && first.beat >= beatsPerBar - 2
+  }
+  return false
+}
+
 function printCueAt(
   label: string,
   level: string,
@@ -132,7 +162,7 @@ function printCueAt(
   score: PipelineResult['score'],
   medianDuration: number,
   beatsPerBar: number,
-  chorusStarts: Set<number> = new Set(),
+  chorusStarts: Set<number>,
 ): void {
   const i = nearestNoteIndex(notes, score, mark, beatsPerBar)
   if (i <= 0) {
@@ -142,11 +172,15 @@ function printCueAt(
   const cue = boundaryCue(notes, i - 1, medianDuration)
   // The chorus prior is applied at segment()'s call site, not inside
   // boundaryCue, so a cue printed at a chorus start does not on its own
-  // explain the engine's decision there: say what the prior added.
+  // explain the engine's decision there: say what the prior added — and,
+  // when the pickup exemption suppressed it, say that instead. A diagnostic
+  // that reports a prior the engine did not apply is worse than silence.
   const atChorusStart = chorusStarts.has(notes[i].bar) && notes[i - 1].bar !== notes[i].bar
-  const chorus = atChorusStart
-    ? `, chorus start: +${DEFAULTS.wChorus} → ${Math.min(1, cue.total + DEFAULTS.wChorus).toFixed(2)}`
-    : ''
+  const chorus = !atChorusStart
+    ? ''
+    : pickupInto(notes, i, medianDuration, beatsPerBar)
+      ? ', chorus start: prior suppressed (pickup into the downbeat)'
+      : `, chorus start: +${DEFAULTS.wChorus} → ${Math.min(1, cue.total + DEFAULTS.wChorus).toFixed(2)}`
   console.log(
     `  ${label} ${level} ${formatPosition(mark)} → gap before n${i}: rest ${cue.rest.toFixed(2)} ` +
     `length ${cue.length.toFixed(2)} leap ${cue.leap.toFixed(2)} total ${cue.total.toFixed(2)} ` +

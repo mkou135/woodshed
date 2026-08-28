@@ -247,7 +247,7 @@ function report(golden: Map<number, Entry>, now: Map<number, Entry>): boolean {
     console.log('  solos moved per field: ' + [...fieldMoved.entries()]
       .sort((a, b) => b[1] - a[1]).map(([f, c]) => `${f} ${c}`).join(', '))
   }
-  const totals = [...COUNT_FIELDS].map((f) => {
+  const totals = COUNT_FIELDS.map((f) => {
     const sum = (m: Map<number, Entry>): number => [...m.values()].reduce((s, e) => s + (isCounts(e) ? e[f] : 0), 0)
     const a = sum(golden)
     const b = sum(now)

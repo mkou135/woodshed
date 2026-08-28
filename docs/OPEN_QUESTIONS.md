@@ -307,11 +307,6 @@ All of these are proposals; none is implemented.
   unmoved. Resolve: decide whether GPR-1 dissolution should read the
   chorus prior's strength at all, or whether the tie-break wants its own
   field. See DECISIONS 2026-08-27 "The chorus wall becomes `wChorus`".
-- **`eval-owner`'s chorus annotation ignores the pickup exemption.**
-  `printCueAt`'s `atChorusStart` test does not check `pickupInto`, so the
-  printed `chorus start: +0.45 → X` can appear at a gap the exemption
-  suppressed. Diagnostic-only, no effect on segmentation. Resolve: share
-  the predicate with `segment()`, or drop the annotation at pickup gaps.
 - **Outside seeding needs a relative threshold and a dominant rule.** Audit
   of the untouched mintzer.mxl seed (2026-08-27): 40% of the solo's notes
   fell inside proposed outside spans (the owner's hand marks on the blues
