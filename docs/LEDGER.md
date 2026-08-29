@@ -853,3 +853,31 @@ suite is unchanged at 53 files / 438 passed / 0 skipped; in a clone with
 the paths pointed at nothing, 53 files / 409 passed / 29 skipped and zero
 collection errors. Also: pages.yml's first line said the deploy runs on a
 push to master; the trigger below it always said main.
+2026-08-29 · session 15 (cont.) · The last three items before shipping.
+A solo dropdown on the main page, fed by public/solos/manifest.json,
+**shipping empty on purpose** — the owner ruled out committing the peers
+transcriptions, which are third-party work (the Blake carries its
+transcriber's name inside the score). The mechanism, a manifest, a
+solos:manifest script and a README for whoever adds the next one are all
+in place; the control stays hidden until the manifest lists something.
+Both fetches resolve against document.baseURI — the bundle lives in
+assets/, so import.meta.url would ask for assets/solos/… — and both check
+res.ok, since a Pages 404 answers with HTML that would otherwise reach the
+MusicXML parser. handleFile split into handleBytes(bytes, name).
+The agent is now a switch, off by default, with the off state saying the
+analysis is complete without it; unchecking never clears a stored key.
+A fresh clone's test suite now skips rather than fails: 409 of 438 run
+with the corpus absent, zero collection errors. The mechanism is worth
+recording — `describe.skipIf` does **not** stop vitest executing a suite
+factory, so a guard alone was insufficient and one already-guarded suite
+was throwing anyway; the read has to leave the describe body too.
+generate/index.test.ts and part of analyse/index.test.ts were re-pointed
+at fixtures rather than skipped, so a corpus-less contributor keeps them.
+
+**Process note, learned the hard way:** two agents worked this checkout
+concurrently and one ran `git commit --amend` then `git reset --hard` over
+the other's uncommitted work, discarding it mid-task. Nothing was lost
+permanently — the commit was intact and the work was redone — but
+concurrent agents in one working tree are only safe if every one of them
+stages by explicit path and none rewrites history. Prefer serialising, or
+give each a worktree.
