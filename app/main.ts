@@ -65,6 +65,10 @@ function progressLine(): { element: HTMLElement; stage: (text: string) => void; 
 function showError(title: string, detail: string): void {
   errorBox.replaceChildren(el('strong', undefined, title), el('span', undefined, detail))
   errorBox.hidden = false
+  // An error and a result are mutually exclusive states. Without this, a read
+  // that fails after a successful run leaves the old analysis sitting under
+  // the banner — the pre-read catches reach here without clearing anything.
+  resultBox.hidden = true
 }
 
 function soloTitle(result: PipelineResult, filename: string): string {
