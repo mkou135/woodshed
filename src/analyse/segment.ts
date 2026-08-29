@@ -114,17 +114,29 @@ export interface SegmentOptions {
    * phrase of repeated ideas (St Thomas printed 33–41). 0 = off.
    */
   riffMaxGap: number
+  /**
+   * The chorus-start prior. At a gap into a chorus downbeat the rest gate is
+   * lifted and the test becomes min(1, total + wChorus) >= threshold, so the
+   * double bar argues for a break without deciding alone. At 0.45 — the value
+   * of `threshold` — it always wins, which is exactly the hard wall this
+   * replaced; lower values ask the surface to show something first.
+   */
+  wChorus: number
 }
 
 export const DEFAULTS: SegmentOptions = {
   fullRest: TICKS_PER_QUARTER,
   minRest: TICKS_PER_QUARTER / 4,
   articulationSpan: TICKS_PER_QUARTER,
-  // Tuned against the Weimar Jazz Database (scripts/eval-wjd.ts): phrase
-  // boundaries F1 83.8, idea boundaries F1 76.3 on 456 solos, within 0.6
-  // of the best setting found while keeping a long-held note (6x the
-  // median — three beats among eighths) as an idea cue on its own, which
-  // the owner hears. See docs/research/phrases-and-ideas.md.
+  // Tuned against the Weimar Jazz Database (scripts/eval-wjd.ts), picking
+  // the setting nearest the best found that still keeps a long-held note
+  // (6x the median — three beats among eighths) as an idea cue on its own,
+  // which the owner hears. See docs/research/phrases-and-ideas.md.
+  // The F1 figures that used to sit here are **superseded**: they were
+  // measured before Task 5a wired chorus starts into `eval:wjd` at all, so
+  // they are not comparable with the numbers in force, and this tuning has
+  // not been re-run under the wired eval. Read docs/ENGINE_SPEC.md for the
+  // current table rather than quoting a number from here.
   wRest: 0.6,
   wLength: 0.45,
   wLeap: 0.25,
@@ -142,9 +154,9 @@ export const DEFAULTS: SegmentOptions = {
   peakWindow: 4,
   pickupHeld: 3,
   riffMaxGap: 3 * TICKS_PER_QUARTER,
+  wChorus: 0.45,
 }
 
-const STRUCTURAL_CONFIDENCE = 0.6
 const EIGHTH = TICKS_PER_QUARTER / 2
 
 function median(xs: number[]): number {
@@ -241,8 +253,13 @@ interface Boundary {
   strength: number
   /** The rest cue at this gap, 0-1; 1 is a full quarter or more. */
   rest?: number
-  /** A rest (or structural) boundary ends a phrase; an arrival ends an idea. */
-  kind: 'rest' | 'structural' | 'arrival'
+  /**
+   * A rest or chorus boundary ends a phrase; an arrival ends an idea. A
+   * chorus boundary stays its own kind rather than folding into 'rest': riff
+   * binding demotes rest boundaries to arrivals, and at a rest-free chorus
+   * gap the `gap > riffMaxGap` guard would not catch it.
+   */
+  kind: 'rest' | 'chorus' | 'arrival'
 }
 
 /**
@@ -402,8 +419,14 @@ export function segment(
       all.push({ at: i + 1, strength: cue.total, kind: 'rest', rest: cue.rest })
     } else if (cue.idea >= o.ideaThreshold || isPeak(i) || isPickup(i)) {
       all.push({ at: i + 1, strength: cue.idea, kind: 'arrival' })
-    } else if (forced.has(next.bar) && notes[i].bar !== next.bar && !pickupInto(i + 1)) {
-      all.push({ at: i + 1, strength: STRUCTURAL_CONFIDENCE, kind: 'structural' })
+    } else if (
+      forced.has(next.bar) && notes[i].bar !== next.bar && !pickupInto(i + 1) &&
+      Math.min(1, cue.total + o.wChorus) >= o.threshold
+    ) {
+      // Fourth, deliberately: a chorus-start gap that already cleared the idea
+      // branch is an idea boundary and never gets here, exactly as under the
+      // wall this replaces. Testing earlier would promote those to phrases.
+      all.push({ at: i + 1, strength: Math.min(1, cue.total + o.wChorus), kind: 'chorus' })
     } else if (cue.gap >= o.ideaRest) {
       all.push({ at: i + 1, strength: cue.total, kind: 'arrival' })
     }

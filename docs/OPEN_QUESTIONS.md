@@ -278,16 +278,67 @@ All of these are proposals; none is implemented.
   sounded note by default; mark the rest only when the silence itself is
   the point (the line "plays the rest"). Resolve: decide whether eval
   should treat "owner on rest, engine on next sounded note" as a match.
-- **Chorus starts force phrase breaks — should be a prior, not a wall.**
-  `analyse/index.ts:87-88` passes `form.chorusStarts` into `segment` as
-  forced boundaries. Blues in All Keys owner annotation: the owner deleted
-  the forced starts at 13.1, 25.1, 73.1 (boundary cue 0.00 at all three)
-  because the line plays through the double bar; the other ~11 chorus
-  boundaries they kept — Mintzer usually does breathe at the top of a
-  chorus, just not always. Resolve: replace the hard cut with a
-  chorus-start bonus term in the cue (breaks only when the surface at
-  least weakly agrees), score against eval:owner blind files + eval:wjd +
-  brackets.
+- **What separates a chorus start the owner keeps from one they delete?**
+  Not rest, length or leap: on Blues in All Keys the boundary cue total is
+  **0.00 on both sides of the owner's split** — kept at 97.1, 121.1, 145.1
+  and deleted at 13.1, 25.1, 61.1, 109.1. So no weighting of the present
+  cue terms can reproduce their marks. This replaces the "chorus starts
+  force phrase breaks — should be a prior, not a wall" entry, resolved
+  2026-08-27 (DECISIONS "Chorus-start prior value"): `wChorus` replaces
+  the wall, but its value in force is 0.45 — the value at which the prior
+  always wins — so the wall is now a dial, not a judgement. That entry
+  also said "the other ~11 chorus boundaries they kept"; the verified
+  count on the uncontaminated `44f60e0` reading is **7 kept, 5 deleted**.
+  Resolve:
+  a second blind-annotated solo with chorus starts marked, then look for
+  the signal — candidates are metric/form position, whether the preceding
+  phrase has resolved, and repetition across the double bar (spec §6's
+  two unbuilt terms). Until then the prior is a wall with a dial on it.
+- **A cue-free chorus boundary is now GPR 1's first sacrifice.** A chorus
+  boundary carries a strength in [0.45, 0.90) and a rest boundary one in
+  [0.45, 1], so they share a floor. A chorus gap with no cue at all sits
+  exactly on it and loses to any rest neighbour above 0.45 — which is the
+  common case, 72% of corpus chorus gaps — while one carrying a partial
+  length or leap cue can outrank a rest neighbour (a bare full-rest
+  boundary is 0.60). Under the old 0.6 wall the chorus edge's rank was
+  constant instead: it beat every rest boundary below 0.6 whatever the
+  music did. This fell out of the prior rather than being chosen, and it
+  is why the refactor moves 19 phrase starts out and 21 in with F1
+  unmoved. Resolve: decide whether GPR-1 dissolution should read the
+  chorus prior's strength at all, or whether the tie-break wants its own
+  field. See DECISIONS 2026-08-27 "The chorus wall becomes `wChorus`".
+- **`excerpt` is never told the chord before the excerpt.** Fixed
+  2026-08-28 so a chordless first bar prints no chord symbol rather than a
+  fabricated "C", which is honest but not complete: on a `vary-approach`
+  exercise the ramp genuinely sounds over some chord, and the page says
+  nothing. **This is a lookup-and-design question, not a wire-through.**
+  No caller currently holds the value: `vary.ts:57` finds the chord at or
+  before the line's first note, but in exactly this case that chord begins
+  *at* the landing downbeat — printing it is the guess the fix refused.
+  The chord actually sounding over the ramp has to be looked up in
+  `score.chordTracks`, the way `resolutionChord` does at `through.ts:25`,
+  and `throughStep` needs the *target tune's* chord before the slot, which
+  is a different lookup again. Resolve: decide whether `excerpt` takes an
+  optional "already sounding" chord at bar 0, who computes it per call
+  site, and whether printing it helps a player or clutters an exercise
+  whose whole point is the approach.
+- **Nothing pins exercise output.** The corpus golden pins per-solo
+  findings/units/phrases/ideas counts and `eval:*` scores boundaries;
+  neither looks at a generated exercise, so the ~240 exercises whose first
+  bar the 2026-08-28 chord fix changed were guarded only by one new unit
+  test and a hand read of the rendered MusicXML. This is the gap that item
+  shipped out of. Resolve: decide what a cheap pin looks like — a hash of
+  each solo's exercise MusicXML in the corpus golden would catch movement
+  without asserting on musical judgement, at the cost of a noisier diff.
+- **A `through-tune` line concatenates several excerpts into one exercise**
+  (`through.ts:76`), and every excerpt's bar 0 is now blanked when it has
+  no chord — so a blank at a *join* would read as "still under the previous
+  chord", which here is a chord from another part of the tune. Checked
+  2026-08-28 across the ten peers: 2 such exercises exist (Sandu u13,
+  mintzer u63) and both blank only at index 0, a real leading pickup, so
+  the case is unobserved rather than ruled out. Resolve: decide whether
+  bar 0 of a *later* segment should repeat its own segment's first chord
+  instead of blanking, and find a solo that produces one.
 - **Outside seeding needs a relative threshold and a dominant rule.** Audit
   of the untouched mintzer.mxl seed (2026-08-27): 40% of the solo's notes
   fell inside proposed outside spans (the owner's hand marks on the blues
@@ -308,17 +359,6 @@ All of these are proposals; none is implemented.
   bars for variation seeding, and seed the far-flung high-count cells
   (e.g. chromatic enclosure into the 1 from above, 7 hits) as **star**
   candidates instead — recurring vocabulary is what drilling wants.
-
-## corpus:wjd `events` crash on three solos (2026-08-27, pre-existing)
-
-Solos 78 (Potter — Anthropology), 135 (Gillespie — Blue 'n Boogie) and
-189 (Higginbotham — Baby Won't You Please Come Home) throw "Cannot read
-properties of undefined (reading 'events')" at `loop.ts:50` `excerpt`
-(via `throughStep`). Reproduces at 823a4a9, before the common-language
-work — not a regression, a latent bar-indexing bug in `excerpt` on some
-WJD bar shapes. Resolve by probing melid 78 (`ensure(b)` returns
-undefined for a bar outside the excerpt's range?) and fixing with a
-regression test.
 
 ## Overlap merge consumes a multi-span device when one span converges
 

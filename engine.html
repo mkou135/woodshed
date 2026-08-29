@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>woodshed · how the engine works</title>
+    <link rel="stylesheet" href="./app/style.css" />
+    <link rel="stylesheet" href="./app/engine.css" />
+  </head>
+  <body>
+    <nav class="sitenav" aria-label="Pages">
+      <ul>
+        <li><a href="./index.html">Analyse</a></li>
+        <li><a href="./annotate.html">Annotate</a></li>
+        <li><a href="./engine.html" aria-current="page">How it works</a></li>
+      </ul>
+    </nav>
+
+    <main class="engine">
+
+      <header class="masthead">
+        <p class="label">Woodshed &middot; engine reference</p>
+        <h1>How the engine works</h1>
+        <p class="standfirst">A transcribed solo goes in. A ranked menu of things worth practising comes out. Four stages, three detectors, and one rule that shapes all of it.</p>
+      </header>
+
+      <div class="slip">
+        <p><strong>Every number on this page is a copy.</strong> <code>docs/ENGINE_SPEC.md</code> is the source of truth, and the project rule is to re-read it rather than quote a parameter from memory. This page explains the <em>shape</em> of the machine — which decisions exist, in what order, and why. When you need a value, go to the spec.</p>
+      </div>
+
+      <section>
+        <div class="head">
+          <h2>The shape of it</h2>
+          <span class="file">src/pipeline.ts</span>
+        </div>
+
+        <p>One function, <code>run(bytes)</code>, chains four stages. Each one hands the next a plain data structure and nothing else — there is no shared mutable state and no stage reaches backwards.</p>
+
+        <figure>
+          <div class="figwrap">
+            <svg viewBox="0 0 880 200" role="img" aria-label="Four pipeline stages left to right: ingest turns file bytes into an immutable Score; prepare inspects it and emits an Adjustment list without editing; analyse segments and detects vocabulary to produce findings; practice builds ranked units each carrying four exercise steps.">
+              <defs>
+                <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+                </marker>
+              </defs>
+
+              <g class="dg-disp" font-size="15" font-weight="600" letter-spacing="1.2">
+                <rect x="10" y="52" width="170" height="66" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                <text x="95" y="80" text-anchor="middle" fill="currentColor">INGEST</text>
+                <text x="95" y="100" text-anchor="middle" font-size="11" font-weight="500" fill="currentColor" opacity=".65">parse the file</text>
+
+                <rect x="243" y="52" width="170" height="66" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                <text x="328" y="80" text-anchor="middle" fill="currentColor">PREPARE</text>
+                <text x="328" y="100" text-anchor="middle" font-size="11" font-weight="500" fill="currentColor" opacity=".65">inspect, never edit</text>
+
+                <rect x="476" y="52" width="170" height="66" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                <text x="561" y="80" text-anchor="middle" fill="currentColor">ANALYSE</text>
+                <text x="561" y="100" text-anchor="middle" font-size="11" font-weight="500" fill="currentColor" opacity=".65">hear the vocabulary</text>
+
+                <rect x="709" y="52" width="161" height="66" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                <text x="789" y="80" text-anchor="middle" fill="currentColor">PRACTICE</text>
+                <text x="789" y="100" text-anchor="middle" font-size="11" font-weight="500" fill="currentColor" opacity=".65">make it drillable</text>
+              </g>
+
+              <g stroke="currentColor" stroke-width="1.5" marker-end="url(#ar)" fill="none">
+                <line x1="180" y1="85" x2="236" y2="85"/>
+                <line x1="413" y1="85" x2="469" y2="85"/>
+                <line x1="646" y1="85" x2="702" y2="85"/>
+              </g>
+
+              <g class="dg-mono" font-size="10.5" fill="currentColor" text-anchor="middle">
+                <text x="208" y="76" opacity=".85">Score</text>
+                <text x="441" y="76" opacity=".85">Report</text>
+                <text x="674" y="76" opacity=".85">Analysis</text>
+              </g>
+
+              <g class="dg-mono" font-size="10" fill="currentColor" opacity=".55" text-anchor="middle">
+                <text x="95" y="145">.mxl bytes</text>
+                <text x="328" y="145">Adjustment[]</text>
+                <text x="561" y="145">phrases + findings</text>
+                <text x="789" y="145">ranked units</text>
+              </g>
+
+              <g class="dg-mono" font-size="10" fill="currentColor" opacity=".55">
+                <text x="10" y="30">in</text>
+                <text x="870" y="30" text-anchor="end">out</text>
+              </g>
+              <line x1="10" y1="36" x2="870" y2="36" stroke="currentColor" stroke-width="1" opacity=".2"/>
+            </svg>
+          </div>
+          <figcaption>The <code>Score</code> produced by ingest is immutable and survives untouched to the end. Everything a later stage wants to change, it describes instead.</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <div class="head">
+          <span class="n">1</span>
+          <h2>Ingest</h2>
+          <span class="file">src/ingest/</span>
+        </div>
+
+        <p>MusicXML in, a <code>Score</code> out: notes with onsets in ticks, a chord track, time signature, key, instrument, repeats and rehearsal marks. Repeats are expanded here, so downstream code sees the music as played rather than as printed.</p>
+
+        <p>One rule matters more than it looks: <strong>chord quality comes from the MusicXML <code>&lt;kind&gt;</code> element, never the chord symbol's text.</strong> A chart that prints “C7alt” tells you what the engraver typed; <code>&lt;kind&gt;</code> tells you what they meant. Text is a fallback for charts that have nothing else, and it is marked lower-confidence when used.</p>
+      </section>
+
+      <section>
+        <div class="head">
+          <span class="n">2</span>
+          <h2>Prepare</h2>
+          <span class="file">src/prepare/</span>
+        </div>
+
+        <p>This stage reads the score and reports everything suspicious about it. It never edits. Its output is a <code>CleanupReport</code>: a list of <code>Adjustment</code> records saying what looks wrong, how severe it is, and why — the notices you see under the header when you run <code>npm&nbsp;run&nbsp;solo</code>.</p>
+
+        <div class="io">
+          <div>
+            <span class="label">Who is soloing</span>
+            <span class="v">The named region with the most notes wins. Two named regions raise a blocking notice — the engine will not guess between them.</span>
+          </div>
+          <div>
+            <span class="label">What the form is</span>
+            <span class="v">Smallest repeating chord period; chorus phase from rehearsal letters, else double bars. Feeds the chorus-start prior in segmentation.</span>
+          </div>
+          <div>
+            <span class="label">What looks off</span>
+            <span class="v">Unmarked pickups, out-of-range notes, chords that persist implausibly, long empty stretches, suspect repeats.</span>
+          </div>
+        </div>
+
+        <p>The reason for the no-edit rule is auditability. If the engine silently repaired a pickup bar, every downstream beat position would shift and nothing would say so. Instead it says so, loudly, and leaves the score alone.</p>
+      </section>
+
+      <section>
+        <div class="head">
+          <span class="n">3</span>
+          <h2>Analyse</h2>
+          <span class="file">src/analyse/</span>
+        </div>
+
+        <p>This is the engine proper. It cuts the solo into phrases and ideas, works out what each note is doing against the chord under it, runs three independent detectors over the result, and merges what they found into a ranked list of <em>findings</em>.</p>
+
+        <figure>
+          <div class="figwrap">
+            <svg viewBox="0 0 880 430" role="img" aria-label="Inside the analyse stage: the soloist's notes are both segmented into phrases and ideas and contextualised into chord-relative degrees; the two results feed three parallel detectors — shapes, targets and recurring — whose raw hits pass through a merge by identity, then a merge by overlap, then confidence scoring, producing findings.">
+              <defs>
+                <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+                </marker>
+              </defs>
+
+              <g class="dg-disp" font-weight="600" letter-spacing="1">
+                <!-- input -->
+                <rect x="330" y="8" width="220" height="44" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                <text x="440" y="28" text-anchor="middle" font-size="14" fill="currentColor">THE SOLOIST'S NOTES</text>
+                <text x="440" y="43" text-anchor="middle" font-size="10.5" font-weight="500" fill="currentColor" opacity=".6">only the chosen region</text>
+
+                <!-- two parallel preps -->
+                <rect x="150" y="92" width="230" height="50" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                <text x="265" y="112" text-anchor="middle" font-size="13.5" fill="currentColor">SEGMENT</text>
+                <text x="265" y="128" text-anchor="middle" font-size="10.5" font-weight="500" fill="currentColor" opacity=".6">phrases, then ideas inside them</text>
+
+                <rect x="500" y="92" width="230" height="50" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                <text x="615" y="112" text-anchor="middle" font-size="13.5" fill="currentColor">CONTEXTUALISE</text>
+                <text x="615" y="128" text-anchor="middle" font-size="10.5" font-weight="500" fill="currentColor" opacity=".6">each note's degree vs its chord</text>
+
+                <!-- detectors, each marked in the colour the score draws it -->
+                <rect class="dg-cell" x="26" y="196" width="252" height="56" rx="3" fill="none" stroke-width="2"/>
+                <text class="dg-cell-t" x="152" y="217" text-anchor="middle" font-size="13.5">SHAPES</text>
+                <text x="152" y="234" text-anchor="middle" font-size="10.5" font-weight="500" fill="currentColor" opacity=".65">named figures from a dictionary</text>
+
+                <rect class="dg-device" x="314" y="196" width="252" height="56" rx="3" fill="none" stroke-width="2"/>
+                <text class="dg-device-t" x="440" y="217" text-anchor="middle" font-size="13.5">TARGETS</text>
+                <text x="440" y="234" text-anchor="middle" font-size="10.5" font-weight="500" fill="currentColor" opacity=".65">approaches and enclosures</text>
+
+                <rect class="dg-recurring" x="602" y="196" width="252" height="56" rx="3" fill="none" stroke-width="2"/>
+                <text class="dg-recurring-t" x="728" y="217" text-anchor="middle" font-size="13.5">RECURRING</text>
+                <text x="728" y="234" text-anchor="middle" font-size="10.5" font-weight="500" fill="currentColor" opacity=".65">interval shapes that come back</text>
+
+                <!-- merges -->
+                <rect x="230" y="296" width="420" height="42" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                <text x="440" y="316" text-anchor="middle" font-size="13" fill="currentColor">MERGE 1 — SAME VOCABULARY, ANYWHERE</text>
+                <text x="440" y="331" text-anchor="middle" font-size="10.5" font-weight="500" fill="currentColor" opacity=".6">one finding, many spans</text>
+
+                <rect x="230" y="352" width="420" height="42" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                <text x="440" y="372" text-anchor="middle" font-size="13" fill="currentColor">MERGE 2 — SAME EVENT, TWO DETECTORS</text>
+                <text x="440" y="387" text-anchor="middle" font-size="10.5" font-weight="500" fill="currentColor" opacity=".6">agreement becomes confidence</text>
+              </g>
+
+              <g stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ar2)">
+                <path d="M 400 52 L 400 72 L 265 72 L 265 88"/>
+                <path d="M 480 52 L 480 72 L 615 72 L 615 88"/>
+                <path d="M 265 142 L 265 168 L 152 168 L 152 192"/>
+                <path d="M 300 142 L 300 168 L 440 168 L 440 192"/>
+                <path d="M 610 142 L 610 168 L 728 168 L 728 192"/>
+              </g>
+              <g stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ar2)" opacity=".75">
+                <path d="M 152 252 L 152 274 L 300 274 L 300 292"/>
+                <path d="M 440 252 L 440 292"/>
+                <path d="M 728 252 L 728 274 L 580 274 L 580 292"/>
+                <line x1="440" y1="338" x2="440" y2="348"/>
+              </g>
+
+              <g class="dg-mono" font-size="10" fill="currentColor" opacity=".6">
+                <!-- Right-anchored: left-anchored at 670 the last letter fell
+                     outside the viewBox and was clipped. -->
+                <text x="866" y="168" text-anchor="end">idea boundaries fence every detector</text>
+              </g>
+
+              <line x1="640" y1="373" x2="700" y2="373" stroke="currentColor" stroke-width="1.5" marker-end="url(#ar2)"/>
+              <text class="dg-disp" x="710" y="371" font-size="14" font-weight="700" letter-spacing="1" fill="currentColor">FINDINGS</text>
+              <text class="dg-mono" x="710" y="386" font-size="9.5" fill="currentColor" opacity=".6">scored, filtered, sorted</text>
+            </svg>
+          </div>
+          <figcaption>Two merges, deliberately separate. Doing both at once was the first version and it broke each: the same cell in two different bars never merged, and two detectors seeing one event never merged either — which is exactly the agreement signal confidence is built on.</figcaption>
+        </figure>
+
+        <h3>Segmentation — where the lines break</h3>
+        <p>Every gap between consecutive notes gets a boundary score built from three cues: the <strong>rest</strong> after the note, how <strong>long</strong> the note is held relative to the solo's median, and the size of the <strong>leap</strong> into the next note. Cross a threshold with a real rest present and the phrase ends there.</p>
+
+        <div class="formula">
+          boundary = min(1, w<sub>rest</sub>&middot;rest + w<sub>length</sub>&middot;length + w<sub>leap</sub>&middot;leap) <span class="c">&larr; weights and threshold in ENGINE_SPEC &sect;Segmentation</span>
+        </div>
+
+        <p>Two levels come out of this. A <strong>phrase</strong> is breath-to-breath. An <strong>idea</strong> is a gesture inside a phrase, opened by a weaker signal — an arrival, a local peak in the boundary profile, a pickup gesture, or a riff restatement. Ideas are the unit practice is cut into.</p>
+
+        <p>Several refinements exist because your ear disagreed with the corpus and won: <em>riff binding</em> keeps a chain of restatements as one phrase; the <em>pickup gesture</em> opens an idea at the anacrusis rather than the downbeat; a <em>chorus-start prior</em> nudges the boundary at a chorus downbeat rather than forcing one. Each of those is a recorded decision with a measured cost against the Weimar corpus.</p>
+
+        <h3>Context — what each note is doing</h3>
+        <p>Every note is given a degree relative to the chord sounding under it, using a major-family or minor-family table. “Chromatic” means altered <em>and</em> not a chord tone, so the b7 of a dominant is not chromatic. Separately, each chord is assigned the scale it is played on — <strong>never inferred from the notes played</strong>. The chart wins where it declares tensions; otherwise the choice follows the chord's <em>function</em>, not its quality.</p>
+        <p>That “never inferred” is load-bearing. Four different ways of inferring departure from pitch content were measured against null models on the corpus, and all four fired at or below chance. The engine reports what the chart says and lets you hear the rest.</p>
+
+        <h3>The three detectors</h3>
+        <p>They run independently and are allowed to disagree. None of them may match across an idea boundary — a figure that straddles a gesture break is two gestures, not one piece of vocabulary.</p>
+
+        <div class="detectors">
+          <div class="det det-cell">
+            <h3>Shapes</h3>
+            <p>Matches the played degrees against a hand-written dictionary of named figures — digital patterns, arpeggios, bebop cells. Longest match wins; a shorter hit inside a longer one is dropped.</p>
+            <span class="k">detectors/shapes.ts</span>
+          </div>
+          <div class="det det-device">
+            <h3>Targets</h3>
+            <p>Finds short windows aiming at a goal note — approaches and enclosures — and scores the target's strength from beat position, relative length, harmonic arrival and which degree it lands on.</p>
+            <span class="k">detectors/targets.ts</span>
+          </div>
+          <div class="det det-recurring">
+            <h3>Recurring</h3>
+            <p>Finds interval shapes the player returns to, names them by their intervals when the dictionary can't, and groups bent or inverted forms into variant families.</p>
+            <span class="k">detectors/recurring.ts</span>
+          </div>
+        </div>
+
+        <h3>Confidence — why agreement is the signal</h3>
+        <p>A finding's confidence is built mostly from <strong>how many independent detectors saw it</strong>, with bonuses for being nameable from the dictionary, for recurring more than once, and for the chord track being trustworthy — and a discount for being a bare triad. Below a floor, findings are dropped: a menu of twenty-six with a tail of two-note approaches is a menu nobody reads.</p>
+
+        <div class="formula">
+          confidence = shortCellFactor &times; min(1, <span class="c">detectorCredit</span> + <span class="c">namedBonus</span> + <span class="c">repeatBonus</span> + <span class="c">chordConfidence</span>)<br>
+          <span class="c">&larr; all four terms' values in ENGINE_SPEC &sect;Finding confidence</span>
+        </div>
+      </section>
+
+      <section>
+        <div class="head">
+          <span class="n">4</span>
+          <h2>Practice units</h2>
+          <span class="file">src/practice/</span>
+        </div>
+
+        <p>An <em>idea</em> becomes a <strong>practice unit</strong> — the thing you actually drill. Findings name what is inside it. Long ideas are split into parts of a couple of bars so a unit stays playable.</p>
+
+        <p>Units are ranked, and the ranking is where the engine states an opinion. It rewards the strongest finding in the unit, the total across all its findings, how often those recur elsewhere in the solo, landing on a chord tone, and being nameable at all — then <strong>subtracts a penalty for being stock</strong>.</p>
+
+        <div class="formula">
+          rank = 4&middot;best + &Sigma;confidence + 0.25&middot;&Sigma;occurrences + <span class="c">(chord-tone arrival)</span> + <span class="c">(nameable)</span> &minus; <span class="c">stockPenalty</span>&middot;stock
+        </div>
+
+        <p>“Stock” is the engine's way of not wasting your time on everyone's vocabulary. It measures three things — how much of the unit is a plain scale run or arpeggio, how common its shape is across the Weimar corpus, and how much of it matches the mined lick table — and demotes accordingly. This penalty exists because of a real failure: the engine once passed 156 tests while ranking its best finding ninth out of eighty-one.</p>
+
+        <h3>The four steps</h3>
+        <p>Every unit carries the same four, drawn from the practice literature:</p>
+        <div class="rules">
+          <div>
+            <p class="r">Loop it</p>
+            <p class="why">The line exactly as played, with the chords that were under it. Sing it, then play along with the record until the time feel matches.</p>
+          </div>
+          <div>
+            <p class="r">Through the tune</p>
+            <p class="why">The same line over every chord in this solo's changes that will take it, plus a cycle-of-fourths drill.</p>
+          </div>
+          <div>
+            <p class="r">Vary it</p>
+            <p class="why">New ways into the same arrival — the landing note never moves. Approach ramps, displacement, fragments.</p>
+          </div>
+          <div>
+            <p class="r">Write your own</p>
+            <p class="why">A template with the targets marked. What you write can be dropped back into the app to be checked.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="head">
+          <h2>The agent layer</h2>
+          <span class="file">src/agent/</span>
+        </div>
+
+        <p>Optional, and deliberately boxed in. <strong>The agent judges; it never generates.</strong> It may weigh evidence the engine computed and cast a judgement — rank the menu, adjudicate a boundary the engine could not call, name something, narrate it — but every note, count and interval comes from deterministic code, and every verdict references engine objects by id.</p>
+
+        <p>This is why the boundary-candidate carets exist on the score: they are the gaps whose cue landed too near the threshold for the engine to be sure, handed to the agent as the only questions it is allowed to answer about where lines break. Without a key, the engine decides alone and nothing downstream notices.</p>
+      </section>
+
+      <section>
+        <div class="head">
+          <h2>The corpora</h2>
+        </div>
+
+        <p>Three external bodies of music inform the engine, and <strong>none of them is in this repository</strong>. They live in <code>~/dev/woodshed-data/</code>, are run locally, and only derived aggregate statistics are ever committed — with an attribution note. The licensing rule is the project's sharpest constraint.</p>
+
+        <ul>
+          <li><strong>Weimar Jazz Database</strong> (456 solos, ODbL) — the ground truth for phrase and idea boundaries, and the source of the corpus-frequency table behind the stock penalty. <code>npm run eval:wjd</code> scores segmentation against it; <code>npm run corpus:wjd</code> sweeps the whole pipeline and diffs against a committed golden of per-solo counts.</li>
+          <li><strong>Bopland licks</strong> — a dictionary-coverage benchmark and second frequency source, mined into the common-language table.</li>
+          <li><strong>Your own annotations</strong> in <code>annotations/</code> — the only human-labelled evidence that reflects your ear rather than someone else's. Where these and the corpus disagree, recorded decisions say which won and what it cost.</li>
+        </ul>
+      </section>
+
+      <section>
+        <div class="head">
+          <h2>The rules that shape everything</h2>
+        </div>
+
+        <div class="rules">
+          <div>
+            <p class="r"><code>src/</code> is DOM-free; only <code>app/</code> touches the DOM.</p>
+            <p class="why">Enforced by the src-only tsconfig having no DOM library at all — it is a compile error, not a convention.</p>
+          </div>
+          <div>
+            <p class="r">The <code>Score</code> is immutable.</p>
+            <p class="why"><code>prepare/</code> emits descriptions of what should change and never changes it, so nothing shifts under you silently.</p>
+          </div>
+          <div>
+            <p class="r">The agent judges, never generates.</p>
+            <p class="why">Every note, count and interval is deterministic. Verdicts point at engine objects by id.</p>
+          </div>
+          <div>
+            <p class="r">Chord quality comes from <code>&lt;kind&gt;</code>, never text.</p>
+            <p class="why">The markup says what was meant; the text says what was typed.</p>
+          </div>
+          <div>
+            <p class="r">External corpora never enter the repo or the bundle.</p>
+            <p class="why">Derived statistics may, with attribution. Test fixtures are hand-authored rather than quoted.</p>
+          </div>
+          <div>
+            <p class="r">Green tests are not evidence the output is good.</p>
+            <p class="why">Run the pipeline on a real solo and read what comes out. The spec names the expected result for the Blake transcription precisely so this is checkable.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="head">
+          <h2>Where to look next</h2>
+        </div>
+        <ul>
+          <li><code>docs/ENGINE_SPEC.md</code> — every rule, parameter and formula in force, with the file that implements it. Start here for any value.</li>
+          <li><code>docs/DECISIONS.md</code> — append-only: what was decided, on what evidence, and what would reverse it.</li>
+          <li><code>docs/OPEN_QUESTIONS.md</code> — everything unresolved, with what would resolve it.</li>
+          <li><code>docs/LEDGER.md</code> — the running task log, including decisions taken on your behalf.</li>
+        </ul>
+        <p>The verification target is worth knowing by heart: run <code>npm run solo</code> on the Seamus Blake transcription and the top finding should be the major-seventh arpeggio from the b3 at bars 73 and 77, with all three detectors agreeing, in a list of about thirteen.</p>
+      </section>
+
+      <p class="foot">Written from the code at <code>sprint/chorus-prior-and-design</code>. Where this page and <code>ENGINE_SPEC.md</code> disagree, the spec is right and this page is stale.</p>
+
+    </main>
+  </body>
+</html>

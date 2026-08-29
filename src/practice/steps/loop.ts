@@ -18,8 +18,15 @@ export function excerpt(
   firstOffset: number,
 ): ExerciseBar[] {
   const ticks = barTicks(timeSig)
-  const shift = firstOffset - (notes[0].onset % ticks)
-  const base = notes[0].onset - (notes[0].onset % ticks)
+  // Floor semantics, not `%`: `throughStep` moves a line so its first chord
+  // meets the match's, which drags a pickup note before tick 0 when the
+  // match sits at the top of the form. JS `%` truncates towards zero, so a
+  // negative onset landed in bar -1 and `ensure` handed back `undefined`.
+  // Flooring puts the pickup in bar 0 of the excerpt, where it belongs.
+  const mod = (value: number): number => ((value % ticks) + ticks) % ticks
+  const offset = mod(firstOffset)
+  const shift = offset - mod(notes[0].onset)
+  const base = Math.floor(notes[0].onset / ticks) * ticks
   const bars: ExerciseBar[] = []
   const place = (absolute: number): { bar: number; at: number } => {
     const rel = absolute + shift - base
@@ -88,6 +95,21 @@ export function excerpt(
       bars[i].quality = bars[i - 1].quality
     }
   }
+  // Bar 0 has no previous bar to carry from, and there is nothing to carry:
+  // a pickup that lands before the excerpt's first chord genuinely precedes
+  // the harmony we were given — `throughStep` passes the *target* slot's
+  // chords, whose first is the one the pickup leads into. Left alone the bar
+  // keeps its `rootPc: 0, quality: 'unknown'` placeholder, and the renderer's
+  // fallback to those fields prints a bare "C" (`kindOf` maps 'unknown' to
+  // 'major') over a bar whose chord nobody knows. An empty list says "no
+  // chord symbol here", which is what a lead sheet does with a pickup — same
+  // representation `write.ts` already emits for a chordless tune bar.
+  // The placeholder itself stays: `rootPc`/`quality` are required on every
+  // `ExerciseBar` because the cell-per-bar exercises read them (`validity.ts`
+  // re-detects a finding against them), so making them optional would churn
+  // that path to delete a value only this bar leaves meaningless. The empty
+  // list is the guard — the renderer is its only reader (`musicxml.ts:232`).
+  if (bars.length > 0 && !bars[0].chords?.length) bars[0].chords = []
   return bars
 }
 

@@ -31,6 +31,9 @@
 }
 
 * { box-sizing: border-box }
+/* Every panel on this page is shown and hidden with the `hidden` attribute,
+   and any `display` we set would quietly outrank the UA rule for it. */
+[hidden] { display: none !important }
 
 body {
   margin: 0;
@@ -43,7 +46,9 @@ main { max-width: 92rem; margin: 0 auto; padding: 0 1.25rem 6rem }
 
 h1, h2, h3 { margin: 0; font-family: var(--disp) }
 button { font: inherit; cursor: pointer }
-button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--idea); outline-offset: 2px }
+button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--idea); outline-offset: 2px }
+/* Fields sit on paper, so the focused one also darkens its own box. */
+.field select:focus-visible, .field input:focus-visible { border-color: var(--ink) }
 .mono { font-family: var(--mono); font-variant-numeric: tabular-nums }
 .label {
   font: 600 0.8rem/1 var(--disp);
@@ -80,27 +85,92 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
   white-space: nowrap;
 }
 
-/* ---- landing ---- */
-.land { padding: 3rem 0 2.5rem; max-width: 46rem }
-.land h1 { margin: 0 0 0.3rem; font: 700 3.2rem/1 var(--disp); letter-spacing: 0.02em; text-transform: uppercase }
-.land .lede { margin: 0 0 1.5rem; color: var(--pencil); max-width: 48ch; text-wrap: balance }
+/* ---- site nav ----
+   One strip above everything, written into all three pages' markup. It
+   carries the pages and nothing else: no wordmark, because each page already
+   has its own masthead — and on the analyser that masthead (`#top`) only
+   appears once a solo is loaded, so a second one here would be a duplicate
+   half the time and an orphan the other half. Not sticky, so it never
+   competes with the annotate page's pinned mode bar.
+
+   The current page is marked three ways: `aria-current="page"` says it to a
+   screen reader, and it is the only link drawn in ink and underscored with
+   the highlighter — the same mark the practice path uses for "you are here",
+   so the state survives without colour. */
+.sitenav { border-bottom: 1px solid var(--rule); background: color-mix(in srgb, var(--paper) 35%, var(--ground)) }
+.sitenav ul { max-width: 92rem; margin: 0 auto; padding: 0 1.25rem; list-style: none; display: flex; gap: 0.15rem }
+.sitenav a {
+  display: inline-block;
+  padding: 0.75rem 0.7rem 0.55rem;
+  font: 600 0.82rem/1 var(--disp);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pencil);
+  text-decoration: none;
+}
+.sitenav a:hover { color: var(--ink) }
+/* Inset, so the ring is not clipped by the strip's own bottom rule. */
+.sitenav a:focus-visible { outline: 2px solid var(--idea); outline-offset: -2px }
+.sitenav a[aria-current='page'] { color: var(--ink); font-weight: 700; box-shadow: inset 0 -0.32rem 0 var(--marker) }
+
+/* ---- landing ----
+   Two columns under one masthead: what you hand the page on the left, what
+   comes back on the right. The old single 46rem column left the right two
+   thirds of a desktop window empty and squeezed the four steps into
+   four clipped cards. */
+.land {
+  padding: 3.5rem 0 2.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 2.4rem 4.5rem;
+  align-items: start;
+}
+.land-intro { grid-column: 1 / -1 }
+.land h1 { margin: 0 0 0.3rem; font: 700 clamp(3.2rem, 7vw, 4.6rem)/0.95 var(--disp); letter-spacing: 0.02em; text-transform: uppercase }
+.land .lede { margin: 0; color: var(--pencil); font-size: 1.15rem; max-width: 52ch; text-wrap: balance }
+@media (max-width: 58rem) { .land { grid-template-columns: 1fr } }
+
 .drop {
   border: 2px dashed var(--ink);
-  padding: 2.2rem 1.5rem;
+  padding: 3rem 1.5rem 2.4rem;
   text-align: center;
-  font: 600 1.3rem/1.2 var(--disp);
+  font: 600 1.5rem/1.2 var(--disp);
   letter-spacing: 0.03em;
   background: color-mix(in srgb, var(--paper) 40%, var(--ground));
 }
 .drop.over { background: color-mix(in srgb, var(--marker) 40%, var(--paper)) }
-.drop small { display: block; margin-top: 0.4rem; font: 400 0.95rem/1.4 var(--body); color: var(--pencil) }
-.drop input { display: block; margin: 0.6rem auto 0; font: 400 0.9rem var(--body); color: var(--pencil) }
-.then { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 1.4rem }
-.then > div { border-top: 2px solid var(--ink); padding-top: 0.4rem }
-.then .n { font: 700 1.4rem/1 var(--disp) }
-.then .t { font: 600 1rem/1.1 var(--disp); letter-spacing: 0.03em; margin: 0.2rem 0 }
-.then p { margin: 0; font-size: 0.85rem; color: var(--pencil) }
-@media (max-width: 40rem) { .then { grid-template-columns: 1fr 1fr } }
+.drop small { display: block; margin-top: 0.5rem; font: 400 0.95rem/1.4 var(--body); color: var(--pencil) }
+.drop input { display: block; margin: 1.1rem auto 0; font: 400 0.9rem var(--body); color: var(--pencil); width: fit-content }
+/* The file picker is the one control on the page you cannot avoid clicking;
+   it gets the same box as every other button rather than the browser's. */
+.drop input::file-selector-button {
+  font: 600 0.95rem/1 var(--disp);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.55rem 0.9rem;
+  margin-right: 0.7rem;
+  border: 1.5px solid var(--ink);
+  border-radius: 3px;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+}
+.drop input::file-selector-button:hover { background: var(--ink); color: var(--ground) }
+
+.land-then h2 { margin: 0 0 0.2rem }
+.then { list-style: none; margin: 0; padding: 0 }
+.then li {
+  display: grid;
+  grid-template-columns: 2.4rem 1fr;
+  align-items: baseline;
+  gap: 0 0.5rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.then li:first-child { border-top: 2px solid var(--ink) }
+.then .n { font: 700 1.5rem/1 var(--disp); color: var(--pencil) }
+.then .t { font: 600 1.25rem/1.1 var(--disp); letter-spacing: 0.03em }
+.then p { grid-column: 2; margin: 0.15rem 0 0; font-size: 0.95rem; color: var(--pencil) }
 
 .status { margin: 1rem 0 0; color: var(--pencil) }
 .error, .blocking {
@@ -197,16 +267,63 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
 
 /* ---- score sheet ---- */
 .sheet { background: var(--paper); padding: 1.2rem 1.4rem 1rem; box-shadow: var(--shadow) }
-.legend { display: flex; gap: 1.4rem; align-items: center; margin-bottom: 0.8rem; flex-wrap: wrap }
-.legend span { font: 500 0.8rem/1 var(--disp); letter-spacing: 0.1em; text-transform: uppercase; color: var(--pencil) }
-.legend i { display: inline-block; width: 3px; height: 14px; vertical-align: -3px; margin-right: 0.4rem; border-radius: 1px }
-.legend .ph i { background: var(--phrase) }
-.legend .id i { background: var(--idea) }
-.legend .hl i { width: 14px; height: 10px; background: var(--marker) }
-.legend .scales { display: inline-flex; gap: 0.4rem; align-items: center; letter-spacing: 0.04em }
-.legend .scales select { font: 0.85rem var(--mono); padding: 0.2rem 0.3rem; border: 1px solid var(--rule); background: none; color: inherit }
-.legend .goto { margin-left: auto; display: inline-flex; gap: 0.4rem; align-items: center; letter-spacing: 0.04em }
-.legend .goto input { width: 4rem; font: 0.85rem var(--mono); padding: 0.2rem 0.4rem; border: 1px solid var(--rule) }
+
+/* The score's control bar. Two rows in one frame: what the engine marks on
+   the score, then how to read it and take it away. Both rows share the field
+   and swatch vocabulary so they read as one instrument, not two strips. */
+.controls {
+  margin: -0.4rem -0.4rem 1rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--ground) 30%, var(--paper));
+}
+.ctl-row { display: flex; gap: 0.5rem 0.9rem; align-items: center; flex-wrap: wrap; min-height: 2rem }
+.ctl-read { margin-top: 0.4rem; padding-top: 0.45rem; border-top: 1px solid var(--rule) }
+.ctl-lbl {
+  font: 700 0.72rem/1 var(--disp);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pencil);
+  width: 6.5rem;
+  flex: none;
+}
+.ctl-read .export-annotations { margin-left: auto }
+
+/* A field: label outside, control inside a box that matches .btn's weight. */
+.field { display: inline-flex; align-items: center; gap: 0.45rem }
+.field-lbl {
+  font: 600 0.72rem/1 var(--disp);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pencil);
+}
+.field select, .field input, .agent-key select, .agent-key input[type='password'], .solo-pick select, .pop .paste input, .ann-head select {
+  font: 500 0.9rem/1.15 var(--disp);
+  letter-spacing: 0.03em;
+  padding: 0.35rem 0.55rem;
+  border: 1.5px solid var(--rule);
+  border-radius: 3px;
+  background: var(--paper);
+  color: var(--ink);
+}
+.field select:hover, .agent-key select:hover, .solo-pick select:hover, .ann-head select:hover { border-color: var(--ink) }
+/* Native selects paint their own chrome; the caret is drawn back on so the
+   control keeps the same 1.5px box as every other field. */
+.field select, .agent-key select, .solo-pick select, .ann-head select {
+  appearance: none;
+  padding-right: 1.7rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%235a5f68' stroke-width='1.4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.55rem center;
+  background-size: 0.6rem;
+}
+.goto input { width: 4.5rem; font-family: var(--mono); font-size: 0.8rem }
+
+/* A static key — a mark the player does not toggle, so it gets no box. */
+.key { display: inline-flex; align-items: center; gap: 0.4rem; font: 500 0.78rem/1 var(--disp); letter-spacing: 0.1em; text-transform: uppercase; color: var(--pencil) }
+.key i { display: inline-block; width: 14px; height: 10px; border-radius: 1px }
+.key.hl i { background: var(--marker) }
 .solo { overflow-x: auto }
 .solo g.hit path { fill: var(--marker-ink); stroke: var(--marker-ink) }
 .solo rect.hl-bar { fill: var(--marker); opacity: 0.85 }
@@ -313,10 +430,65 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
 
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto } }
 
+/* ---- solos the site offers ---- */
+/* One line under the drop zone: the alternative to owning a transcription,
+   not a second front door — so it borrows the field vocabulary and takes the
+   same 1.4rem gap the key row takes from the zone above it. Hidden in markup
+   until the manifest lists a solo. */
+.solo-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.7rem; margin-top: 1.4rem }
+.solo-pick > span:first-child {
+  font: 600 0.72rem/1 var(--disp);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pencil);
+}
+.solo-pick select { max-width: 100%; min-width: 0 }
+
 /* ---- agent layer ---- */
-.agent-key { display: flex; flex-direction: column; gap: 0.3rem; margin-top: 1.2rem; max-width: 28rem; }
-.agent-key input { font: inherit; padding: 0.35rem 0.5rem; }
-.agent-key small { opacity: 0.7; }
+/* Optional, so it sits quietly under the drop zone rather than beside it. */
+.agent-key { margin-top: 1.4rem }
+/* The switch is the row's first line and reads as a sentence, not a label:
+   the assistant is an addition to a finished analysis, so it gets ordinary
+   prose weight and the uppercase label treatment goes to the field behind it. */
+.agent-on { display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.95rem }
+.agent-on input {
+  appearance: none;
+  margin: 0;
+  flex: none;
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid var(--pencil);
+  border-radius: 2px;
+  background: var(--paper);
+}
+.agent-on input:checked { background: var(--ink); border-color: var(--ink) }
+/* The tick is drawn on the box: a 15px control cannot carry a glyph. */
+.agent-on input:checked::after {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 8px;
+  margin: 0.5px auto 0;
+  border: solid var(--paper);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(42deg);
+}
+.agent-on:hover input { border-color: var(--ink) }
+.agent-fields { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.9rem; margin-top: 0.7rem }
+.agent-field { display: inline-flex; align-items: center; gap: 0.45rem; flex: 1 1 20rem; min-width: 0 }
+.agent-field > span {
+  font: 600 0.72rem/1 var(--disp);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pencil);
+  flex: none;
+}
+.agent-key input[type='password'] { flex: 1 1 12rem; min-width: 0; font-family: var(--mono); font-size: 0.85rem }
+.agent-key small { flex: 1 0 100%; color: var(--pencil); font-size: 0.85rem; line-height: 1.4 }
+.agent-note { display: block; max-width: 44rem; margin-top: 0.4rem; color: var(--pencil); font-size: 0.85rem; line-height: 1.4 }
+/* Said before the run, not after it: by the time the analysis is on screen
+   it is too late to be worth knowing. */
+.agent-key .agent-need { color: var(--warn) }
 .agent { border-left: 3px solid #b58a3c; padding: 0.4rem 1rem; margin: 0.6rem 0; }
 .agent-sourced { position: relative; }
 .agent .dh span { opacity: 0.6; font-size: 0.85em; }
@@ -330,8 +502,13 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
   background: #fffdf7; border: 1px solid #b58a3c; border-radius: 4px;
   font-size: 0.85rem; line-height: 1.35; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
-.agent-mood, .agent-model { display: flex; gap: 0.4rem; align-items: center; }
-.agent-mood select, .agent-model select { font: inherit; padding: 0.2rem 0.3rem; }
+.agent-mood, .agent-model { display: inline-flex; gap: 0.45rem; align-items: center }
+.agent-mood > span, .agent-model > span {
+  font: 600 0.72rem/1 var(--disp);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pencil);
+}
 
 /* ---- annotate ---- */
 .ann-head {
@@ -343,7 +520,13 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
   border-bottom: 1px solid var(--rule);
 }
 .ann-head h1 { font: 700 1.6rem/1 var(--disp); letter-spacing: 0.02em; text-transform: uppercase }
-.ann-head select { font: 0.9rem var(--mono); padding: 0.3rem 0.5rem; border: 1px solid var(--rule); background: var(--paper); color: inherit }
+/* The solo picker is a list of filenames, so it keeps the mono face — but only
+   the face: box, padding and drawn caret come from the shared field rule
+   above, and a `background` or `padding` shorthand here would reset the
+   chevron background-image to none and leave the select with no affordance at
+   all. The cap stays too: a select sizes to its widest option, and these are
+   long filenames — left uncapped it eats the pinned header row. */
+.ann-head select { flex: 0 1 20rem; min-width: 10rem; font-family: var(--mono); letter-spacing: 0 }
 #modes { display: flex; gap: 0.3rem }
 #modes button {
   padding: 0.3rem 0.7rem;
@@ -368,6 +551,21 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
 #saved.dirty { background: var(--rule); animation: ann-pulse 1.1s ease-in-out infinite }
 @keyframes ann-pulse { 0%, 100% { opacity: 0.4 } 50% { opacity: 1 } }
 .ann-help { margin: 0 0 1rem; color: var(--pencil); font-size: 0.85rem }
+/* Shown when the dev-only `/__annotate` bridge is absent. Nothing has gone
+   wrong — the tool simply needs the local server — so it sits on paper under
+   a pencil rule rather than wearing the alarm colours `.error` uses. */
+.ann-offline {
+  margin: 0 0 1rem;
+  padding: 0.9rem 1.1rem;
+  border-left: 5px solid var(--pencil);
+  background: var(--paper);
+  font-size: 0.95rem;
+  max-width: 62ch;
+}
+/* Condensed at 1.05rem read smaller than the serif paragraph under it,
+   which inverted the hierarchy on the first line a stranger sees here. */
+.ann-offline b { display: block; margin-bottom: 0.2rem; font: 600 1.25rem/1.2 var(--disp); letter-spacing: 0.03em }
+.ann-offline code { font-family: var(--mono); font-size: 0.85em }
 .ann-idea rect { fill: var(--idea) }
 .ann-idea text { fill: var(--idea); font: 600 12px var(--disp) }
 .ann-phrase rect { fill: var(--phrase) }
@@ -393,14 +591,62 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
   --ov-device: #d97706;
   --ov-recurring: #2f855a;
   --ov-language: #b83280;
+  /* The stock wash already had this value inline; naming it lets the control
+     swatch quote the same grey the score is shaded with. */
+  --ov-stock: #8892a0;
 }
-.overlays { display: inline-flex; gap: 0.55rem; align-items: center; flex-wrap: wrap; color: var(--pencil) }
-.overlays .ov { display: inline-flex; gap: 0.25rem; align-items: center; cursor: pointer }
-.overlays .ov input { accent-color: var(--pencil); margin: 0 }
-.overlays .ov-cells input { accent-color: var(--ov-cell) }
-.overlays .ov-devices input { accent-color: var(--ov-device) }
-.overlays .ov-recurring input { accent-color: var(--ov-recurring) }
-.overlays .ov-language input { accent-color: var(--ov-language) }
+
+/* Each toggle wears the colour of the mark it draws, so the row is the legend.
+   The box is the real checkbox with its chrome removed — keyboard and screen
+   reader behaviour is untouched, only the paint is ours. */
+.overlays { display: flex; gap: 0.15rem 0.2rem; align-items: center; flex-wrap: wrap; min-width: 0 }
+.overlays .ov {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 3px;
+  font: 500 0.78rem/1 var(--disp);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pencil);
+}
+.overlays .ov:hover { background: color-mix(in srgb, var(--ground) 70%, var(--paper)) }
+.overlays .ov:has(input:checked) { color: var(--ink); background: var(--paper); box-shadow: inset 0 0 0 1px var(--rule) }
+/* The ring goes on the chip: a 2px outline round a 13px box is unreadable,
+   and --idea is too close to --ov-cell to show against that swatch. */
+.overlays .ov:has(input:focus-visible) { outline: 2px solid var(--ink); outline-offset: 1px }
+.overlays .ov input {
+  appearance: none;
+  margin: 0;
+  flex: none;
+  width: 13px;
+  height: 13px;
+  border: 1.5px solid var(--sw, var(--pencil));
+  border-radius: 2px;
+  background: transparent;
+}
+.overlays .ov input:checked { background: var(--sw, var(--pencil)) }
+.overlays .ov-ticks { --sw: var(--phrase) }
+/* One toggle, two marks: the swatch is split rather than picking a favourite. */
+.overlays .ov-ticks input:checked { background: linear-gradient(90deg, var(--phrase) 0 50%, var(--idea) 50% 100%) }
+.overlays .ov-cells { --sw: var(--ov-cell) }
+.overlays .ov-devices { --sw: var(--ov-device) }
+.overlays .ov-recurring { --sw: var(--ov-recurring) }
+.overlays .ov-language { --sw: var(--ov-language) }
+/* Boundary candidates are drawn as small pencil carets, not bars. */
+.overlays .ov-candidates input {
+  border: 0;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--pencil) 42%, var(--paper));
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+.overlays .ov-candidates input:checked { background: var(--pencil) }
+/* Stock passages are shaded, not underlined; the swatch is a wash of the
+   same grey rather than a solid block that would overstate the mark. */
+.overlays .ov-stock { --sw: var(--ov-stock) }
+.overlays .ov-stock input:checked { background: color-mix(in srgb, var(--ov-stock) 32%, var(--paper)) }
 .eng-overlay { cursor: pointer }
 .eng-overlay.ov-cell rect { fill: var(--ov-cell) }
 .eng-overlay.ov-device rect { fill: var(--ov-device) }
@@ -408,4 +654,11 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
 .eng-overlay.ov-language rect { fill: var(--ov-language) }
 .cand-caret { cursor: pointer }
 .cand-caret path { fill: var(--pencil); opacity: 0.8 }
-.stock-shade { fill: #8892a0; fill-opacity: 0.13; cursor: pointer }
+.stock-shade { fill: var(--ov-stock); fill-opacity: 0.13; cursor: pointer }
+.ov-badge { font: 700 9px var(--disp, sans-serif) }
+.eng-overlay.ov-cell .ov-badge { fill: var(--ov-cell) }
+.eng-overlay.ov-device .ov-badge { fill: var(--ov-device) }
+.eng-overlay.ov-recurring .ov-badge { fill: var(--ov-recurring) }
+.eng-overlay.ov-language .ov-badge { fill: var(--ov-language) }
+.cand-caret .ov-badge { fill: var(--pencil) }
+.export-annotations { font-size: 0.8rem }

@@ -6,10 +6,10 @@
   "description": "Turn a transcribed jazz solo into practice material",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "npm run typecheck && vite build",
     "test": "vitest",
     "test:run": "vitest run",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.app.json",
     "solo": "node --experimental-strip-types --no-warnings scripts/run.ts",
     "eval:wjd": "node --experimental-strip-types --no-warnings scripts/eval-wjd.ts",
     "corpus:freq": "node --experimental-strip-types --no-warnings scripts/corpus-freq.ts",
@@ -19,7 +19,11 @@
     "brackets": "node --experimental-strip-types --no-warnings scripts/brackets.ts",
     "bench:bopland": "node --experimental-strip-types --no-warnings scripts/bench-bopland.ts",
     "eval:agent": "node --experimental-strip-types --no-warnings scripts/eval-agent.ts",
-    "eval:owner": "node --experimental-strip-types --no-warnings scripts/eval-owner.ts"
+    "eval:owner": "node --experimental-strip-types --no-warnings scripts/eval-owner.ts",
+    "solos:manifest": "node --experimental-strip-types --no-warnings scripts/solos-manifest.ts"
+  },
+  "engines": {
+    "node": ">=22.6"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",

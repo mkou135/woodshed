@@ -3,3 +3,5 @@ dist/
 .DS_Store
 .claude/worktrees/
 docs/research/jazz-pedagogy-literature.md
+.superpowers/
+.claude/settings.local.json

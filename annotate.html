@@ -7,6 +7,13 @@
     <link rel="stylesheet" href="./app/style.css" />
   </head>
   <body>
+    <nav class="sitenav" aria-label="Pages">
+      <ul>
+        <li><a href="./index.html">Analyse</a></li>
+        <li><a href="./annotate.html" aria-current="page">Annotate</a></li>
+        <li><a href="./engine.html">How it works</a></li>
+      </ul>
+    </nav>
     <main class="annotate">
       <header class="ann-head">
         <h1>Annotate</h1>
@@ -18,7 +25,18 @@
         <button id="scales-btn" type="button" title="show the engine's chord scales; click one to strike it out">scales</button>
         <div id="saved" title="saved"></div>
       </header>
-      <p class="ann-help">
+      <!-- Unhidden by app/annotate.ts when the dev-only bridge is absent. It
+           starts hidden because the honest answer is not known until the
+           script runs; the controls it explains are stood down at the same
+           moment, so the two never contradict each other. -->
+      <p id="ann-offline" class="ann-offline" hidden>
+        <b>Marking a solo needs the local dev server.</b>
+        The file picker, the engine seed and saving are served by Vite while
+        you run <code>npm run dev</code>; none of them exists on this public
+        build. Drop a transcription below to read it — nothing here can be
+        marked or saved.
+      </p>
+      <p id="ann-help" class="ann-help">
         <b>1</b> phrase / <b>2</b> idea: click a note to toggle a start mark ·
         <b>3</b> outside: click first + last note ·
         <b>4</b> star: click first + last note ·

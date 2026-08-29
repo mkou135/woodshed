@@ -1,10 +1,11 @@
 import { run, runWithAgent, liveClient, readScoreXml, UnsupportedScoreError } from '../src/index.ts'
 import type { AgentOutput, PipelineResult, PracticeUnit } from '../src/index.ts'
-import { agentKey, agentKeyRow, agentModel, agentPersona } from './agentKey.ts'
+import { agentEnabled, agentKey, agentKeyRow, agentModel, agentPersona } from './agentKey.ts'
 import { button, el } from './dom.ts'
 import { renderScore } from './score.ts'
 import type { OverlaySettings, ScaleMode } from './score.ts'
 import { OVERLAY_DEFAULTS } from './score.ts'
+import { annotationExportHtml, downloadHtml } from './export.ts'
 import { tuneChip } from './tune.ts'
 import { detailsDrawer, whereOf } from './details.ts'
 import { doneStore } from './done.ts'
@@ -64,6 +65,10 @@ function progressLine(): { element: HTMLElement; stage: (text: string) => void; 
 function showError(title: string, detail: string): void {
   errorBox.replaceChildren(el('strong', undefined, title), el('span', undefined, detail))
   errorBox.hidden = false
+  // An error and a result are mutually exclusive states. Without this, a read
+  // that fails after a successful run leaves the old analysis sitting under
+  // the banner — the pre-read catches reach here without clearing anything.
+  resultBox.hidden = true
 }
 
 function soloTitle(result: PipelineResult, filename: string): string {
@@ -172,17 +177,19 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
 
   // Layout first: OSMD measures its container, so it must be in the document.
   const sheet = el('section', 'sheet')
-  const legend = el('div', 'legend')
-  const goto = el('label', 'goto')
+  // One bar, two lines: what the score marks (line 1), how to read and take
+  // it away (line 2). The old split — a colour legend beside a separate
+  // checkbox strip — said the same thing twice in two visual languages.
+  const controls = el('div', 'controls')
+  const goto = el('label', 'field goto')
   const gotoInput = el('input')
   gotoInput.type = 'number'
   gotoInput.min = '1'
   gotoInput.setAttribute('aria-label', 'Go to bar')
-  goto.append(el('span', undefined, 'go to bar'), gotoInput)
-  const ph = el('span', 'ph'); ph.append(el('i'), document.createTextNode('Phrase'))
-  const id = el('span', 'id'); id.append(el('i'), document.createTextNode('Idea'))
-  const hl = el('span', 'hl'); hl.append(el('i'), document.createTextNode('Now practising'))
-  const scales = el('label', 'scales')
+  goto.append(el('span', 'field-lbl', 'Go to bar'), gotoInput)
+  // The only mark on the score nothing toggles: it follows the selected idea.
+  const hl = el('span', 'key hl'); hl.append(el('i'), document.createTextNode('Now practising'))
+  const scales = el('label', 'field scales')
   const scalesSelect = document.createElement('select')
   for (const [value, label] of [
     ['declared', 'where the chart says'],
@@ -195,18 +202,21 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
     scalesSelect.appendChild(option)
   }
   scalesSelect.setAttribute('aria-label', 'Which scales to show')
-  scales.append(el('span', undefined, 'scales'), scalesSelect)
+  scales.append(el('span', 'field-lbl', 'Scales'), scalesSelect)
 
   // Engine-evidence overlays: opt-in checkboxes for auditing what the
   // detectors guessed, drawn where they guessed it. Choices stick per browser.
+  // Each box is styled as the swatch of the mark it toggles, so the row is
+  // its own legend — nothing else on the page has to repeat these colours.
   const overlays = el('span', 'overlays')
-  overlays.append(el('span', undefined, 'engine:'))
   const overlaySettings: OverlaySettings = { ...OVERLAY_DEFAULTS }
   try {
     Object.assign(overlaySettings, JSON.parse(localStorage.getItem(OVERLAYS_KEY) ?? '{}'))
   } catch { /* defaults stand */ }
+  // 'ticks' draws both the phrase and the idea marks, which is why its swatch
+  // is split between the two colours rather than carrying one of them.
   const overlayBoxes: [keyof OverlaySettings, string][] = [
-    ['ticks', 'phrases'],
+    ['ticks', 'phrases & ideas'],
     ['cells', 'cells'],
     ['devices', 'devices'],
     ['recurring', 'recurring'],
@@ -229,9 +239,14 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
     overlays.appendChild(wrap)
   }
 
-  legend.append(ph, id, hl, scales, overlays, goto)
+  const exportButton = button('btn quiet export-annotations', 'Export annotations', () => {})
+  const marks = el('div', 'ctl-row ctl-marks')
+  marks.append(el('span', 'ctl-lbl', 'Engine marks'), overlays)
+  const reading = el('div', 'ctl-row ctl-read')
+  reading.append(el('span', 'ctl-lbl', 'Score'), hl, scales, goto, exportButton)
+  controls.append(marks, reading)
   const solo = el('div', 'solo')
-  sheet.append(legend, solo)
+  sheet.append(controls, solo)
 
   const deskHost = el('section', 'desk')
   const drawer = el('section', 'drawer')
@@ -265,6 +280,18 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
 
   onOverlayChange.fn = () => view.showOverlays(overlaySettings)
   view.showOverlays(overlaySettings)
+
+  // Everything on, badged, snapshotted to a standalone file — then the
+  // score is put back the way the checkboxes have it.
+  exportButton.addEventListener('click', () => {
+    const snap = view.exportAnnotations()
+    if (snap) {
+      const title = soloTitle(result, filename)
+      downloadHtml(`${title.replace(/[^\w-]+/g, '-').toLowerCase()}-annotations.html`,
+        annotationExportHtml(title, snap.svg, snap.items))
+    }
+    view.showOverlays(overlaySettings)
+  })
 
   const desk = practiceDesk(deskHost, result, view, done)
   let units = agent?.ranking ? agentOrder(result.units, agent) : result.units
@@ -312,15 +339,100 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
   }
 }
 
-landing.append(agentKeyRow())
+/** One solo the site offers; the shape written by `npm run solos:manifest`. */
+interface SoloEntry {
+  file: string
+  title: string
+}
 
-async function handleFile(file: File): Promise<void> {
+/**
+ * Solos the site ships with, for a visitor who has no transcription of their
+ * own to drop. The control is hidden until the manifest proves it has
+ * something to offer — an empty select is a dead control.
+ *
+ * URLs resolve against `document.baseURI`, never `import.meta.url`: the
+ * bundle lives in `assets/`, so module-relative would ask for
+ * `/woodshed/assets/solos/…`, and root-absolute would miss the `/woodshed/`
+ * subpath Pages serves from.
+ */
+function soloPicker(): HTMLElement {
+  const row = el('label', 'solo-pick')
+  row.hidden = true
+  const pick = document.createElement('select')
+  pick.setAttribute('aria-label', 'Choose a solo')
+  const blank = document.createElement('option')
+  blank.value = ''
+  blank.textContent = '— choose —'
+  pick.appendChild(blank)
+  row.append(el('span', undefined, 'Or take one of these'), pick)
+
+  const byFile = new Map<string, SoloEntry>()
+  pick.addEventListener('change', () => {
+    // Hand the keyboard back: a focused select swallows keys the page uses.
+    pick.blur()
+    const entry = byFile.get(pick.value)
+    if (entry) void loadSolo(entry)
+  })
+
+  async function loadSolo(entry: SoloEntry): Promise<void> {
+    setStatus(`Fetching ${entry.title}…`)
+    try {
+      const url = new URL(`solos/${encodeURIComponent(entry.file)}`, document.baseURI)
+      const res = await fetch(url)
+      // A Pages 404 answers with an HTML page; unchecked, it would reach the
+      // MusicXML parser and fail there with a baffling message.
+      if (!res.ok) throw new Error(`the server answered ${res.status}`)
+      // The manifest's title, not the filename: it is the one field the owner
+      // writes by hand, and the header falls back to whatever name it is
+      // handed when the score carries no work-title of its own.
+      await handleBytes(new Uint8Array(await res.arrayBuffer()), entry.title)
+    } catch (error) {
+      setStatus(null)
+      showError(`Could not fetch ${entry.title}`, (error as Error).message)
+    }
+  }
+
+  void (async () => {
+    try {
+      const res = await fetch(new URL('solos/manifest.json', document.baseURI))
+      if (!res.ok) return
+      const entries: unknown = await res.json()
+      if (!Array.isArray(entries)) return
+      for (const entry of entries as SoloEntry[]) {
+        if (typeof entry?.file !== 'string' || typeof entry?.title !== 'string') continue
+        byFile.set(entry.file, entry)
+        const option = document.createElement('option')
+        option.value = entry.file
+        option.textContent = entry.title
+        pick.appendChild(option)
+      }
+      // Any failure — missing manifest, bad JSON, nothing listed — leaves the
+      // control hidden rather than offering an empty menu.
+      row.hidden = byFile.size === 0
+    } catch { /* no solos on offer: the drop zone is the whole story */ }
+  })()
+
+  return row
+}
+
+const landDo = document.getElementById('land-do')!
+landDo.append(soloPicker())
+// The key belongs with the drop zone: both are things you hand the page.
+landDo.append(agentKeyRow())
+
+/**
+ * Analyse a score already in memory. Split out of `handleFile` so a solo
+ * fetched from `public/solos` — which never becomes a `File` — travels the
+ * same path, error handling included.
+ */
+async function handleBytes(bytes: Uint8Array, name: string): Promise<void> {
   errorBox.hidden = true
   resultBox.hidden = true
-  setStatus(`Reading ${file.name}…`)
+  setStatus(`Reading ${name}…`)
   try {
-    const bytes = new Uint8Array(await file.arrayBuffer())
-    const key = agentKey()
+    // The assistant is opt-in and needs a key; either one missing and the
+    // deterministic engine runs, which is the whole analysis regardless.
+    const key = agentEnabled() ? agentKey() : null
     let progress: ReturnType<typeof progressLine> | null = null
     if (key) {
       setStatus(null)
@@ -333,7 +445,7 @@ async function handleFile(file: File): Promise<void> {
       : run(bytes)
     progress?.done()
     setStatus(null)
-    await renderResult(result, readScoreXml(bytes), file.name)
+    await renderResult(result, readScoreXml(bytes), name)
   } catch (error) {
     setStatus(null)
     document.querySelector('.progress')?.remove()
@@ -343,6 +455,19 @@ async function handleFile(file: File): Promise<void> {
       showError('Could not read this file', (error as Error).message)
     }
   }
+}
+
+async function handleFile(file: File): Promise<void> {
+  let bytes: Uint8Array
+  // Reading the local file can fail on its own (a file moved between the pick
+  // and the read); that is the same "could not read this file" to the player.
+  try {
+    bytes = new Uint8Array(await file.arrayBuffer())
+  } catch (error) {
+    showError('Could not read this file', (error as Error).message)
+    return
+  }
+  await handleBytes(bytes, file.name)
 }
 
 fileInput.addEventListener('change', () => {

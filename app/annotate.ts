@@ -42,6 +42,19 @@ interface EngineSeed {
 }
 const dropZone = document.getElementById('drop') as HTMLDivElement
 const sheet = document.getElementById('sheet') as HTMLDivElement
+const help = document.getElementById('ann-help') as HTMLParagraphElement
+const offline = document.getElementById('ann-offline') as HTMLParagraphElement
+
+/**
+ * Whether the `/__annotate` routes exist. They are served by `annotatePlugin()`
+ * in scripts/viteAnnotate.ts, which is `apply: 'serve'`, so they are present in
+ * `npm run dev` and absent from every built bundle — exactly the condition
+ * `import.meta.env.DEV` names, and known before the first click rather than
+ * after a probe request has raced a dropped file. Without them the page can
+ * still read a score, so it says so and stands the dead controls down instead
+ * of offering a picker with nothing in it and a save that fails in silence.
+ */
+const BRIDGE = import.meta.env.DEV
 
 let map: SoloMap | null = null
 let store: AnnotationStore | null = null
@@ -495,6 +508,16 @@ async function openScore(bytes: Uint8Array, name: string): Promise<void> {
   buildEntries(map)
   attachHandlers()
 
+  if (!BRIDGE) {
+    // Nothing to load and nowhere to save. A null store is already this
+    // module's "marking disabled" state — clicks are inert and no tick is
+    // drawn — so reading the score is all that is offered, and honestly.
+    redrawAllBoundaries()
+    redrawSpans()
+    updateCounts()
+    return
+  }
+
   const annRes = await fetch(`/__annotate/annotation/${encodeURIComponent(name)}`)
   if (annRes.status === 200) {
     store = AnnotationStore.fromJSON(await annRes.json() as AnnotationFile)
@@ -632,4 +655,13 @@ dropZone.addEventListener('drop', (event) => {
   if (file) void handleDroppedFile(file)
 })
 
-void loadFileList()
+if (BRIDGE) {
+  void loadFileList()
+} else {
+  offline.hidden = false
+  // Hidden, not disabled: a row of greyed-out buttons and a paragraph of
+  // keyboard shortcuts for modes that cannot mark anything is the dead
+  // control the notice above exists to replace.
+  for (const dead of [pick, modes, counts, saved, saveBtn, engineBtn, scalesBtn, help]) dead.hidden = true
+  dropZone.textContent = 'Drop a transcription here to read it'
+}

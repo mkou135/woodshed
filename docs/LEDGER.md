@@ -492,3 +492,392 @@ languageRuns helper (tested) merging mined-table windows for display.
 Verified live in Chrome on Blake: all lanes draw, tooltip shows "f3
 dominant arpeggio 3 to the b9 · 0.95 · shape+target · common language ·
 2%", no console errors. 417 tests, typecheck, build green; pushed.
+2026-08-27 · session 15 · Task 1 of the chorus-prior sprint: fixed the
+`corpus:wjd` `events` crash (melids 78/135/189). `throughStep` aligns a
+line's first chord to the match's, so a pickup note lands at a negative
+onset when the match is at the top of the form; `excerpt` used truncating
+`%` for its bar origin and asked `ensure` for bar −1. Now floors, and
+reduces `firstOffset` with the same floor-modulo — origin-independent
+layout, pickup in its own bar. New `practice/steps/loop.test.ts` (hand
+authored, failed before with the production error). ENGINE_SPEC gains an
+excerpt-layout bullet and refreshed WJD corpus numbers; the
+OPEN_QUESTIONS entry moved to DECISIONS. 420 tests, typecheck green;
+corpus:wjd 452 solos, 0 crashes (4 mixed-meter rejections).
+2026-08-27 · session 15 (cont.) · Task 2 of the chorus-prior sprint: the
+456-solo sweep now has a blast-radius pin. `goldens/corpus-wjd.json`
+holds melid → {findings, units, phrases, ideas, form} — derived counts
+only, ODbL attribution at its head, one solo per line so a diff reads as
+a list of solos that moved. Solos the engine refuses record a stable
+reason code (`mixed-meter`, `too-few-notes`), never the thrown message,
+which interpolates the recording's actual meters. `npm run corpus:wjd`
+compares and exits 1 on any difference; `-- --write-golden` re-pins;
+a missing `~/dev/woodshed-data/` prints a skip and exits 0. Comparison
+verified by perturbing `segment` threshold 0.45→0.50 (155 solos moved,
+exit 1) and by hand-editing the golden for the added/removed/status
+paths. 420 tests, typecheck green.
+2026-08-27 · session 15 · PAUSED mid-sprint at owner's request. Branch
+`sprint/chorus-prior-and-design`, clean at a505aab. Deck-clearing: owner
+annotations committed alone (56425ca), the annotation export landed after
+browser verification on Blake (719a6db), and tsconfig.app.json now
+typechecks app/ and scripts/ (f98a8fe) — previously nothing outside src/
+was checked. Then, subagent-driven: T1 fixed the corpus:wjd `events`
+crash (b03f637 — `ensure(-1)` from a pickup's negative onset, not the
+overrun hypothesised; flooring + floor-modulo, bit-identical for
+onset >= 0), T2 pinned the 456-solo sweep with goldens/corpus-wjd.json
+(f546cef; a threshold nudge moves 155 solos, so the blast-radius tool
+works), T3 covered the annotation export (a505aab, 429 tests). T5's spec
+was revised before dispatch after a probe found all 13 chorus-start gaps
+across both annotated solos have rest == 0 — the original design would
+have deleted every chorus boundary. Rulings and parked items: see
+"Chorus-prior sprint (2026-08-27, session 15) — rulings and parked items"
+below.
+2026-08-27 · session 15 (cont.) · Task 5a: `eval:wjd` now passes chorus
+starts into `segment()` instead of an empty list, so the 456-solo corpus
+scores the chorus rule for the first time. Starts come from
+`beats.chorus_id`, not the `form` column: `form` records a label only
+where the label changes, so on a one-section form (every blues) it names
+"A1" once and never again — the form derivation finds a single chorus on
+121 of the 456 solos and agrees with `chorus_id` on the other 335.
+Numbers: no chorus rule at all, phrase F1 82.5; hard wall wired in, 80.8
+(precision 81.4 → 78.1, predicted phrases 10923 → 11385 — the hard
+wall's count, i.e. strength pinned at 0.6; the `wChorus` rule that
+replaced it in 5b predicts 11387, the number ENGINE_SPEC carries). 1188
+chorus-start gaps; **28% carry a real rest** (rest = 1.00 at 240 of
+them), so unlike the two annotated solos the corpus does give the prior
+something to weigh. 37 gaps (3.1%) clear the idea branch and never reach
+the fourth slot today, which is what makes the if-chain position
+load-bearing.
+2026-08-27 · session 15 (cont.) · Task 5b: the chorus wall is now the
+`wChorus` prior. `STRUCTURAL_CONFIDENCE` and `kind: 'structural'` are
+gone; the branch keeps its fourth slot in the if-chain and its
+`!pickupInto` exemption, and fires when min(1, total + wChorus) >=
+threshold. `kind` is now `'chorus'` rather than folded into `'rest'`,
+because riff binding demotes rest boundaries to arrivals and its
+`gap > riffMaxGap` guard cannot catch a rest-free chorus gap. Sweep on
+456 solos: phrase F1 82.49 at wChorus 0, 82.2 at 0.35, 80.8 at 0.45 —
+the corpus wants the rule off, and the wall costs 1.7 F1 in precision.
+Kept at 0.45 anyway: on the owner's annotated blues (44f60e0 reading) the
+owner kept 7 chorus-start marks and 0.45 finds all 7 where 0 finds 1.
+Both findings in DECISIONS, along with the ruling that the revision's
+equivalence gate is unsatisfiable — `enforceMinimum` reads
+`Boundary.strength`, so the specified confidence change moves positions
+(32/456 solos; byte-identical on all 456 with strength pinned at 0.6,
+which proves the rewiring itself faithful). 432 tests, typecheck green,
+brackets unchanged at every swept value, corpus golden re-pinned
+(29 solos moved). `app/score.ts:286` and `app/export.ts:25` still
+describe the deleted 0.6 distinction — deferred to the controller.
+2026-08-27 · session 15 (cont.) · Task 5 fix round 1, review-driven, no
+behaviour change. The two conditions the revision called easy to get
+wrong now have tests with their own controls, each verified to fail under
+the exact refactor it guards: moving the chorus test above the idea
+branch, and folding `kind: 'chorus'` back into `'rest'`. ENGINE_SPEC now
+names the rule change the measurement had only implied — a rest-free
+chorus boundary carries exactly `threshold` and every rest boundary
+carries at least that, so chorus boundaries went from GPR 1's protected
+edge to its default sacrifice, which is why the churn is 19 out / 21 in
+with F1 unmoved. The 1.7 F1 cost is qualified in both ENGINE_SPEC and
+DECISIONS as measured under oracle chorus starts, so a lower bound.
+OPEN_QUESTIONS: the answered entry removed, replaced by the live question
+(the signal at a chorus start is not rest, length or leap — cue 0.00 sits
+on both sides of the owner's split) with the corrected count, 7 kept and
+5 deleted, not "~11 kept"; plus the GPR-1 degeneracy and a parked
+eval-owner diagnostic inconsistency. 433 tests, typecheck green.
+2026-08-27 · session 15 (cont.) · Sprint complete, all five tasks reviewed
+and their fix rounds closed. T1 excerpt flooring (b03f637), T2
+goldens/corpus-wjd.json pinning all 456 WJD solos (f546cef, e269c3f), T3
+export tests + esc() hardened for attribute safety (a505aab, ea892ae), T4
+the design pass — one control bar whose toggles wear their own marks, the
+landing page using its width, the weak phrase tick keyed to
+threshold+CANDIDATE_BAND instead of a meaningless 0.6 (dc0de52..a197363),
+T5 the chorus wall becomes wChorus (9b1e694, 92ae4d9, 9f8c540, 815a3dc).
+434 tests, typecheck both configs, build green; Blake reproduces the
+CLAUDE.md target exactly. Headline finding: the hard wall costs 1.7 phrase
+F1 across 456 solos, measured for the first time because eval:wjd had
+never scored the chorus rule at all. Shipped at wChorus 0.45 (= the wall)
+because the owner's 7 kept chorus marks all sit at rest-free gaps and can
+only be produced at wChorus >= threshold — the owner's call to flip, and
+it is one number. Rulings and parked items: see "Chorus-prior sprint
+(2026-08-27, session 15) — rulings and parked items" below.
+
+2026-08-28 · session 16 (cont.) · Two script minors. `corpus-wjd.ts` maps
+`COUNT_FIELDS` directly instead of spreading a readonly tuple first.
+`eval-owner.ts`'s `printCueAt` loses its dead `chorusStarts = new Set()`
+default (all four call sites pass it) and stops claiming a prior the
+engine did not apply: the chorus branch's `!pickupInto` exemption is
+reproduced next to the existing `median` copy, with the approximation
+named — it looks for the nearest firing rest gap in the three-note window
+rather than the engine's running boundary list, so it can only
+under-claim the prior. Latent today: no missed or false start in
+`annotations/` currently lands on a chorus start, so the annotation never
+prints on live data. The OPEN_QUESTIONS entry parking it is removed.
+
+2026-08-28 · session 16 · Clearing the chorus-prior sprint's parked minors,
+on the owner's request. Documentation first: the owner ruled the annotation
+files are "just tests", so the OPEN_QUESTIONS entry about
+`annotations/blues-in-all-keys-bob-mintzer.json` is closed into DECISIONS
+rather than answered — with the two consequences written down, that
+`wChorus = 0.45` rests on the uncontaminated `44f60e0` reading and is
+unaffected, and that `eval:owner` scores the contaminated file. The
+11387/11385 disagreement between ENGINE_SPEC and this file is **not a
+mistake in either**: re-measured today, `eval:wjd` at the in-force
+configuration predicts **11387** phrases (P 78.1 R 83.7 F1 80.8), and with
+the chorus branch's strength pinned back at 0.6 — the hard wall 5b
+replaced — it predicts **11385**. Two configurations, two correct numbers;
+the 5a line is qualified in place, nothing is rewritten. The over-long
+line was inside the annotation entry and left with it.
+
+2026-08-28 · session 16 (cont.) · The last two parked minors, and the
+design pass's open investigation. `excerpt` gave a chordless first bar an
+empty chord list: it kept `rootPc: 0, quality: 'unknown'`, and the
+renderer's fallback to those fields printed a bare **C major** — 54
+exercises on Blake, 186 on St Thomas, all `vary-approach`. Carrying was
+not an option (the harmony passed in starts at or after the pickup), and
+printing the chord the pickup leads into would be a guess, so the bar
+prints nothing, as a lead sheet does. Read in the rendered MusicXML
+before and after, not inferred. The loop tests move their `excerpt` call
+into `beforeAll`; the new assertion was checked to fail without the fix
+and to name itself when it does. 435 tests, typecheck both configs,
+corpus golden **unchanged on all 456 solos** — it pins counts, and no
+count moved. Blake still reproduces the CLAUDE.md target exactly.
+
+The design pass's two "resistant" faint ticks are explained, and not by
+the standing hypothesis: `boundaryCandidates` gates on `cue.rest > 0`, so
+a rest-free chorus boundary can never be a candidate whatever its
+confidence, and confidences other than exactly 0.45 only mean the gap
+carried some length or leap cue (0.5437 = 0.0938 + 0.45,
+0.4813 = 0.0313 + 0.45). Nothing moved; riff binding and `enforceMinimum`
+are not involved. Enumerated over all ten peers: 37 faint ticks, 19
+rest-free chorus starts without a caret and 18 rest boundaries with one,
+no mixed case. In DECISIONS with the second-order point — the tick tests
+phrase confidence and the caret tests cue total, quantities that differ
+by `wChorus` — and the faint-tick rule is now in ENGINE_SPEC, where it
+had never been written down.
+
+2026-08-28 · session 16 (cont.) · Parked-minors fix round 1, review-driven,
+no behaviour change. The caretless-tick finding was recorded as an
+observation where a proof exists, and the proof is now in ENGINE_SPEC with
+the parameter equality each step stands on: faint means `total < WEAK −
+wChorus` = 0.15, a candidate needs `total >= 0.30`, so the predicates are
+disjoint whenever `wChorus >= 2 × CANDIDATE_BAND`; and `total >= wRest ×
+rest` with a nonzero rest cue floored at `minRest/fullRest` = 0.25 forces
+`rest = 0` **necessarily**. It rests on `wRest × 0.25` = 0.15 = `WEAK −
+wChorus` exactly, saved by the strict `<` at `score.ts:336` — which also
+excludes `rest = 1.00` from a faint rest boundary, so the measured 19/18
+split is a consequence, not a coincidence. Two claims in the DECISIONS
+entry were wrong and are corrected in an append: "a chorus boundary can
+never be a candidate at any confidence" is too broad (a `rest > 0`,
+`total < threshold` chorus gap *is* a candidate — but carries 0.75 and is
+never faint), and the reversal clause built on it reversed nothing. The
+real conditions: `wChorus < 2 × CANDIDATE_BAND`, any change to the
+`wRest`/`minRest`/`fullRest`/`CANDIDATE_BAND` equality, or `<` becoming
+`<=`. Also noted: at `wChorus = 0` the export legend's faint-tick sentence
+goes vacuous, not wrong.
+
+`eval-owner.ts`'s duplicated exemption no longer states a contingent
+guarantee as a structural one — it tests branch 2, so a branch-1 rest
+boundary (an `overrides` entry of `true` below threshold) would make it
+over-claim; unreachable only because this script passes no overrides, and
+the comment now says so. The `excerpt` follow-up in OPEN_QUESTIONS is
+reworded as the lookup-and-design question it is (`vary.ts:57` holds the
+wrong chord in exactly the pickup case; the right one needs a
+`score.chordTracks` lookup like `resolutionChord`). Two entries added
+there: that **nothing pins exercise output at all** — the golden pins
+counts, so the ~240 changed first bars were guarded only by one unit test
+and a hand read of the XML — and the `through-tune` concatenation case,
+checked across the ten peers (2 exercises, both blanking only at index 0,
+a real leading pickup; the join case is unobserved, not ruled out). The
+`rootPc: 0` placeholder stays and the comment says why: `ExerciseBar`
+requires those fields for the cell-per-bar path (`validity.ts`), the
+renderer is their only reader, and the empty list is the guard.
+435 tests, typecheck both configs.
+
+2026-08-28 · session 16 (cont.) · Fix round 2: the knife edge is guarded.
+Yesterday's derivation was documented and unasserted, which is the shape of
+bug this whole wave has been finding, so `app/score.test.ts` now pins the
+two relationships the rule turns on — `wRest × (minRest/fullRest)` =
+`WEAK_CONFIDENCE − wChorus`, and `wChorus >= 2 × CANDIDATE_BAND` — plus the
+half that keeps a full rest out of the faint band (`wRest × 1` = `WEAK`).
+Written as relationships between parameters, never their values, so a
+tuning pass fails the test only when it breaks the rule, and each message
+names the product claim that goes false (the export legend's "a faint tick
+with no caret under it is a chorus start"), not that two numbers stopped
+matching. `toBeCloseTo`, not `toBe`: the equalities are exact in arithmetic
+but off by one ulp in binary, and the comment says so, so nobody tightens
+it into a spurious failure.
+
+It lives in `app/` because one of the four terms does — `WEAK_CONFIDENCE`
+is the app's rendering threshold, now exported. A `src/` test would have to
+reconstruct it, asserting the invariant against a copy of `score.ts`'s
+derivation, which is the drift the test exists to catch. `src/` stays
+DOM-free; the test touches no DOM. Seen to fail before being kept:
+perturbing `wRest` 0.6 → 0.55, `wChorus` 0.45 → 0.25 and `CANDIDATE_BAND`
+0.15 → 0.25 each fails the assertions they should, and no parameter was
+changed to make any relationship tidier. ENGINE_SPEC's faint-tick bullet
+cross-references the file. 438 tests, typecheck both configs.
+
+## Chorus-prior sprint (2026-08-27, session 15) — rulings and parked items
+
+Made on the owner's behalf while they were away, and previously recorded
+only in the sprint's own workspace, which is gitignored — so they vanished
+on a fresh clone. Lifted here rather than into a new document: the ledger
+is the running task log and this is that sprint's state, and the protocol
+has four files, not five. Only the judgement calls are kept; the dispatch
+mechanics that produced them are not repo material.
+
+**Rulings — scope**
+
+- **The outside-seeding task was dropped from the sprint.**
+  `scripts/viteAnnotate.ts:100-160` already implements every rule the
+  OPEN_QUESTIONS entry proposed (`SPICE_MARGIN` relative to the solo's own
+  baseline, phrase-range confinement, enclosure/approach exemption,
+  repeated-pitch damping). The entry is stale, not open. If wrong: a stale
+  entry was treated as done; recoverable by re-reading that function.
+- **Wiring chorus starts into `eval:wjd` was a prerequisite of the prior,
+  not optional scope.** `scripts/eval-wjd.ts` passed an empty forced list,
+  so the 456-solo corpus had never scored the chorus rule in either
+  direction; without it the prior would have been tuned on the owner's
+  three deletions alone. This ruling is what produced the sprint's headline
+  measurement.
+- **No dark mode was required of the design pass.** The score SVG is
+  black-on-white from OSMD and does not invert for free, so a half-done
+  dark mode is worse than none. If wrong: the owner wanted it and did not
+  get it.
+
+**Rulings — findings**
+
+- **The revised chorus rule's equivalence gate is unsatisfiable as
+  written**, and the confidence requirement wins over positional
+  equivalence. Full reasoning and the isolated control in DECISIONS
+  2026-08-27 "The chorus wall becomes `wChorus`".
+- **`wChorus` ships at 0.45 against the corpus's preference**, trading 1.7
+  phrase F1 across 456 solos to preserve the owner's 7 kept chorus marks.
+  DECISIONS 2026-08-27 "Chorus-start prior value", and the corrected
+  reversal checklist in the entry after it. **This is the trade made on the
+  owner's behalf and the first thing for them to review.**
+- **Owner acceptance was downgraded from a gate to a diagnostic.** Cue
+  total 0.00 appears on both sides of the owner's keep/delete split, so no
+  `wChorus` can reproduce their marks — gating on it would have driven an
+  implementer to contort the rule. If wrong: the owner wanted their marks
+  matched and got a table instead.
+- **The owner's damaged annotation file was left untouched.** ~~Now an
+  OPEN_QUESTIONS entry~~ — **ruled 2026-08-28**: the owner considers the
+  annotation files "just tests", so nothing is recovered and the file
+  stands as committed at `56425ca`. DECISIONS 2026-08-28 "The annotation
+  files are tests, not owner data", which also records why `wChorus`'s
+  justification is unaffected (it rests on the `44f60e0` reading) and that
+  `eval:owner`'s numbers on that solo are the contaminated reading.
+- **On one task the brief was wrong, not the implementer.** It asserted
+  `esc()` escaped `"`; it did not. The implementer investigated instead of
+  fudging an assertion to look compliant, and `esc()` was hardened anyway —
+  an escaper safe only because of a property of its current call sites is a
+  trap for whoever adds the next attribute interpolation.
+
+**Parked — minor, none load-bearing, none scheduled**
+
+- ~~`bars[0]` keeps `rootPc: 0, quality: 'unknown'` on a chordless pickup
+  bar in `excerpt`~~ — **fixed 2026-08-28, and it was not cosmetic**: the
+  renderer's fallback to those fields printed a bare **C major** over that
+  bar (54 exercises on Blake, 186 on St Thomas, every one a
+  `vary-approach` whose ramp fills the bar before the chord). `excerpt`
+  now gives such a bar an empty chord list — the same "no chord symbol"
+  representation `write.ts` already emits — because there is nothing to
+  carry: the harmony it is handed begins at or after the pickup.
+- ~~`practice/steps/loop.test.ts` calls `excerpt` in a `describe` body~~ —
+  moved into `beforeAll` 2026-08-28, so a regression names a test instead
+  of failing suite collection.
+- ~~An unnecessary spread on a readonly tuple in `scripts/corpus-wjd.ts`.~~
+  Done 2026-08-28.
+- ~~The `too-few-notes` and `'error'` rejection codes in the corpus golden
+  are dead today~~ — **reviewed 2026-08-28 and deliberately kept.** They
+  are correct handling for a corpus that changes: a WJD solo that loses
+  notes, or a file that fails to parse, must have somewhere to land in the
+  golden. A guard is not dead because it has not fired.
+- The corpus golden's comparison was rewritten field by field over a closed
+  union, so a hand-reordered golden no longer reads as spurious changes;
+  the key-order-sensitive `JSON.stringify` form is gone.
+
+2026-08-28 · session (sprint/chorus-prior-and-design) · Multi-page build:
+`rollupOptions.input` now names index/annotate/engine, so `dist/` carries
+all three instead of the analyser alone. Shared `.sitenav` strip in every
+page's markup (not injected), current page marked by `aria-current` plus
+the highlighter underline. New `engine.html` + `app/engine.css` — the
+approved explainer draft ported onto the app's own tokens, dark mode and
+duplicated token definitions dropped, the detector colours aliased to
+`--ov-cell`/`--ov-device`/`--ov-recurring` so the diagrams quote the marks
+the score draws. Diagram detector colours moved from `stroke="var(--…)"`
+presentation attributes to CSS classes: `var()` does not resolve in a
+presentation attribute, so those boxes had no colour at all. `annotate.html`
+degrades honestly off the dev server — `import.meta.env.DEV` is exactly the
+`apply: 'serve'` condition, so the picker, seed, save and mode bar are
+hidden and a notice says the tool needs `npm run dev`; dropping a file to
+read the score still works, and a null store already meant "marking off".
+2026-08-28 · session 15 (cont.) · PAUSED mid-ship at owner's request.
+Branch clean at 912ad39, 40 commits ahead of main, **nothing pushed** —
+prod is GitHub Pages off a push to main, so main is still the live site.
+Landed this round: all three pages now build (vite gained
+rollupOptions.input; annotate.html had never been in dist at all), a top
+nav across Analyse / Annotate / How it works, engine.html as a real
+in-app explainer of the pipeline, annotate degrading honestly in prod
+where its apply:'serve' bridge does not exist, and a README.
+
+Still open, in the order the owner asked for them:
+(1) a solo dropdown on the main analysis page, manifest-driven from
+    public/solos/ so it survives a production build — the annotate
+    picker's source (~/dev/woodshed-data/peers) is outside the repo and
+    its plugin is dev-only;
+(2) a checkbox making it explicit the app works without an API key;
+(3) merge to main and push, which deploys.
+Owner decision blocking (1)'s content, not its mechanism: the peers
+transcriptions are third-party work — the Blake carries "Transcripción
+Rémi Meurice · cancionesdejazz.com" inside the score — so committing
+them publishes someone else's transcriptions of copyrighted tunes.
+Also found and not yet fixed: a fresh clone's test suite is red rather
+than skipped — six test files readFileSync the absolute Blake path in a
+describe body with no guard, so collection throws. Matters now the repo
+is public and the README invites cloning.
+
+2026-08-29 · session 16 · a fresh clone's tests skip instead of failing.
+Six test files read transcriptions kept outside the repo; three of the
+reads were in a `describe` body, and vitest runs a suite's factory even
+when `skipIf` will skip it — so `unit.test.ts`'s St Thomas suite threw at
+collection despite already being guarded. Fixed by pairing the two idioms
+the repo already had: `describe.skipIf(!existsSync(PATH))` plus the read
+moved into `beforeAll`, as `practice/steps/loop.test.ts` had written down.
+Property-shaped assertions were re-pointed at `fixtures/` rather than
+skipped — all five of `generate/index.test.ts` and the three invariants in
+`analyse`'s first suite — so a corpus-less contributor keeps that
+coverage. The Blake golden pins, merge regressions, chorus profile,
+detector convergence and `checkWriting` stay guarded: they assert
+magnitudes only a long real solo exhibits. With the corpus present the
+suite is unchanged at 53 files / 438 passed / 0 skipped; in a clone with
+the paths pointed at nothing, 53 files / 409 passed / 29 skipped and zero
+collection errors. Also: pages.yml's first line said the deploy runs on a
+push to master; the trigger below it always said main.
+2026-08-29 · session 15 (cont.) · The last three items before shipping.
+A solo dropdown on the main page, fed by public/solos/manifest.json,
+**shipping empty on purpose** — the owner ruled out committing the peers
+transcriptions, which are third-party work (the Blake carries its
+transcriber's name inside the score). The mechanism, a manifest, a
+solos:manifest script and a README for whoever adds the next one are all
+in place; the control stays hidden until the manifest lists something.
+Both fetches resolve against document.baseURI — the bundle lives in
+assets/, so import.meta.url would ask for assets/solos/… — and both check
+res.ok, since a Pages 404 answers with HTML that would otherwise reach the
+MusicXML parser. handleFile split into handleBytes(bytes, name).
+The agent is now a switch, off by default, with the off state saying the
+analysis is complete without it; unchecking never clears a stored key.
+A fresh clone's test suite now skips rather than fails: 409 of 438 run
+with the corpus absent, zero collection errors. The mechanism is worth
+recording — `describe.skipIf` does **not** stop vitest executing a suite
+factory, so a guard alone was insufficient and one already-guarded suite
+was throwing anyway; the read has to leave the describe body too.
+generate/index.test.ts and part of analyse/index.test.ts were re-pointed
+at fixtures rather than skipped, so a corpus-less contributor keeps them.
+
+**Process note, learned the hard way:** two agents worked this checkout
+concurrently and one ran `git commit --amend` then `git reset --hard` over
+the other's uncommitted work, discarding it mid-task. Nothing was lost
+permanently — the commit was intact and the work was redone — but
+concurrent agents in one working tree are only safe if every one of them
+stages by explicit path and none rewrites history. Prefer serialising, or
+give each a worktree.

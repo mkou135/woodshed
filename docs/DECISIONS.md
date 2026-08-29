@@ -575,3 +575,287 @@ inference — every hit is a literal degree-string match, so DECISIONS
 Evidence class: owner-approved design · owner + Claude · would reverse:
 lick hits mislabelling on real solos (a wrong name is worse than none), or
 the summary split confusing rather than informing practice.
+
+## 2026-08-27 — `excerpt` lays bars out by flooring, not by `%`
+
+Question: why did `corpus:wjd` throw "Cannot read properties of undefined (reading
+'events')" at `loop.ts:50` on melids 78 (Potter), 135 (Gillespie) and 189
+(Higginbotham), and where does it belong fixed? Mechanism: `throughStep`
+moves a line by `match.chords[0].onset − sourceStart` so the line's first
+*chord* meets the match's chord. When the idea begins with a pickup — its
+first note before its first chord — and the match sits at the top of the
+form, that puts the pickup at a **negative** absolute onset (melid 78:
+−480 ticks in a 3840-tick bar). `excerpt` derived its bar origin with
+`onset − (onset % ticks)`, and JS `%` truncates towards zero, so the
+pickup came out at bar **−1**; `ensure(−1)` never enters its grow loop and
+returns `bars[−1]` — `undefined` — and the `.events!` assertion threw. Not
+"a note spilling past the end", which `ensure` grows to cover: the failure
+is at the bottom of the range. Decision: fix it in `excerpt`, not at the
+call site — negative onsets are the honest consequence of aligning a line
+to a chord, and an excerpt is defined only up to its origin. `firstOffset`
+and `notes[0].onset` are both reduced with the floor-modulo the codebase
+already uses in `vary.ts`, and `base` becomes
+`Math.floor(onset / ticks) * ticks`, so `rel(notes[0]) === offset` for
+either sign and bar 0 is always the bar holding the first note. The pickup
+now gets its own leading bar and the match's chord lands on the next
+downbeat. Identical arithmetic for `onset ≥ 0`, so nothing else moved
+(420 tests green, Blake and St Thomas pins unchanged); `corpus:wjd` runs
+452 solos with 0 crashes, the 4 remaining errors all being the deliberate
+mixed-meter rejection. Regression test `practice/steps/loop.test.ts` from
+hand-authored notes — it failed before the fix with the production error.
+Evidence class: reproduced and instrumented on the corpus · Claude · would
+reverse: an excerpt whose pickup bar reads wrong on a real solo (then the
+line wants trimming to the bar, not a pickup bar).
+
+## 2026-08-27 — What may live in a corpus golden
+
+Question: `corpus:wjd` now pins itself against `goldens/corpus-wjd.json`, a committed file derived
+from the ODbL Weimar Jazz Database, which under CLAUDE.md may never enter
+the repo. The counts (`findings`, `units`, `phrases`, `ideas`) are plainly
+derived aggregate statistics and are permitted. Two further per-solo fields
+are not counts: `form` (the chorus grid's phase provenance — `rehearsal`,
+`double-bar`, `pickup`, `none`, `no-form`) and, for the solos the engine
+refuses, `rejected` (`mixed-meter`, `too-few-notes`, `error`). May they be
+committed, and by what test? Decision: yes, both, and the test is **derived
+and de minimis** — not "it is about the engine, not the recording". That
+weaker distinction was the first justification written and it does not
+hold: `form: 'rehearsal'` reports that this melid's `beats.form` column
+carried rehearsal annotations, which is a fact about the source data's
+annotation coverage; `rejected: 'mixed-meter'` reports that four specific
+recordings change meter. Both are true facts about WJD entries. They are
+permitted because each is a single token from a closed five- or three-value
+vocabulary — a couple of bits per solo, reconstructing nothing about the
+music — and because the golden is not legible without them: a grid that
+silently re-locks while the counts hold would pass, and a deliberate
+rejection that silently stops happening is a regression the counts cannot
+see. On the same test, `periodBars` is excluded: the form length is a
+specific musical property of a specific tune, and one that a reader could
+act on. So is the thrown rejection message, which interpolates the
+recording's actual meters ("4/5 beats per bar") — hence a code, not the
+message. Anyone extending the golden should apply de-minimis-plus-derived,
+field by field, and not reason from "the engine computed it" — everything
+in the file was computed by the engine, including the parts that may not be
+committed. Evidence class: reading of CLAUDE.md's corpus rule and the ODbL,
+applied field by field; no external advice sought · Claude, at the owner's
+review · would reverse: a later task wanting `periodBars`, bar counts, or
+any other per-solo musical fact in the golden — re-open this rather than
+extending it by analogy, and if the fields here ever grow past a few bits
+per solo, re-open regardless.
+
+## 2026-08-27 — The chorus wall becomes `wChorus`, and its equivalence gate is unsatisfiable as written
+
+Question: the spec revision required that `wChorus = 0.45` reproduce the
+hard wall's phrase-boundary positions exactly, while also requiring the new
+boundary to record the boosted cue total (min(1, total + wChorus)) instead
+of the constant 0.6. Decision: **the two cannot both hold, and the
+confidence requirement wins.** `enforceMinimum` (GPR 1) dissolves the
+*weaker* of the two edges around an undersized group, and "weaker" is read
+straight off `Boundary.strength` — the number the revision changed. So a
+confidence change propagates into positions, which the revision assumed it
+could not. Evidence: with `strength` pinned at 0.6 and everything else as
+shipped, the new code is **byte-identical to the wall on all 456 WJD
+solos** (0 phrase and 0 idea position differences) — so the rewiring
+itself, the fourth if-chain slot and the retained `!pickupInto` are exactly
+faithful. With `strength` at the boosted total, 32 of 456 solos differ:
+19 phrase starts lost, 21 gained, phrase F1 unchanged at 80.8. Pinning 0.6
+would have resurrected the magic constant this task exists to delete and
+made `wChorus` invisible in the output. Evidence class: exhaustive
+corpus comparison, isolated control · Claude, advisor-reviewed, flagged to
+the owner in the task report · would reverse: a decision that GPR-1
+dissolution should not read the chorus prior's strength — the fix would be
+a separate tie-break field, not a constant.
+
+## 2026-08-27 — Chorus-start prior value: `wChorus` stays at 0.45, against the corpus
+
+Question: the sweep over {0, 0.15, 0.20, 0.25, 0.30, 0.35, 0.45} on 456
+WJD solos trends downward — phrase F1 82.49 at 0, 82.2 at 0.35, 80.8 at
+0.45. It is not monotone: two extra runs off the sweep grid (0.05 and
+0.10, measured the same way, not interpolated) score 82.485 and 82.477
+against 82.491 at 0 and 82.479 at 0.15 — the noise floor, not a local
+optimum. Selecting by corpus F1 alone would set `wChorus` to 0, switching
+the chorus rule off. Decision: **keep 0.45.** The two targets disagree and
+the owner's is the one that governs this app. On the owner's annotated
+blues (the `44f60e0` reading, the one not contaminated by the reseed) the
+owner kept 7 chorus-start phrase marks: at 0.45 the engine finds all 7, at
+0 it finds 1 of 7. `npm run brackets` and the Blake pins in
+`pipeline.test.ts` are silent at every value in the sweep, so the owner's
+chorus marks are the only owner-ear evidence available, and they are not
+close. The corpus finding is not softened: **the wall costs 1.7 phrase F1
+across 456 solos, all of it precision, and the WJD prefers it off** — a
+cost measured with the annotators' own chorus starts, so probably a lower
+bound on what the app pays with `prepare/form.ts`'s derived ones. Note
+also that everything from 0 to 0.35 behaves alike — 72% of the corpus's
+1188 chorus-start gaps have a cue total of 0.00, so nothing fires until
+`wChorus` reaches `threshold` — and that the 0.012 F1 gap between 0 and
+0.15 is noise, not an optimum. Evidence class: 456-solo corpus sweep plus
+the owner's own annotations on one solo, in conflict · Claude,
+advisor-reviewed, returned to the controller as the task's one open
+concern · would reverse: the owner saying the WJD's precision matters more
+than their chorus marks, or a second blind-annotated solo agreeing with the
+corpus. Flipping is one number, one ENGINE_SPEC row and a golden re-pin.
+
+## 2026-08-27 — Correction: flipping `wChorus` is five things, not three
+
+Question: the entry above ("Chorus-start prior value") closes with
+"Flipping is one number, one ENGINE_SPEC row and a golden re-pin." Is that
+the whole reversal cost? Decision: **no — the checklist under-counts by two
+files, and this entry supersedes that closing sentence.** The entry itself
+stands; only its last sentence was wrong, and DECISIONS is append-only, so
+it is corrected here rather than rewritten there. The annotation export
+carries a prose copy of the rule, and its test asserts on the copy
+literally. Setting `wChorus = 0` therefore touches, in full:
+
+1. `DEFAULTS.wChorus` in `src/analyse/segment.ts` — the one number.
+2. The `wChorus` row in `docs/ENGINE_SPEC.md`, plus the phrase-F1 figure
+   in force (82.5 unwired, not 80.8).
+3. `goldens/corpus-wjd.json` — re-pin, `npm run corpus:wjd --write-golden`.
+4. `app/export.ts` — the phrase-tick legend, in two places, neither of
+   which degrades gracefully. Its `parameters` string transcribes the rule
+   as `min(1, total + 0.45) ≥ 0.45` and cites `Scored 80.8 F1`; its
+   `meaning` string ends "A faint tick with no caret under it is a chorus
+   start", which at `wChorus = 0` describes a mark the engine can no longer
+   emit. Left unedited, every exported annotation file would describe a
+   prior that is switched off — and the export exists to be handed to a
+   musician who cannot check it against the source.
+5. `app/export.test.ts` — the assertions on those literals (the formula,
+   `80.8 F1`, the faint-tick and pickup-exemption sentences). They fail on
+   the flip by design; update them with the copy, never loosen them.
+
+Evidence class: read of the code at HEAD, verified by grep across `app/`
+(`app/score.ts` carries only the unrelated `threshold 0.45` candidate
+detail and needs no change) · Claude, final whole-branch review · would
+reverse: the export legend ceasing to quote parameter values, which is the
+only reason items 4 and 5 exist — see the header comment in `app/export.ts`
+that makes quoting them a standing obligation.
+
+## 2026-08-28 — The annotation files are tests, not owner data
+
+Question: OPEN_QUESTIONS asked whether
+`annotations/blues-in-all-keys-bob-mintzer.json` is owner data or reseed
+output — `56425ca` (a commit Claude made) re-added the three
+chorus-downbeat phrase marks **13.1, 25.1 and 73.1** that the reading at
+`44f60e0` records the owner deleting, and only the owner could say which
+reading is theirs. Decision: **the owner ruled the annotation files are
+"just tests" and not important — losing marks in them does not matter.**
+No recovery, no re-annotation, no revert: the file stands as committed at
+`56425ca`, and this question is closed rather than answered on the merits.
+The class ruling is the useful part — an `annotations/*.json` file is
+test input, so a reseed that overwrites one is a nuisance, not data loss,
+and nothing downstream may treat these files as ground truth about the
+owner's ear without saying so.
+
+Two consequences, recorded here so nobody has to re-derive them:
+
+1. **`wChorus = 0.45` does not change.** Its justification (DECISIONS
+   2026-08-27 "Chorus-start prior value") rests on the *uncontaminated*
+   `44f60e0` reading — 7 chorus-start marks kept, 5 deleted, all 7 found
+   at 0.45 and 1 of 7 at 0 — and those were the owner's own marks at that
+   commit. The contamination is entirely after it, so the shipped value's
+   evidence is untouched and the reversal checklist stands as written.
+2. **`npm run eval:owner` scores against the current file**, which is the
+   contaminated reading. Its phrase numbers on Blues in All Keys therefore
+   describe `56425ca`, not the owner's marks, and are not evidence about
+   chorus starts in either direction. Quote `44f60e0` for that, as the two
+   entries of 2026-08-27 already do.
+
+Evidence class: owner ruling, given directly · owner · would reverse: the
+owner saying a specific annotation file is precious after all, which would
+also mean re-opening how `scripts/viteAnnotate.ts` reseeds them.
+
+## 2026-08-28 — A faint phrase tick with no caret is a rest-free chorus start
+
+Question: the design pass measured 37 faint phrase ticks across the ten
+peer solos, 16 of which also draw a boundary-candidate caret on the same
+gap, and left two open — a tick at confidence 0.5437 and one at 0.4813,
+both inside the candidate band `[0.30, 0.60]` yet drawing no caret. The
+standing hypothesis was that riff binding and `enforceMinimum` had moved
+the boundary, so the phrase's opening gap was not the gap the candidate
+loop indexed. Decision: **the hypothesis is unnecessary and the rule is
+exact — every faint tick without a caret is a chorus boundary whose gap
+has no rest, and no such gap can ever be a candidate.**
+`boundaryCandidates` gates on `cue.rest > 0`; the chorus branch fires
+only where the rest and idea branches did not, which on these solos means
+`rest = 0.00` every time. The confidence is then `min(1, cue.total +
+wChorus)`, so a value other than exactly 0.45 says only that the gap
+carried some length or leap cue — 0.5437 = 0.0938 + 0.45 and
+0.4813 = 0.0313 + 0.45 — not that any boundary moved.
+
+Measured 2026-08-28 by re-running `run()` over `~/dev/woodshed-data/peers`
+and printing, for every phrase below `threshold + CANDIDATE_BAND`, its
+cue at the opening gap: 37 faint ticks, reproducing the design pass's
+count. All 37 partition cleanly — 19 are chorus starts with `rest 0.00`
+and 18 are ordinary rest boundaries with `rest 0.50`, and no gap is
+mixed. The two "resistant" confidences are in that table with everything
+else (0.5437 at Blues in All Keys 37 and 133 and St Thomas 49, 0.4813 at
+Blues in All Keys 73 and mintzer 97 — the design pass's file/bar pairing
+was off; the values are not).
+
+Two things worth keeping. First, the marks measure different quantities:
+the faint tick tests **phrase confidence** against `threshold +
+CANDIDATE_BAND` while the caret tests **cue total** against a band around
+`threshold`, and for a chorus boundary those differ by exactly `wChorus`
+— so "in the band" is not one predicate and the design pass's 16-of-37
+overlap was counting a coincidence, not a relationship. Second, the
+overlap count is sensitive to how a caret is associated with a tick: by
+bar the count is 18, because two chorus ticks (St Thomas 49,
+Tenor Madness 73) share a bar with a caret sitting on a different gap.
+This is the visual case the export legend already describes — "a faint
+tick with no caret under it is a chorus start" — now measured rather than
+asserted, and true of all ten peers.
+
+Evidence class: full enumeration over the ten peer solos, throwaway probe,
+not committed · Claude · would reverse: `boundaryCandidates` dropping its
+`cue.rest > 0` gate, or a chorus gap that reaches the fourth branch with a
+rest (possible in principle — `rest > 0` with `total < threshold` — and
+absent from all ten peers).
+
+## 2026-08-28 — Correction: the caretless rule is provable, and its reversal clause was wrong
+
+Question: the entry above ("A faint phrase tick with no caret is a
+rest-free chorus start") argues from measurement — "which on these solos
+means `rest = 0.00` every time" — and closes by naming as a reversal "a
+chorus gap that reaches the fourth branch with a rest (possible in
+principle — `rest > 0` with `total < threshold`)". Is either right?
+Decision: **the conclusion holds and is stronger than measured, but two
+of its statements are wrong and are corrected here.** DECISIONS is
+append-only, so the entry above stands; this supersedes those two parts.
+
+First, the observation is a theorem. A chorus boundary's strength is
+`min(1, total + wChorus)`, so faint (`< 0.60`) means `total < 0.15`; a
+candidate needs `total >= 0.30`; the two are disjoint, which needs only
+`wChorus >= 2 × CANDIDATE_BAND` (0.45 ≥ 0.30). And `total >= wRest × rest`
+forces `rest < 0.25`, while a nonzero rest cue is at least
+`minRest / fullRest` = 0.25 — so `rest = 0` necessarily, not incidentally.
+The full derivation, with the parameter equality each step stands on, is
+now in ENGINE_SPEC under the faint-tick bullet. The measured 19/18 split
+is a consequence, not a coincidence: a faint rest boundary needs
+`total ∈ [0.45, 0.60)` and `wRest × 1` = 0.60 exactly, so `rest = 1.00`
+cannot be faint.
+
+Second, the entry's blanket claim that a chorus boundary "can never be a
+candidate, at any confidence" is **too broad**, and the reversal clause
+built on it is not a reversal. A gap can reach the fourth branch with
+`rest > 0` and `total < threshold` — say `rest = 0.5`, `total = 0.30` —
+and that gap *is* a candidate. But its strength is 0.75, so it is never
+faint and never touches the legend. The true statement is about **faint**
+chorus ticks, not all chorus boundaries.
+
+The reversal conditions, corrected:
+
+1. `wChorus` dropping below `2 × CANDIDATE_BAND` = 0.30, which opens the
+   overlap the disjointness argument closes.
+2. Any change to the `wRest × (minRest/fullRest)` = `WEAK − wChorus`
+   equality — that is, to `wRest`, `minRest`, `fullRest`, `threshold` or
+   `CANDIDATE_BAND` — which costs the "rest-free" half.
+3. `<` becoming `<=` at `app/score.ts:336`, which costs the same half (a
+   `rest = 0.25` gap would be faint with a rest, though still caretless).
+
+Note for the `wChorus = 0` checklist in "Correction: flipping `wChorus` is
+five things, not three": item 4's legend sentence — "A faint tick with no
+caret under it is a chorus start" — does not become *wrong* at
+`wChorus = 0`, it becomes **vacuous**, because no chorus boundary fires at
+all. It still needs editing, for the reason that entry gives.
+
+Evidence class: derivation from `DEFAULTS` and `boundaryCue` at HEAD,
+checked against the ten-peer enumeration that motivated it · Claude, fix
+round 1, review-driven · would reverse: the three conditions above.

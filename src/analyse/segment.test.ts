@@ -121,14 +121,33 @@ describe('segment', () => {
     for (const p of segment(notes)) expect(p.notes.length).toBeGreaterThanOrEqual(3)
   })
 
-  it('forces a boundary before a listed bar and marks it lower confidence', () => {
-    // Eight quarter notes, no rests: bars 1 and 2.
+  it('breaks at a listed bar with no rest at all, on the prior alone', () => {
+    // Eight quarter notes, no rests: bars 1 and 2. Cue total is 0, so only
+    // wChorus can carry it, and at the default it exactly reaches threshold.
     const notes = notesFrom(Array.from({ length: 8 }, () => [60, 1, 0] as [number, number, number]))
     const phrases = segment(notes, [2])
     expect(phrases).toHaveLength(2)
     expect(phrases[0].notes).toHaveLength(4)
     expect(phrases[1].startBar).toBe(2)
-    expect(phrases[1].confidence).toBe(0.6)
+    // The confidence is the boosted total, not a fixed structural constant.
+    expect(phrases[1].confidence).toBeCloseTo(0.45, 5)
+  })
+
+  it('leaves a listed bar alone when the prior cannot reach the threshold', () => {
+    const notes = notesFrom(Array.from({ length: 8 }, () => [60, 1, 0] as [number, number, number]))
+    expect(segment(notes, [2], { wChorus: 0.2 })).toHaveLength(1)
+  })
+
+  it('still breaks at a weak prior when the surface makes up the difference', () => {
+    // Same bar line, but the note before it is held 4x the median, so the
+    // held-note cue is 0.45 * 0.5 = 0.225; 0.225 + 0.25 clears 0.45, and a
+    // bar line with nothing behind it (wChorus 0) does not.
+    const notes = notesFrom([
+      [60, 0.5, 0], [62, 0.5, 0], [64, 0.5, 0], [65, 0.5, 0], [67, 2, 0],
+      [69, 0.5, 0], [71, 0.5, 0], [72, 0.5, 0], [74, 0.5, 0],
+    ])
+    expect(segment(notes, [2], { wChorus: 0 })).toHaveLength(1)
+    expect(segment(notes, [2], { wChorus: 0.25 })[1]?.startBar).toBe(2)
   })
 
   it('records the bar range each phrase covers', () => {
@@ -215,6 +234,52 @@ describe('chorus start after a pickup', () => {
   it('still cuts at the chorus start when the line runs straight through', () => {
     const notes = notesFrom(Array.from({ length: 16 }, (_, i) => e(60 + (i % 5))))
     expect(segment(notes, [2])).toHaveLength(2)
+  })
+})
+
+describe('chorus start, the two conditions on where the test sits', () => {
+  const e = (m: number): [number, number, number] => [m, 0.5, 0]
+
+  it('leaves a chorus-start gap that already reads as an idea an idea', () => {
+    // The chorus test holds the *fourth* slot in the if-chain, after the idea
+    // branch. Bar 1 ends on a note held 4x the median (length cue 0.225); the
+    // only thing that changes between the two runs is the interval into the
+    // chorus downbeat. An octave leap adds 0.25, taking the idea profile to
+    // 0.475 — over ideaThreshold, so the gap is claimed as an idea and never
+    // reaches the chorus test. Move the chorus test earlier and this becomes
+    // a phrase break, which is what the corpus refactor had to avoid.
+    const bar1: [number, number, number][] = [e(60), e(62), e(64), e(65), [67, 2, 0]]
+    const leaping = notesFrom([...bar1, e(79), e(80), e(81), e(83), e(84), e(86), e(87), e(89)])
+    const phrases = segment(leaping, [2])
+    expect(phrases).toHaveLength(1)
+    expect(phrases[0].ideas.map((i) => i.notes.length)).toEqual([5, 8])
+
+    // Same shape, a fourth into the chorus instead of an octave: the idea
+    // profile is 0.225, under the threshold, so the gap falls through to the
+    // chorus test and the double bar breaks the phrase.
+    const stepping = notesFrom([...bar1, e(71), e(72), e(74), e(76), e(77), e(79), e(81), e(83)])
+    const cut = segment(stepping, [2])
+    expect(cut).toHaveLength(2)
+    expect(cut[1].startBar).toBe(2)
+  })
+
+  it('does not let riff binding demote a chorus boundary to an idea', () => {
+    // Riff binding folds a *rest* boundary between two statements of one
+    // figure back into the phrase. A chorus boundary keeps its own kind so
+    // that cannot happen — and it matters because the guard is
+    // `gap > riffMaxGap`, which a rest-free chorus gap passes.
+    const figure = (last: number, gap = 0): [number, number, number][] =>
+      [[69, 1, 0], [64, 1, 0], [69, 1, 0], [last, 1, gap]]
+
+    // The same two statements either side of a quarter rest: riff binding is
+    // live on this figure pair and demotes the rest boundary, one phrase.
+    expect(segment(notesFrom([...figure(71, 1), ...figure(72)]))).toHaveLength(1)
+
+    // The same two statements either side of a chorus downbeat: two phrases.
+    const across = notesFrom([...figure(71), ...figure(72)])
+    const phrases = segment(across, [2])
+    expect(phrases).toHaveLength(2)
+    expect(phrases[1].startBar).toBe(2)
   })
 })
 

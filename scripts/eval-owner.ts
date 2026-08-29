@@ -124,6 +124,46 @@ function nearestNoteIndex(notes: Note[], score: PipelineResult['score'], mark: P
   return best
 }
 
+/**
+ * The chorus branch's `!pickupInto` exemption, reproduced from
+ * `src/analyse/segment.ts` (the `pickupInto` closure inside `segment()`):
+ * a phrase that opened with a pickup into the chorus is not cut at the bar
+ * line, so the prior does not apply there. Duplicated rather than imported
+ * because it is a closure over `segment()`'s running boundary list and is
+ * not exported — the same reason `median` above is a copy, and a
+ * diagnostic is not worth widening the engine's surface for.
+ *
+ * One approximation: the engine asks whether the *last boundary it added*
+ * was a rest boundary within three notes; here we look for the nearest gap
+ * in that window where segment()'s **second** branch would have fired
+ * (`total >= threshold && rest > 0`). Two ways that differs, in opposite
+ * directions:
+ *
+ * - An arrival or chorus boundary added between that gap and this one
+ *   makes the engine's `last.kind !== 'rest'` decline the exemption where
+ *   this grants it — the message under-claims the prior, which is the
+ *   direction a diagnostic should err.
+ * - segment()'s **first** branch also produces a rest boundary, from an
+ *   `overrides` entry of `true` with `rest > 0` but `total < threshold`.
+ *   This does not see it, so it would over-claim. That is unreachable
+ *   here only because `eval-owner.ts` never builds or passes
+ *   `SegmentOptions.overrides` — `agent/run.ts` and `eval-agent.ts` are
+ *   the only callers that do. The guarantee is contingent on this
+ *   script's call, not on the predicate: give this file overrides and it
+ *   must learn branch 1.
+ */
+function pickupInto(notes: Note[], at: number, medianDuration: number, beatsPerBar: number): boolean {
+  for (let back = 1; back <= 3; back++) {
+    const j = at - back
+    if (j <= 0) return false
+    const cue = boundaryCue(notes, j - 1, medianDuration)
+    if (cue.total < DEFAULTS.threshold || cue.rest <= 0) continue
+    const first = notes[j]
+    return first.bar === notes[at - 1].bar && first.beat >= beatsPerBar - 2
+  }
+  return false
+}
+
 function printCueAt(
   label: string,
   level: string,
@@ -132,6 +172,7 @@ function printCueAt(
   score: PipelineResult['score'],
   medianDuration: number,
   beatsPerBar: number,
+  chorusStarts: Set<number>,
 ): void {
   const i = nearestNoteIndex(notes, score, mark, beatsPerBar)
   if (i <= 0) {
@@ -139,10 +180,21 @@ function printCueAt(
     return
   }
   const cue = boundaryCue(notes, i - 1, medianDuration)
+  // The chorus prior is applied at segment()'s call site, not inside
+  // boundaryCue, so a cue printed at a chorus start does not on its own
+  // explain the engine's decision there: say what the prior added — and,
+  // when the pickup exemption suppressed it, say that instead. A diagnostic
+  // that reports a prior the engine did not apply is worse than silence.
+  const atChorusStart = chorusStarts.has(notes[i].bar) && notes[i - 1].bar !== notes[i].bar
+  const chorus = !atChorusStart
+    ? ''
+    : pickupInto(notes, i, medianDuration, beatsPerBar)
+      ? ', chorus start: prior suppressed (pickup into the downbeat)'
+      : `, chorus start: +${DEFAULTS.wChorus} → ${Math.min(1, cue.total + DEFAULTS.wChorus).toFixed(2)}`
   console.log(
     `  ${label} ${level} ${formatPosition(mark)} → gap before n${i}: rest ${cue.rest.toFixed(2)} ` +
     `length ${cue.length.toFixed(2)} leap ${cue.leap.toFixed(2)} total ${cue.total.toFixed(2)} ` +
-    `(threshold ${DEFAULTS.threshold}), beat ${mark.beat} of ${beatsPerBar}`,
+    `(threshold ${DEFAULTS.threshold})${chorus}, beat ${mark.beat} of ${beatsPerBar}`,
   )
 }
 
@@ -224,10 +276,11 @@ for (const file of files) {
   if (showMisses) {
     const notes = analysis.contexts.map((c) => c.note)
     const medianDuration = median(notes.map((n) => n.duration))
-    for (const m of phraseResult.missed) printCueAt('missed', 'phrase', m, notes, score, medianDuration, beatsPerBar)
-    for (const f of phraseResult.falseStarts) printCueAt('false', 'phrase', f, notes, score, medianDuration, beatsPerBar)
-    for (const m of ideaResult.missed) printCueAt('missed', 'idea', m, notes, score, medianDuration, beatsPerBar)
-    for (const f of ideaResult.falseStarts) printCueAt('false', 'idea', f, notes, score, medianDuration, beatsPerBar)
+    const chorusStarts = new Set(result.report.form?.chorusStarts ?? [])
+    for (const m of phraseResult.missed) printCueAt('missed', 'phrase', m, notes, score, medianDuration, beatsPerBar, chorusStarts)
+    for (const f of phraseResult.falseStarts) printCueAt('false', 'phrase', f, notes, score, medianDuration, beatsPerBar, chorusStarts)
+    for (const m of ideaResult.missed) printCueAt('missed', 'idea', m, notes, score, medianDuration, beatsPerBar, chorusStarts)
+    for (const f of ideaResult.falseStarts) printCueAt('false', 'idea', f, notes, score, medianDuration, beatsPerBar, chorusStarts)
   }
 
   // End marks are sparse — the owner only places one where the implicit end

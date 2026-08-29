@@ -6,7 +6,7 @@ the code. Each section names the file that implements it — if this file and
 the code disagree, that is a bug to fix immediately, in whichever direction
 the DECISIONS log supports.
 
-Last updated: 2026-08-27 (session 14).
+Last updated: 2026-08-27 (session 15).
 
 ## Units
 
@@ -40,16 +40,78 @@ Boundary strength per gap = min(1, wRest·rest + wLength·length + wLeap·leap):
 | pickupHeld | 3 × median | pickup gesture: note held ≥ this, then a lone note in the bar's last half-beat landing on the next downbeat → **idea** opens at the pickup (owner's ear on Blake 69→70, 70→71; costs 0.3 WJD idea F1) |
 | riffMaxGap | 3 beats | riff binding: a rest ≤ this between two statements of the same figure (`sameFigure`: ≥ 2 notes each, same first pitch class, same contour over the first 3 intervals with at least one move, opening durations within 2×) ends an **idea**, not a phrase (owner: St Thomas printed 33–41 is one phrase; costs 1.4 WJD phrase F1) |
 | peakMin / peakRatio / peakWindow | 0.35 / 2.5 / 4 | local peak: a gap ≥ peakMin that is the strongest within ±peakWindow gaps and ≥ peakRatio × their mean opens an **idea** (never a phrase) |
+| wChorus | 0.45 | chorus-start prior: at a gap into a chorus downbeat the rest gate is lifted and the test is min(1, total + wChorus) ≥ threshold. At 0.45 (= threshold) it always fires, which is the hard wall it replaced; the boundary's confidence is that boosted total, not a constant |
 
-Two levels: phrase-profile total ≥ threshold with rest > 0 (or structural,
-confidence 0.6 — skipped when the last rest boundary opened a ≤ 3-note
-pickup in the last two beats before the chorus bar) ends a **phrase**; otherwise idea profile ≥ ideaThreshold,
-or a local peak, or the pickup gesture, ends an **idea** within the
+Two levels: phrase-profile total ≥ threshold with rest > 0 ends a
+**phrase**; so does a gap into a chorus bar (`forced`, from
+`form.chorusStarts`) whose min(1, total + wChorus) ≥ threshold — skipped
+when the last rest boundary opened a ≤ 3-note pickup in the last two beats
+before the chorus bar. The chorus test sits **fourth** in the if-chain,
+after the idea branch, so a chorus-start gap that already reads as an idea
+stays one; otherwise idea profile ≥ ideaThreshold, or a local peak, or the
+pickup gesture, ends an **idea** within the
 phrase. `segment()` takes beats per bar (from `timeSig`) for the pickup test. A phrase whose
 first note is off the eighth grid starts on its quarter-note beat
-(`Phrase.onset`). Scores vs Weimar Jazz Database (456 solos,
-`npm run eval:wjd`): phrases P 81.4 / R 83.6 / F1 **82.5** (human ceiling
-.83); ideas 83.3 / 72.6 / **77.6**. Excluding gaps that are
+(`Phrase.onset`).
+
+Scores vs Weimar Jazz Database (456 solos, `npm run eval:wjd`), which
+since 2026-08-27 passes chorus starts (from `beats.chorus_id`) into
+`segment()` instead of an empty list — earlier numbers in this file were
+measured with the chorus rule unwired and are not comparable:
+
+| wChorus | phrase P / R / F1 | idea F1 | predicted phrases |
+|---|---|---|---|
+| unwired (no chorus starts at all) | 81.4 / 83.6 / **82.5** | 77.6 | 10923 |
+| 0 | 81.4 / 83.6 / **82.49** | 77.6 | 10923 |
+| 0.15 | 81.3 / 83.7 / **82.48** | 77.6 | 10931 |
+| 0.20 | 81.2 / 83.7 / **82.4** | 77.5 | 10943 |
+| 0.25 | 81.2 / 83.6 / **82.4** | 77.5 | 10950 |
+| 0.30 | 81.1 / 83.6 / **82.4** | 77.5 | 10955 |
+| 0.35 | 80.9 / 83.6 / **82.2** | 77.4 | 10982 |
+| **0.45 (in force)** | 78.1 / 83.7 / **80.8** | 76.5 | 11387 |
+
+Human ceiling on phrases is .83. The corpus prefers the prior off: the
+wall costs **1.7 phrase F1** across 456 solos, all of it precision. That
+cost is measured with the annotators' own chorus starts (`beats.chorus_id`
+— an oracle); the app derives its own from `prepare/form.ts`, so 1.7 is
+probably a lower bound on what production pays. The prior is
+kept at 0.45 because the owner's own annotated blues says the opposite —
+at 0.45 the engine finds all 7 chorus-start phrase marks the owner kept,
+at 0 it finds 1 of 7 (DECISIONS 2026-08-27 "Chorus-start prior value").
+Everything from 0 to 0.35 behaves alike, because 72% of the corpus's 1188
+chorus-start gaps have a cue total of 0.00 and nothing fires until
+`wChorus` reaches `threshold`.
+
+`wChorus` moves two things at once — which chorus gaps fire, and the
+strength each surviving one carries into `enforceMinimum` — so the F1
+deltas are not attributable to the gate alone. The second is a rule change
+worth stating carefully, because the ranges matter.
+
+A chorus boundary reaches its branch only after the phrase and idea
+branches have both declined the gap, and either way that implies
+`total < threshold`: with a rest, because the phrase branch would have
+taken it; without one, because `total` and `idea` are then the same number
+(`wIdeaRest` and `wRhythm` are both 0) and the idea branch would have. So
+a chorus boundary carries a strength in **[0.45, 0.90)** — `threshold` at
+the floor, `threshold + wChorus` never reached — where a rest boundary
+carries `total` in **[0.45, 1]**. `enforceMinimum` drops the weaker edge
+of an undersized group and ties drop the *left* one.
+
+The consequence is conditional, not universal. A chorus boundary with **no
+cue at all** sits exactly on the shared floor, so it loses to every rest
+neighbour above 0.45 (and on an exact tie only when it is the left edge) —
+and that is the common case: 72% of the corpus's chorus-start gaps have a
+cue total of 0.00. A chorus gap carrying a partial length or leap cue is
+ranked above them and can outlast a rest neighbour; a bare full-rest
+boundary is only 0.60. What actually changed is that the chorus edge's
+rank stopped being constant: under the wall every chorus boundary sat at
+0.6 whatever the music did, beating every rest boundary below 0.6 and
+losing to every one above. Now the cue-free ones fall to the floor and the
+cue-bearing ones can rise past 0.6. That is why the change moves 19 phrase
+starts out and 21 in with F1 unmoved — the identity of the surviving edge
+flips, boundaries do not appear or disappear.
+
+Excluding gaps that are
 also phrase boundaries, only ~25% of WJD idea boundaries are found; the
 rest carry no surface cue (see DECISIONS 2026-08-24).
 
@@ -265,6 +327,15 @@ vector); pass 2 by overlap adds detectedBy/weights only, never spans.
     (`chordRunStart`). Only when `Tune.startBar` is set — `tuneFromScore`
     sets it to the chorus it took the changes from; a chart from elsewhere
     leaves it undefined and every occurrence stands.
+- Excerpt layout (`practice/steps/loop.ts` `excerpt`, shared by loop,
+  through, write and vary): notes go into bars as played, rests fill the
+  gaps, chords ride along at the same shift. Bar 0 is the bar **containing
+  the first note**, found by flooring, not by `%` — Through moves a line so
+  its first chord meets the match's, which puts a pickup note at a negative
+  absolute onset when the match sits at the top of the form, and truncating
+  division asked for bar −1 (DECISIONS 2026-08-27). The layout therefore
+  depends only on where the notes sit relative to each other and to the
+  chords, never on the timeline's origin.
 - Vary (`practice/steps/vary.ts`, step kind `vary`): the arrival is fixed,
   the way in varies (Ligon goal notes; Bergonzi ex. A–H; design
   2026-08-25-practice-variations). Four prepended eighth-note **on-ramps**
@@ -385,6 +456,25 @@ draws no ticks for a second pass. Segno / coda remain
 - Corpus, 2026-08-24: 453 solos run, 3 rejected (mixed meter), 0 unparsed
   chords, form found in 305, findings median 13 (max 132), units median
   35.
+- Corpus, 2026-08-27: 452 solos run, 4 rejected (mixed meter), 0 unparsed
+  chords, **0 crashes**, form found in 305, findings median 13 (max 121),
+  units median 36 (max 659). The maxima were re-measured from the
+  committed `goldens/corpus-wjd.json` at the close of the chorus-prior
+  sprint; the medians, the run/rejection counts and the form count were
+  measured before it and are unchanged by it, so the line mixes a
+  pre- and a post-`wChorus` reading that happen to agree everywhere the
+  medians look. Only the crash count is attributable to a
+  measured change (DECISIONS 2026-08-27 "`excerpt` lays bars out by
+  flooring"; the three
+  solos that threw now run). The rest of the drift since 2026-08-24 is
+  **unattributed**: `ingest/wjd.ts` has not changed in the window, so the
+  extra mixed-meter rejection has no explanation at all, and while
+  `src/analyse/` changed in some sixteen commits over the same days — any
+  of which could move findings max 132 → 121 — none was measured against
+  the corpus, so naming one would be a guess. Both lines stand until
+  someone re-measures the intermediate points. Going forward the golden
+  (`goldens/corpus-wjd.json`) makes this drift visible per solo, so a
+  future line should not need this note.
 
 ## Corpus frequency table (`src/data/corpusFrequency.ts`, `npm run corpus:freq`)
 
@@ -435,6 +525,43 @@ omitted (6,482 of 7,742). Regenerate after any ingest change.
     drawn on Blake), `all` (57), `off`. The default is the quiet one because
     three of the four sources say in print that marking every bar is the
     failure mode.
+- **Phrase ticks draw faint** (`score.ts:336`, class `phrase-tick weak`)
+  when the phrase's confidence is **strictly below** `WEAK_CONFIDENCE` =
+  `threshold + CANDIDATE_BAND` = **0.60** — the same width the agent's
+  segment job adjudicates within, so a faint tick means "the engine opened
+  this phrase on a call it would have taken advice on". The two marks
+  measure different quantities: the tick tests **phrase confidence**
+  against that ceiling, the boundary-candidate caret tests **cue total**
+  against a band around `threshold`, and for a chorus boundary they differ
+  by exactly `wChorus`. What follows from that is provable, not just
+  observed, and each step names the parameter equality it stands on:
+  - A chorus boundary's strength is `min(1, total + wChorus)`, so faint
+    means `total < WEAK − wChorus` = **0.15**.
+  - A candidate needs `total >= threshold − CANDIDATE_BAND` = **0.30**.
+    0.15 ≤ 0.30, so the predicates are **disjoint**: a faint chorus tick
+    can never carry a caret. The general condition is
+    `wChorus >= 2 × CANDIDATE_BAND` (0.45 ≥ 0.30, margin 0.15).
+  - `total >= wRest × rest`, so `rest < 0.15 / 0.6` = **0.25**; and a
+    nonzero rest cue is at least `minRest / fullRest` = **0.25**
+    (`boundaryCue` floors anything shorter to 0). So `rest = 0`
+    *necessarily* — every faint chorus tick is rest-free. This one is a
+    knife edge: `wRest × (minRest/fullRest)` = 0.15 = `WEAK − wChorus`
+    **exactly**, and only the strict `<` at `score.ts:336` keeps a gap
+    with `rest = 0.25` and no length or leap out of it. (Such a gap would
+    still draw no caret — 0.15 < 0.30 — so `<=` would cost the
+    "rest-free" half of this rule, not the caret half.)
+  - Symmetrically, a faint **rest** boundary carries `total ∈ [0.45,
+    0.60)`, and a full quarter alone gives `wRest × 1` = 0.60 exactly — so
+    `rest = 1.00` is excluded, again by the strict `<`.
+  Measured over the ten peer solos (2026-08-28), and matching the
+  derivation: 37 faint ticks, 19 rest-free chorus starts with no caret and
+  18 rest boundaries with one, every one at `rest 0.50` (0.25 and 0.75 are
+  permitted too; 1.00 is not). **Both knife edges are pinned** by
+  `app/score.test.ts` — as relationships between the parameters, not their
+  values, so a tuning pass that breaks the rule fails a test that says
+  which product claim it just falsified. DECISIONS 2026-08-28 "A faint
+  phrase tick with no caret is a rest-free chorus start" and its
+  correction.
 - **Engine overlays** (`score.ts` `showOverlays`, strip in `main.ts`,
   `localStorage` `woodshed.overlays` JSON): opt-in audit view of what the
   detectors guessed, drawn where they guessed it. Checkboxes: phrases
@@ -620,6 +747,7 @@ counts recorded in session 10 had already drifted by session 13 — the
 finding: the enclosure-into-the-3 device was absorbed into the new bar-92
 b9 arpeggio by the existing overlap merge, so the count stayed 13.) St Thomas: top unit is the bar-114 b9-arpeggio unit
 (unit.test.ts pin). WJD sweep 2026-08-27: findings median 13, units
-median 36, 4 meter rejections, 3 pre-existing `events` crashes
-(OPEN_QUESTIONS). Bopland bench, first 300 licks: named coverage 72.7%
+median 36, 4 meter rejections, **0 crashes** (DECISIONS 2026-08-27
+"`excerpt` lays bars out by flooring" — the three solos that threw now
+run). Bopland bench, first 300 licks: named coverage 72.7%
 → **74.7%** with the lick entries.

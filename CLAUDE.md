@@ -31,6 +31,8 @@ npm run solo -- <file.mxl>   # findings + exercises; agent runs if ANTHROPIC_API
                              # --no-agent forces the engine; AGENT_FIXTURES=<dir> replays verdicts
 npm run eval:wjd   # score phrase/idea boundaries against the Weimar Jazz Database
 npm run corpus:freq # regenerate src/data/corpusFrequency.ts (aggregate WJD pattern shares)
+npm run corpus:wjd # sweep all 456 WJD solos; diffs goldens/corpus-wjd.json and
+                   # exits non-zero on any change. --write-golden re-pins it.
 npm run brackets   # score phrase starts against the owner's brackets (scripts/brackets.json)
 npm run eval:agent # score agent-adjudicated boundaries from recordings (never live)
 npm run eval:owner # score phrase/idea boundaries against the owner's own annotations (annotations/)

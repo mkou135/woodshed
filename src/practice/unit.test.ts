@@ -1,10 +1,12 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeAll } from 'vitest'
 import { existsSync, readFileSync } from 'node:fs'
 import { run } from '../pipeline.ts'
 import { partition, stockShare, chordName } from './unit.ts'
 import { TICKS_PER_QUARTER as Q } from '../core/types.ts'
 import type { Note } from '../core/types.ts'
 
+// Both transcriptions are third-party work kept outside the repo (DECISIONS
+// 2026-08-24 "Corpus licensing"), so a fresh clone has neither.
 const BLAKE = '/Users/michaelkourkov/Documents/MuseScore4/Scores/Hey Lock! - Seamus Blake Solo Transcription.mxl'
 const ST_THOMAS = '/Users/michaelkourkov/dev/woodshed-data/peers/st-thomas-sonny-rollins-solo-transcription.mxl'
 
@@ -34,8 +36,15 @@ describe('partition', () => {
   })
 })
 
-describe('buildUnits on the Blake solo', () => {
-  const result = run(new Uint8Array(readFileSync(BLAKE)))
+describe.skipIf(!existsSync(BLAKE))('buildUnits on the Blake solo', () => {
+  // Called in `beforeAll`, not in the describe body: vitest runs a suite's
+  // factory even when `skipIf` will skip the suite, so a read out here throws
+  // during collection — an error that names no test — on a machine without the
+  // transcription.
+  let result: ReturnType<typeof run>
+  beforeAll(() => {
+    result = run(new Uint8Array(readFileSync(BLAKE)))
+  })
 
   it('makes the maj7-from-the-b3 line the first unit, with all four steps', () => {
     const top = result.units[0]
@@ -169,7 +178,13 @@ describe('stockShare', () => {
 })
 
 describe.skipIf(!existsSync(ST_THOMAS))('common-language framing on St Thomas', () => {
-  const result = run(new Uint8Array(readFileSync(ST_THOMAS)))
+  // In `beforeAll` for the same reason as above: the guard skips the tests but
+  // does not stop the factory running, so this suite threw at collection even
+  // though it was already guarded.
+  let result: ReturnType<typeof run>
+  beforeAll(() => {
+    result = run(new Uint8Array(readFileSync(ST_THOMAS)))
+  })
   const cliche = 'A standard bebop cliché — worth having in every key; listen for where the player places it.'
 
   it('frames the loop step of a unit holding a named cliché', () => {
