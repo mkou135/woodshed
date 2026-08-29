@@ -19,7 +19,11 @@
     "brackets": "node --experimental-strip-types --no-warnings scripts/brackets.ts",
     "bench:bopland": "node --experimental-strip-types --no-warnings scripts/bench-bopland.ts",
     "eval:agent": "node --experimental-strip-types --no-warnings scripts/eval-agent.ts",
-    "eval:owner": "node --experimental-strip-types --no-warnings scripts/eval-owner.ts"
+    "eval:owner": "node --experimental-strip-types --no-warnings scripts/eval-owner.ts",
+    "solos:manifest": "node --experimental-strip-types --no-warnings scripts/solos-manifest.ts"
+  },
+  "engines": {
+    "node": ">=22.6"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",

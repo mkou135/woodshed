@@ -298,7 +298,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   text-transform: uppercase;
   color: var(--pencil);
 }
-.field select, .field input, .agent-key select, .agent-key input, .pop .paste input, .ann-head select {
+.field select, .field input, .agent-key select, .agent-key input, .solo-pick select, .pop .paste input, .ann-head select {
   font: 500 0.9rem/1.15 var(--disp);
   letter-spacing: 0.03em;
   padding: 0.35rem 0.55rem;
@@ -307,10 +307,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   background: var(--paper);
   color: var(--ink);
 }
-.field select:hover, .agent-key select:hover, .ann-head select:hover { border-color: var(--ink) }
+.field select:hover, .agent-key select:hover, .solo-pick select:hover, .ann-head select:hover { border-color: var(--ink) }
 /* Native selects paint their own chrome; the caret is drawn back on so the
    control keeps the same 1.5px box as every other field. */
-.field select, .agent-key select, .ann-head select {
+.field select, .agent-key select, .solo-pick select, .ann-head select {
   appearance: none;
   padding-right: 1.7rem;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%235a5f68' stroke-width='1.4'/%3E%3C/svg%3E");
@@ -429,6 +429,20 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 .details ul { margin: 0; padding-left: 1.1rem }
 
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto } }
+
+/* ---- solos the site offers ---- */
+/* One line under the drop zone: the alternative to owning a transcription,
+   not a second front door — so it borrows the field vocabulary and takes the
+   same 1.4rem gap the key row takes from the zone above it. Hidden in markup
+   until the manifest lists a solo. */
+.solo-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.7rem; margin-top: 1.4rem }
+.solo-pick > span:first-child {
+  font: 600 0.72rem/1 var(--disp);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pencil);
+}
+.solo-pick select { max-width: 100%; min-width: 0 }
 
 /* ---- agent layer ---- */
 /* Optional, so it sits quietly under the drop zone rather than beside it. */

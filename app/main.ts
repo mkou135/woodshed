@@ -335,15 +335,94 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
   }
 }
 
-// The key belongs with the drop zone: both are things you hand the page.
-document.getElementById('land-do')!.append(agentKeyRow())
+/** One solo the site offers; the shape written by `npm run solos:manifest`. */
+interface SoloEntry {
+  file: string
+  title: string
+}
 
-async function handleFile(file: File): Promise<void> {
+/**
+ * Solos the site ships with, for a visitor who has no transcription of their
+ * own to drop. The control is hidden until the manifest proves it has
+ * something to offer — an empty select is a dead control.
+ *
+ * URLs resolve against `document.baseURI`, never `import.meta.url`: the
+ * bundle lives in `assets/`, so module-relative would ask for
+ * `/woodshed/assets/solos/…`, and root-absolute would miss the `/woodshed/`
+ * subpath Pages serves from.
+ */
+function soloPicker(): HTMLElement {
+  const row = el('label', 'solo-pick')
+  row.hidden = true
+  const pick = document.createElement('select')
+  pick.setAttribute('aria-label', 'Choose a solo')
+  const blank = document.createElement('option')
+  blank.value = ''
+  blank.textContent = '— choose —'
+  pick.appendChild(blank)
+  row.append(el('span', undefined, 'Or take one of these'), pick)
+
+  const byFile = new Map<string, SoloEntry>()
+  pick.addEventListener('change', () => {
+    // Hand the keyboard back: a focused select swallows keys the page uses.
+    pick.blur()
+    const entry = byFile.get(pick.value)
+    if (entry) void loadSolo(entry)
+  })
+
+  async function loadSolo(entry: SoloEntry): Promise<void> {
+    setStatus(`Fetching ${entry.title}…`)
+    try {
+      const url = new URL(`solos/${encodeURIComponent(entry.file)}`, document.baseURI)
+      const res = await fetch(url)
+      // A Pages 404 answers with an HTML page; unchecked, it would reach the
+      // MusicXML parser and fail there with a baffling message.
+      if (!res.ok) throw new Error(`the server answered ${res.status}`)
+      await handleBytes(new Uint8Array(await res.arrayBuffer()), entry.file)
+    } catch (error) {
+      setStatus(null)
+      showError(`Could not fetch ${entry.title}`, (error as Error).message)
+    }
+  }
+
+  void (async () => {
+    try {
+      const res = await fetch(new URL('solos/manifest.json', document.baseURI))
+      if (!res.ok) return
+      const entries: unknown = await res.json()
+      if (!Array.isArray(entries)) return
+      for (const entry of entries as SoloEntry[]) {
+        if (typeof entry?.file !== 'string' || typeof entry?.title !== 'string') continue
+        byFile.set(entry.file, entry)
+        const option = document.createElement('option')
+        option.value = entry.file
+        option.textContent = entry.title
+        pick.appendChild(option)
+      }
+      // Any failure — missing manifest, bad JSON, nothing listed — leaves the
+      // control hidden rather than offering an empty menu.
+      row.hidden = byFile.size === 0
+    } catch { /* no solos on offer: the drop zone is the whole story */ }
+  })()
+
+  return row
+}
+
+const landDo = document.getElementById('land-do')!
+landDo.append(soloPicker())
+// The key belongs with the drop zone: both are things you hand the page.
+landDo.append(agentKeyRow())
+
+/**
+ * Analyse a score already in memory. Split out of `handleFile` so a solo
+ * fetched from `public/solos` — which never becomes a `File` — travels the
+ * same path, error handling included.
+ */
+async function handleBytes(bytes: Uint8Array, name: string): Promise<void> {
   errorBox.hidden = true
   resultBox.hidden = true
-  setStatus(`Reading ${file.name}…`)
+  setStatus(`Reading ${name}…`)
   try {
-    const bytes = new Uint8Array(await file.arrayBuffer())
     const key = agentKey()
     let progress: ReturnType<typeof progressLine> | null = null
     if (key) {
@@ -357,7 +436,7 @@ async function handleFile(file: File): Promise<void> {
       : run(bytes)
     progress?.done()
     setStatus(null)
-    await renderResult(result, readScoreXml(bytes), file.name)
+    await renderResult(result, readScoreXml(bytes), name)
   } catch (error) {
     setStatus(null)
     document.querySelector('.progress')?.remove()
@@ -367,6 +446,19 @@ async function handleFile(file: File): Promise<void> {
       showError('Could not read this file', (error as Error).message)
     }
   }
+}
+
+async function handleFile(file: File): Promise<void> {
+  let bytes: Uint8Array
+  // Reading the local file can fail on its own (a file moved between the pick
+  // and the read); that is the same "could not read this file" to the player.
+  try {
+    bytes = new Uint8Array(await file.arrayBuffer())
+  } catch (error) {
+    showError('Could not read this file', (error as Error).message)
+    return
+  }
+  await handleBytes(bytes, file.name)
 }
 
 fileInput.addEventListener('change', () => {
