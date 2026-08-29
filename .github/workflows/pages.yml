@@ -1,4 +1,4 @@
-# Builds the site and publishes it to GitHub Pages on every push to master.
+# Builds the site and publishes it to GitHub Pages on every push to main.
 # Pages must be set to "Source: GitHub Actions" in the repository settings.
 name: Deploy to GitHub Pages
 
