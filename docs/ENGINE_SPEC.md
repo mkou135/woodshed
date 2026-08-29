@@ -6,7 +6,7 @@ the code. Each section names the file that implements it — if this file and
 the code disagree, that is a bug to fix immediately, in whichever direction
 the DECISIONS log supports.
 
-Last updated: 2026-08-27 (session 15).
+Last updated: 2026-08-29 (session 17).
 
 ## Units
 
@@ -358,6 +358,41 @@ vector); pass 2 by overlap adds detectedBy/weights only, never spans.
   with a hover/click tooltip (`ScoreView.showLookFors`); the section text
   points at them instead of listing them.
 
+## Naming what a player sees (`practice/describe.ts`)
+
+`Finding.name` is an **identity**, not display text: `mergeByIdentity`
+compares it, `generate/validity.ts` matches on it, `steps/write.ts` looks
+findings up by it, and exercise titles embed it. Where the engine detects a
+shape the dictionary has no word for, that name is an interval vector
+(`recurring cell [5, -5, 0]`) and the finding carries `unnamed: true`
+(`analyse/index.ts`; `absorb` clears the flag when a named description is
+taken). This module is the only place that turns findings into prose, so the
+CLI, the idea head and the all-ideas table cannot drift apart.
+
+- `displayName(finding, names?)` — the agent's name for that id, else the
+  engine's, else **null** when `unnamed`.
+- `headline(unit, names?, terse?)` — one clause: the strongest **named**
+  finding, else, in order, "A figure the player keeps returning to — the
+  score shows it" (something detected, nothing nameable), the
+  common-language line, the scale-run line, "No named vocabulary — still
+  the player's idea". `terse` picks the table-row wording of the same four
+  ("a figure the player returns to", "mostly a scale run", …).
+- `detail(unit, names?)` — the asides, one line each, in the order a player
+  asks: further named cells, `lands on the <degree>`, `N variants of the
+  same shape`, `also at bars <spans>`.
+- `barSpans(labels)` — consecutive printed bars collapse into ranges
+  (194…209 → `194–200, 202–203, 206, 208–209`). A label that is not a plain
+  number ("17 (2nd time)") never joins a run.
+
+**Agent names** (`Narration.findingNames`, already filtered to real ids in
+`narrate.ts`) are applied **per finding at render time**, with the engine
+name as the fallback — units are built before `narrate` runs, so nothing is
+stored on the unit. The narrate prompt asks for "each finding worth naming",
+so partial coverage is the normal case. Keyless runs read the engine's own
+names. The engine overlays, the details drawer and the annotation export are
+unchanged: they are the audit view, where the interval vector is the right
+thing to say.
+
 ## Exercise rendering (`render/musicxml.ts`)
 
 Key: `Score.keyFifths` (first `<key><fifths>`, 0 if none) is written into
@@ -492,11 +527,14 @@ omitted (6,482 of 7,742). Regenerate after any ingest change.
   `details.ts` (engine diagnostics behind a button), `done.ts`, `dom.ts`.
   No framework; fonts self-hosted in `app/fonts/` (SIL OFL), never a CDN.
 - Idea head is laid out from `PracticeUnit.summary` (`practice/unit.ts`):
-  `bars` (printed, "Bars 76–77"), `chords`, `cells` (distinct finding
-  names), `landing`, `alsoAt` (printed bars outside the unit where its
-  findings recur), `stock` (unit stock ≥ `STOCK_SHOWN` **0.5** → "mostly
-  a scale run"). **No note names on the page** — the score shows them.
-  `header` string remains for the CLI and the loop step's rationale.
+  `bars` (printed, "Bars 76–77"), `chords`, `landing`, `alsoAt` (printed
+  bars outside the unit where its findings recur), `stock` (unit stock ≥
+  `STOCK_SHOWN` **0.5**), `stockKind`. **No note names on the page** — the
+  score shows them. What the head *says* comes from
+  `practice/describe.ts` (below), never from `Finding.name` directly:
+  one headline, then the asides behind a `<details>` disclosure.
+  `header` string remains for the CLI and the loop step's rationale, and
+  is itself composed from `describe.ts`.
 - Tune chip: the file-name/title guess is taken only when
   `inferTransposition` is confident (same rule as before); otherwise the
   chip is amber "which tune?", units come from the solo's own changes, and

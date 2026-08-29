@@ -859,3 +859,44 @@ all. It still needs editing, for the reason that entry gives.
 Evidence class: derivation from `DEFAULTS` and `boundaryCue` at HEAD,
 checked against the ten-peer enumeration that motivated it · Claude, fix
 round 1, review-driven · would reverse: the three conditions above.
+
+## 2026-08-29 · A finding's name is an identity; what a player reads is composed
+
+**Question.** The idea head printed `recurring cell [5, -5, 0, 5, -5, 0]
+with 3 variants recurring cell [5, -7, 2] · lands on the b13 · same shape
+at bars 194, 195, … 209`. Is the fix to rename findings, or to compose the
+sentence somewhere else?
+
+**Decision.** `Finding.name` does not change. It is an identity —
+`mergeByIdentity` compares it, `generate/validity.ts` matches on it,
+`steps/write.ts` looks findings up by it, exercise titles embed it — so
+writing it for a reader would silently change what merges with what. The
+engine instead admits the truth it was hiding: a vector-named recurring
+finding carries `unnamed: true`, and `practice/describe.ts` becomes the
+one place that turns findings into prose (`displayName` / `headline` /
+`detail` / `barSpans`). The head shows one clause and hides the asides
+behind a disclosure; the table shows the terse clause only; the CLI header
+composes from the same functions. `UnitSummary.cells` is removed rather
+than reshaped — with three callers all going through `describe.ts`,
+nothing read it, and a second list of names is how the registers drifted
+apart in the first place.
+
+The agent's `findingNames` — produced since 2026-08-25, filtered to real
+ids, and until today printed only by the CLI — now reach the page,
+substituted **per finding at render time** with the engine name as the
+fallback. Units are built before `narrate` runs, so nothing is stored on
+the unit and a keyless run reads exactly the engine's own names. This is
+the "give the agent more space" instinct scoped to the one judgment
+DECISIONS 2026-08-25 already permits: naming.
+
+**What is *not* fixed.** The twelve consecutive bars were not a formatting
+problem. The recurring detector had found a figure developed across
+194–209 and `buildUnits` had sliced it into a dozen units each citing the
+other eleven; collapsing the list makes it readable, not correct. See
+OPEN_QUESTIONS "Repetition binds" and "Engine 'variations' are vocabulary,
+not development".
+
+Evidence class: owner's own reading of the page, one solo · owner decided
+the direction, Claude scoped it · would reverse: a player reporting the
+headline hides something they needed, or agent names proving worse than
+the dictionary's on a real run.

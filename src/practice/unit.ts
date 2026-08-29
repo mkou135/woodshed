@@ -1,4 +1,5 @@
 import { corpusShare } from './corpus.ts'
+import { detail, headline } from './describe.ts'
 import { languageShare } from '../analyse/language.ts'
 import { barLabel, barRange, writtenBar } from '../core/bars.ts'
 import type { Chord, Note, Score } from '../core/types.ts'
@@ -57,8 +58,6 @@ export interface UnitSummary {
   /** 'Bars 76–77', printed numbers. */
   bars: string
   chords: string[]
-  /** Distinct finding names, in order. */
-  cells: string[]
   landing: string | null
   /** Printed bars, outside this unit, where its findings recur. */
   alsoAt: string[]
@@ -89,7 +88,6 @@ function summary(
   return {
     bars: barRange(score, first.bar, last.bar, true),
     chords: unit.harmony.map(chordName),
-    cells: [...new Set(unit.findings.map((f) => f.name))],
     landing: unit.arrival?.degree ?? null,
     alsoAt: [...also].sort((a, b) => parseInt(a) - parseInt(b)),
     stock: unit.stock >= STOCK_SHOWN,
@@ -122,16 +120,22 @@ function sameChord(a: Chord | null, b: Chord | null): boolean {
   return !!a && !!b && a.rootPc === b.rootPc && a.quality === b.quality
 }
 
-function header(unit: Omit<PracticeUnit, 'header' | 'summary' | 'steps' | 'rank' | 'id'>, score: Pick<Score, 'repeats'>): string {
-  const first = unit.notes[0]
-  const last = unit.notes[unit.notes.length - 1]
-  const bars = barRange(score, first.bar, last.bar, true)
+/**
+ * The CLI's one line. It prints note names — a terminal is not the page, and
+ * there is no score under it — but everything it says about *vocabulary* comes
+ * from `describe.ts`, so the terminal and the desk never drift apart.
+ */
+function header(
+  unit: Omit<PracticeUnit, 'header' | 'summary' | 'steps' | 'rank' | 'id'>,
+  summary: UnitSummary,
+): string {
   const over = unit.harmony.length > 0 ? ` over ${unit.harmony.map(chordName).join(' → ')}` : ''
   const notes = unit.notes.map((n) => noteName(n.midi)).join(' ')
-  const named = unit.findings.map((f) => f.name)
-  const what = named.length > 0 ? ` — ${[...new Set(named)].join('; ')}` : ''
+  const described = { findings: unit.findings, summary }
+  const rest = detail(described).filter((line) => !line.startsWith('lands on the'))
+  const what = ` — ${[headline(described), ...rest].join('; ')}`
   const landing = unit.arrival ? `, landing on the ${unit.arrival.degree}` : ''
-  return `${bars}${over}: ${notes}${what}${landing}.`
+  return `${summary.bars}${over}: ${notes}${what}${landing}.`
 }
 
 export interface BuildOptions {
@@ -268,11 +272,12 @@ export function buildUnits(analysis: Analysis, score: Score, options: BuildOptio
         (byName.some((f) => f.degrees) ? 2 : 0) -
         STOCK_PENALTY * stock
 
+      const built = summary(partial, score)
       const unit: Omit<PracticeUnit, 'id'> = {
         ...partial,
         rank,
-        header: header(partial, score),
-        summary: summary(partial, score),
+        header: header(partial, built),
+        summary: built,
         steps: [],
       }
       units.push(unit)

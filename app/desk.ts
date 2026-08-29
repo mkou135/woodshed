@@ -1,6 +1,6 @@
 import { barLabel } from '../src/core/bars.ts'
-import { exerciseToMusicXml, checkWriting } from '../src/index.ts'
-import type { Exercise, PipelineResult, PracticeUnit, Step } from '../src/index.ts'
+import { checkWriting, detail, exerciseToMusicXml, headline, namedCells } from '../src/index.ts'
+import type { Exercise, PipelineResult, PracticeUnit, Step, TeacherNames } from '../src/index.ts'
 import { button, download, el } from './dom.ts'
 import { renderNotation } from './score.ts'
 import type { ScoreView } from './score.ts'
@@ -90,7 +90,12 @@ function writeBlock(step: Extract<Step, { kind: 'write' }>, unit: PracticeUnit):
   return block
 }
 
-function ideaHead(unit: PracticeUnit, index: number, total: number): HTMLElement[] {
+function ideaHead(
+  unit: PracticeUnit,
+  index: number,
+  total: number,
+  names?: TeacherNames,
+): HTMLElement[] {
   const s = unit.summary
   const no = el('div', 'idea-no', String(index + 1))
   no.appendChild(el('small', undefined, `of ${total}`))
@@ -98,22 +103,31 @@ function ideaHead(unit: PracticeUnit, index: number, total: number): HTMLElement
   const where = el('div', 'where')
   const bars = unit.part ? `${s.bars} · part ${unit.part.n} of ${unit.part.of}` : s.bars
   where.append(el('span', 'mono', bars), document.createTextNode(s.chords.join(' → ')))
+  // One clause: the strongest thing the engine (or the agent) can name, or an
+  // honest sentence about why it cannot. Everything else waits behind `detail`.
+  const named = namedCells(unit, names).length > 0
   const what = el('div', 'what')
-  s.cells.forEach((name, i) => {
-    if (i > 0) what.appendChild(document.createTextNode(' '))
-    what.appendChild(el('span', 'cell', name))
-  })
-  if (s.cells.length === 0) what.appendChild(el('span', 'faint',
-    s.stockKind === 'common-language' ? 'Mostly common jazz language — the language, not the player'
-      : s.stock ? 'Mostly a scale run — the language, not the player'
-        : 'No named vocabulary — still the player’s idea'))
-  if (s.landing) what.appendChild(document.createTextNode(` · lands on the ${s.landing}`))
-  if (s.alsoAt.length > 0) what.appendChild(el('span', 'faint', ` · same shape at bar${s.alsoAt.length > 1 ? 's' : ''} ${s.alsoAt.join(', ')}`))
+  what.appendChild(el('span', named ? 'cell' : 'faint', headline(unit, names)))
   line.append(where, what)
+  const lines = detail(unit, names)
+  if (lines.length > 0) {
+    const more = el('details', 'idea-detail')
+    more.appendChild(el('summary', undefined, 'detail'))
+    const list = el('ul')
+    for (const text of lines) list.appendChild(el('li', undefined, text))
+    more.appendChild(list)
+    line.appendChild(more)
+  }
   return [no, line]
 }
 
-export function practiceDesk(host: HTMLElement, result: PipelineResult, view: ScoreView, done: DoneStore): Desk {
+export function practiceDesk(
+  host: HTMLElement,
+  result: PipelineResult,
+  view: ScoreView,
+  done: DoneStore,
+  names?: TeacherNames,
+): Desk {
   const head = el('div', 'desk-head')
   const steps = el('div', 'steps')
   host.append(head, steps)
@@ -210,7 +224,7 @@ export function practiceDesk(host: HTMLElement, result: PipelineResult, view: Sc
     if (!unit) return
     selected = unit
     const at = units.indexOf(unit)
-    head.replaceChildren(...ideaHead(unit, at, units.length), nav)
+    head.replaceChildren(...ideaHead(unit, at, units.length, names), nav)
     prev.disabled = at === 0
     next.disabled = at === units.length - 1
     view.highlight(unit)

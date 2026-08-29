@@ -881,3 +881,29 @@ permanently — the commit was intact and the work was redone — but
 concurrent agents in one working tree are only safe if every one of them
 stages by explicit path and none rewrites history. Prefer serialising, or
 give each a worktree.
+
+2026-08-29 · session 17 · what the page says an idea is.
+Owner's complaint: the idea head is engine output, not English —
+`recurring cell [5, -5, 0, 5, -5, 0]` followed by a second vector, a
+variant count, a degree and twelve bar numbers. Three faults stacked:
+the engine printed its identity string as a display name, the *least*
+informative finding got the most words, and everything sat at one
+altitude joined by `·`.
+`Finding.name` stays exactly as it is (four call sites treat it as an
+identity); the engine instead marks the vector-named recurring findings
+`unnamed: true`, and `absorb` clears the flag when a merge takes a real
+name. New `src/practice/describe.ts` is the only place that writes prose
+about findings — `displayName`, `headline` (with a terse variant for
+table rows), `detail`, `barSpans`. `UnitSummary.cells` removed: with the
+desk, the drawer and the CLI all composing through `describe.ts`, nothing
+read it.
+The agent's `findingNames` now reach the page, per finding, engine name
+as the fallback — it had been produced and validated since the agent
+layer shipped and printed only by `npm run solo`.
+Blake, keyless: u1 "major-seventh arpeggio from the b3 · lands on the #11
+· also at bars 73, 102"; the sixteen findings-free units read "No named
+vocabulary — still the player's idea" instead of nothing. 54 files / 451
+passed, typecheck clean on `src/` and `app/`, page checked in Chrome.
+**Not fixed, and said out loud in DECISIONS:** the twelve bars were a
+segmentation error wearing a formatting costume (OPEN_QUESTIONS
+"Repetition binds"). Next sprint's candidate.

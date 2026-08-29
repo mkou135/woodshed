@@ -32,6 +32,12 @@ export interface Finding {
   /** Bent or inverted forms of a recurring cell; their spans are already in `spans`. */
   variants?: Variant[]
   quality?: Quality
+  /**
+   * The engine detected a shape it has no word for, so `name` is an interval
+   * vector — an identity, not something to show a player. `practice/describe.ts`
+   * says so in words instead.
+   */
+  unnamed?: true
   /** Set when the finding is a named cliché from the pedagogy literature. */
   language?: 'bebop'
   /** Share of WJD solos containing this degree pattern, when the mined table has it. */
@@ -161,6 +167,7 @@ export function analyse(score: Score, report: CleanupReport, options: AnalyseOpt
       kind: 'cell',
       name: `recurring cell [${hit.intervals.join(', ')}]` +
         (hit.variants.length ? ` with ${hit.variants.length} variant${hit.variants.length > 1 ? 's' : ''}` : ''),
+      unnamed: true,
       spans: hit.occurrences.map((start) => spanOf(start, start + hit.intervals.length)),
       intervals: hit.intervals,
       variants: hit.variants.length ? hit.variants : undefined,
@@ -250,6 +257,8 @@ function absorb(into: Finding, from: Finding, takeSpans = true): void {
     into.quality = from.quality
     into.name = from.name
     into.kind = from.kind
+    // The name it just took is a real one, so the vector-name flag goes with it.
+    delete into.unnamed
   }
   into.language ??= from.language
   into.lickShare ??= from.lickShare

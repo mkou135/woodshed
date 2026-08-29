@@ -355,6 +355,19 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 .idea-line .where { font: 600 1.25rem/1.1 var(--disp); letter-spacing: 0.02em }
 .idea-line .where .mono { font-weight: 500; color: var(--pencil); margin-right: 0.5rem }
 .idea-line .what { font-size: 1rem }
+/* The asides wait behind one word; the headline is what a player reads. */
+.idea-detail { font-size: 0.85rem; color: var(--pencil); margin-top: 0.1rem }
+.idea-detail summary {
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  width: max-content;
+}
+.idea-detail summary:hover { color: var(--ink) }
+.idea-detail ul { margin: 0.25rem 0 0; padding-left: 1rem; list-style: none }
+.idea-detail li { margin: 0.1rem 0 }
+.idea-detail li::before { content: '· '; color: var(--rule) }
 .cell { background: color-mix(in srgb, var(--marker) 45%, transparent); padding: 0 0.25em }
 .faint { color: var(--pencil) }
 .nav { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap }

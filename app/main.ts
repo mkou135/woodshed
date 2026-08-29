@@ -1,5 +1,5 @@
-import { run, runWithAgent, liveClient, readScoreXml, UnsupportedScoreError } from '../src/index.ts'
-import type { AgentOutput, PipelineResult, PracticeUnit } from '../src/index.ts'
+import { headline, liveClient, namedCells, readScoreXml, run, runWithAgent, teacherNames, UnsupportedScoreError } from '../src/index.ts'
+import type { AgentOutput, PipelineResult, PracticeUnit, TeacherNames } from '../src/index.ts'
 import { agentEnabled, agentKey, agentKeyRow, agentModel, agentPersona } from './agentKey.ts'
 import { button, el } from './dom.ts'
 import { renderScore } from './score.ts'
@@ -92,13 +92,14 @@ function header(result: PipelineResult, filename: string, chip: HTMLElement, pic
   top.hidden = false
 }
 
-function startHere(unit: PracticeUnit, total: number): HTMLElement {
+function startHere(unit: PracticeUnit, total: number, names?: TeacherNames): HTMLElement {
   const strip = el('div', 'start')
   const s = unit.summary
   const p = el('p')
+  const what = namedCells(unit, names).length > 0 ? `, ${headline(unit, names)}` : ''
   p.append(
     document.createTextNode(`Idea 1 of ${total} is highlighted in the score — `),
-    el('em', undefined, `${s.bars.toLowerCase()}${s.cells[0] ? `, ${s.cells[0]}` : ''}${s.chords[0] ? ` over ${s.chords[0]}` : ''}`),
+    el('em', undefined, `${s.bars.toLowerCase()}${what}${s.chords[0] ? ` over ${s.chords[0]}` : ''}`),
     document.createTextNode('. Four steps below; do them in order, then Next › to the next idea. The transcription is under the desk.'),
   )
   const close = button('close', '×', () => strip.remove())
@@ -117,7 +118,12 @@ function blocking(result: PipelineResult): HTMLElement[] {
     })
 }
 
-function ideaTable(units: PracticeUnit[], selectedId: string | null, onPick: (id: string) => void): HTMLTableElement {
+function ideaTable(
+  units: PracticeUnit[],
+  selectedId: string | null,
+  onPick: (id: string) => void,
+  names?: TeacherNames,
+): HTMLTableElement {
   const table = el('table')
   for (const [i, u] of units.entries()) {
     const tr = el('tr')
@@ -126,10 +132,11 @@ function ideaTable(units: PracticeUnit[], selectedId: string | null, onPick: (id
     tr.tabIndex = 0
     const s = u.summary
     const where = s.bars.replace(/^Bars? /, '') + (u.part ? ` · part ${u.part.n} of ${u.part.of}` : '')
+    // The headline only: the table is for finding an idea, not for reading it.
     const f = el('td', 'f')
-    for (const name of s.cells) f.appendChild(el('span', 'cell', name))
-    if (s.cells.length === 0) f.appendChild(el('span', 'stock', s.stock ? 'mostly a scale run' : 'no named vocabulary'))
-    else if (s.stock) f.appendChild(el('span', 'stock', 'mostly a scale run'))
+    const named = namedCells(u, names).length > 0
+    f.appendChild(el('span', named ? 'cell' : 'stock', headline(u, names, true)))
+    if (named && s.stock) f.appendChild(el('span', 'stock', 'mostly a scale run'))
     tr.append(el('td', 'n', String(i + 1)), el('td', 'w mono', where), el('td', 'c', s.chords.join(' → ')), f)
     tr.addEventListener('click', () => onPick(u.id))
     tr.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPick(u.id) } })
@@ -259,6 +266,9 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
 
   const { button: detailsButton, drawer: detailsBox } = detailsDrawer(result)
   const agent = (result as PipelineResult & { agent?: AgentOutput | null }).agent ?? null
+  // The agent may rename a finding it recognises; per finding, engine name
+  // otherwise, and an empty map when no agent ran.
+  const names = teacherNames(agent?.narration?.findingNames)
   const agentBox = agent ? agentSection(agent) : null
   // The desk first: the exercises are the work, the transcription the reference.
   resultBox.append(detailsBox, ...blocking(result), ...(agentBox ? [agentBox] : []), deskHost, drawer, sheet)
@@ -293,14 +303,14 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
     view.showOverlays(overlaySettings)
   })
 
-  const desk = practiceDesk(deskHost, result, view, done)
+  const desk = practiceDesk(deskHost, result, view, done, names)
   let units = agent?.ranking ? agentOrder(result.units, agent) : result.units
   let selectedId: string | null = null
   let strip: HTMLElement | null = null
 
   const fillDrawer = (): void => {
     drawerTitle.textContent = `All ${units.length} ideas`
-    drawerScroll.replaceChildren(ideaTable(units, selectedId, (pick) => { void desk.select(pick) }))
+    drawerScroll.replaceChildren(ideaTable(units, selectedId, (pick) => { void desk.select(pick) }, names))
   }
   desk.onSelect((unit, index) => {
     selectedId = unit.id
@@ -332,7 +342,7 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
 
   if (units[0]) {
     // Strip first, then select: the selection scrolls the score into view.
-    strip = startHere(units[0], units.length)
+    strip = startHere(units[0], units.length, names)
     deskHost.before(strip)
     fillDrawer()
     await desk.select(units[0].id)

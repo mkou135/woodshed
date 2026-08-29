@@ -71,7 +71,6 @@ describe.skipIf(!existsSync(BLAKE))('buildUnits on the Blake solo', () => {
     const unit = result.units[0]
     expect(unit.summary.bars).toBe('Bars 76–77')
     expect(unit.summary.chords).toEqual(unit.harmony.map(chordName))
-    expect(unit.summary.cells).toEqual([...new Set(unit.findings.map((f) => f.name))])
     expect(unit.summary.landing).toBe(unit.arrival?.degree ?? null)
     expect(unit.summary.stock).toBe(unit.stock >= 0.5)
     // The maj7-from-the-b3 shape recurs at 73 and the [2,-2,-5] cell at 102; own bars excluded.

@@ -44,7 +44,7 @@ const units = [
     degrees: [], findings: analysis.findings,
     arrival: { degree: '9', chordTone: false }, stock: 0.1,
     stockParts: { run: 0.1, corpus: 0.05, language: 0.61 }, rank: 2.5,
-    header: 'x', summary: { bars: 'Bars 76–77', chords: ['Cm7'], cells: [], landing: null, alsoAt: [], stock: false },
+    header: 'x', summary: { bars: 'Bars 76–77', chords: ['Cm7'], landing: null, alsoAt: [], stock: false },
     steps: [],
   },
 ] as unknown as PracticeUnit[]
