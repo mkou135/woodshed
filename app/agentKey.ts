@@ -3,6 +3,7 @@ import { el } from './dom.ts'
 const KEY = 'woodshed.anthropicKey'
 const MOOD = 'woodshed.agentMood'
 const MODEL = 'woodshed.agentModel'
+const ENABLED = 'woodshed.agentEnabled'
 
 /** Model ids offered in the dropdown; the first is the default. */
 const MODELS = [
@@ -18,14 +19,21 @@ function clean(raw: string): string {
   return raw.trim().replace(/^["']|["']$/g, '').trim()
 }
 
-/** The bring-your-own-key row: the key lives in this browser only. */
+/**
+ * The optional-assistant row: a switch, off by default, and behind it the
+ * bring-your-own-key field. Off is the honest default — the analysis is the
+ * engine's, and the assistant only judges close calls, orders and narrates.
+ *
+ * A `div`, not a `label`: a label binds to its first control, so wrapping
+ * both the switch and the key field would make every word in the row toggle
+ * the switch.
+ */
 export function agentKeyRow(): HTMLElement {
-  const row = el('label', 'agent-key')
+  const row = el('div', 'agent-key')
   const input = el('input')
   input.type = 'password'
   input.placeholder = 'sk-ant-…'
   input.autocomplete = 'off'
-  input.setAttribute('aria-label', 'Anthropic API key')
   try {
     input.value = localStorage.getItem(KEY) ?? ''
   } catch { /* storage unavailable: the field still works for this load */ }
@@ -71,14 +79,61 @@ export function agentKeyRow(): HTMLElement {
     try { localStorage.setItem(MODEL, modelSelect.value) } catch { /* ignore */ }
   })
   model.append(el('span', undefined, 'model'), modelSelect)
-  row.append(
-    el('span', undefined, 'Anthropic API key (optional)'),
-    input,
+
+  // The switch carries its own label, so clicking the sentence toggles it
+  // and nothing else in the row does.
+  const on = el('label', 'agent-on')
+  const toggle = el('input')
+  toggle.type = 'checkbox'
+  toggle.checked = agentEnabled()
+  on.append(toggle, el('span', undefined, 'Add an AI assistant'))
+
+  const fields = el('div', 'agent-fields')
+  const keyLabel = el('label', 'agent-field')
+  keyLabel.append(el('span', undefined, 'Anthropic API key'), input)
+  const needKey = el('small', 'agent-need', 'No key yet — until one is entered, the analysis runs without the assistant.')
+  fields.append(
+    keyLabel,
     model,
     mood,
-    el('small', undefined, 'Stays in this browser’s storage and is sent only to api.anthropic.com; with it, an agent narrates and orders the menu.'),
+    el('small', undefined, 'Stays in this browser’s storage and is sent only to api.anthropic.com.'),
+    needKey,
   )
+
+  const off = el(
+    'small',
+    'agent-note',
+    'Off, and the analysis is still complete: every finding, count and exercise is worked out on this page. An assistant only judges the close calls, orders the menu and writes the commentary.',
+  )
+
+  /** Switching off hides the field rather than clearing it: a saved key
+      survives, so switching back on restores everything as it was. */
+  function sync(): void {
+    const enabled = toggle.checked
+    fields.hidden = !enabled
+    off.hidden = enabled
+    // Said before the run, not after: once the analysis is on screen it is
+    // too late for "it ran without the assistant" to be worth knowing.
+    needKey.hidden = !enabled || clean(input.value) !== ''
+  }
+  toggle.addEventListener('change', () => {
+    try { localStorage.setItem(ENABLED, toggle.checked ? '1' : '0') } catch { /* ignore */ }
+    sync()
+  })
+  input.addEventListener('input', sync)
+
+  row.append(on, off, fields)
+  sync()
   return row
+}
+
+/** Whether the player has asked for the assistant at all. Off by default. */
+export function agentEnabled(): boolean {
+  try {
+    return localStorage.getItem(ENABLED) === '1'
+  } catch {
+    return false
+  }
 }
 
 export function agentModel(): ModelId {

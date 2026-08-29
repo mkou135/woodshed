@@ -1,6 +1,6 @@
 import { run, runWithAgent, liveClient, readScoreXml, UnsupportedScoreError } from '../src/index.ts'
 import type { AgentOutput, PipelineResult, PracticeUnit } from '../src/index.ts'
-import { agentKey, agentKeyRow, agentModel, agentPersona } from './agentKey.ts'
+import { agentEnabled, agentKey, agentKeyRow, agentModel, agentPersona } from './agentKey.ts'
 import { button, el } from './dom.ts'
 import { renderScore } from './score.ts'
 import type { OverlaySettings, ScaleMode } from './score.ts'
@@ -423,7 +423,9 @@ async function handleBytes(bytes: Uint8Array, name: string): Promise<void> {
   resultBox.hidden = true
   setStatus(`Reading ${name}…`)
   try {
-    const key = agentKey()
+    // The assistant is opt-in and needs a key; either one missing and the
+    // deterministic engine runs, which is the whole analysis regardless.
+    const key = agentEnabled() ? agentKey() : null
     let progress: ReturnType<typeof progressLine> | null = null
     if (key) {
       setStatus(null)

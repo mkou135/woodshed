@@ -298,7 +298,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   text-transform: uppercase;
   color: var(--pencil);
 }
-.field select, .field input, .agent-key select, .agent-key input, .solo-pick select, .pop .paste input, .ann-head select {
+.field select, .field input, .agent-key select, .agent-key input[type='password'], .solo-pick select, .pop .paste input, .ann-head select {
   font: 500 0.9rem/1.15 var(--disp);
   letter-spacing: 0.03em;
   padding: 0.35rem 0.55rem;
@@ -446,10 +446,49 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 
 /* ---- agent layer ---- */
 /* Optional, so it sits quietly under the drop zone rather than beside it. */
-.agent-key { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.9rem; margin-top: 1.4rem }
-.agent-key > span:first-child { flex: 1 0 100%; font: 600 0.72rem/1 var(--disp); letter-spacing: 0.14em; text-transform: uppercase; color: var(--pencil) }
-.agent-key input { flex: 1 1 16rem; min-width: 0; font-family: var(--mono); font-size: 0.85rem }
+.agent-key { margin-top: 1.4rem }
+/* The switch is the row's first line and reads as a sentence, not a label:
+   the assistant is an addition to a finished analysis, so it gets ordinary
+   prose weight and the uppercase label treatment goes to the field behind it. */
+.agent-on { display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.95rem }
+.agent-on input {
+  appearance: none;
+  margin: 0;
+  flex: none;
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid var(--pencil);
+  border-radius: 2px;
+  background: var(--paper);
+}
+.agent-on input:checked { background: var(--ink); border-color: var(--ink) }
+/* The tick is drawn on the box: a 15px control cannot carry a glyph. */
+.agent-on input:checked::after {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 8px;
+  margin: 0.5px auto 0;
+  border: solid var(--paper);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(42deg);
+}
+.agent-on:hover input { border-color: var(--ink) }
+.agent-fields { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.9rem; margin-top: 0.7rem }
+.agent-field { display: inline-flex; align-items: center; gap: 0.45rem; flex: 1 1 20rem; min-width: 0 }
+.agent-field > span {
+  font: 600 0.72rem/1 var(--disp);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pencil);
+  flex: none;
+}
+.agent-key input[type='password'] { flex: 1 1 12rem; min-width: 0; font-family: var(--mono); font-size: 0.85rem }
 .agent-key small { flex: 1 0 100%; color: var(--pencil); font-size: 0.85rem; line-height: 1.4 }
+.agent-note { display: block; max-width: 44rem; margin-top: 0.4rem; color: var(--pencil); font-size: 0.85rem; line-height: 1.4 }
+/* Said before the run, not after it: by the time the analysis is on screen
+   it is too late to be worth knowing. */
+.agent-key .agent-need { color: var(--warn) }
 .agent { border-left: 3px solid #b58a3c; padding: 0.4rem 1rem; margin: 0.6rem 0; }
 .agent-sourced { position: relative; }
 .agent .dh span { opacity: 0.6; font-size: 0.85em; }
