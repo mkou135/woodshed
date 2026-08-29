@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { profile } from './profile.ts'
 import { contextualise } from './context.ts'
 import { segment } from './segment.ts'
@@ -9,6 +9,9 @@ import { analyse } from './index.ts'
 import { TICKS_PER_QUARTER as Q } from '../core/types.ts'
 import type { Chord, Note } from '../core/types.ts'
 
+// Outside the repo (DECISIONS 2026-08-24 "Corpus licensing"): the chorus
+// structure below is a property of that one long solo, so it is guarded rather
+// than re-pointed at a fixture.
 const BLAKE = '/Users/michaelkourkov/Documents/MuseScore4/Scores/Hey Lock! - Seamus Blake Solo Transcription.mxl'
 
 const chord = (bar: number): Chord =>
@@ -62,8 +65,10 @@ describe('profile', () => {
     expect(p.bars).toEqual([])
     expect(p.choruses).toEqual([])
   })
+})
 
-  it('describes the Blake solo in numbers a teacher would recognise', () => {
+describe.skipIf(!existsSync(BLAKE))('profile of the Blake solo', () => {
+  it('describes it in numbers a teacher would recognise', () => {
     const score = ingest(new Uint8Array(readFileSync(BLAKE)))
     const report = prepare(score)
     const a = analyse(score, report)

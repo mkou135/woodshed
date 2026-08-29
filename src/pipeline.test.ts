@@ -1,8 +1,11 @@
-import { describe, it, expect } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { describe, it, expect, beforeAll } from 'vitest'
+import { existsSync, readFileSync } from 'node:fs'
 import { run, describeFinding } from './pipeline.ts'
 import type { Finding } from './analyse/index.ts'
 
+// The Blake transcription is someone else's work and lives outside the repo
+// (DECISIONS 2026-08-24 "Corpus licensing"), so a fresh clone cannot read it.
+// Every suite that needs it is guarded; the rest run on `fixtures/`.
 const BLAKE = '/Users/michaelkourkov/Documents/MuseScore4/Scores/Hey Lock! - Seamus Blake Solo Transcription.mxl'
 
 const finding = (over: Partial<Finding> = {}): Finding => ({
@@ -44,16 +47,6 @@ describe('describeFinding', () => {
 })
 
 describe('run', () => {
-  it('runs the whole pipeline over a real solo', () => {
-    const result = run(new Uint8Array(readFileSync(BLAKE)))
-    expect(result.score.notes.length).toBeGreaterThan(0)
-    expect(result.report.form?.periodBars).toBe(56)
-    // 8-bar intro, head at 9, solo chorus at 65: phased by the double bars.
-    expect(result.report.form?.chorusStarts).toEqual([9, 65])
-    expect(result.report.form?.agreesWithMarks).toBe(true)
-    expect(result.findingViews.length).toBe(result.analysis.findings.length)
-  })
-
   it('runs over every fixture without throwing, except the repeats one', () => {
     const names = [
       'minimal-tenor', 'kind-text-trap', 'words-chords-alto', 'unmarked-pickup',
@@ -66,13 +59,32 @@ describe('run', () => {
   })
 })
 
+describe.skipIf(!existsSync(BLAKE))('run over a real solo', () => {
+  it('runs the whole pipeline end to end', () => {
+    const result = run(new Uint8Array(readFileSync(BLAKE)))
+    expect(result.score.notes.length).toBeGreaterThan(0)
+    expect(result.report.form?.periodBars).toBe(56)
+    // 8-bar intro, head at 9, solo chorus at 65: phased by the double bars.
+    expect(result.report.form?.chorusStarts).toEqual([9, 65])
+    expect(result.report.form?.agreesWithMarks).toBe(true)
+    expect(result.findingViews.length).toBe(result.analysis.findings.length)
+  })
+})
+
 /**
  * Golden check on a real solo. Green unit tests are not evidence the output
  * is any good — the engine once passed 156 of them while ranking its best
  * finding 9th of 81. This pins what a player should see.
  */
-describe('run: the Blake solo, read as a player would', () => {
-  const result = run(new Uint8Array(readFileSync(BLAKE)))
+describe.skipIf(!existsSync(BLAKE))('run: the Blake solo, read as a player would', () => {
+  // Called in `beforeAll`, not in the describe body: vitest runs a suite's
+  // factory even when `skipIf` will skip the suite, so a read out here throws
+  // during collection — an error that names no test — on any machine without
+  // the transcription. The guard alone would not have been enough.
+  let result: ReturnType<typeof run>
+  beforeAll(() => {
+    result = run(new Uint8Array(readFileSync(BLAKE)))
+  })
 
   it('ranks the hand-derived figure first, with every detector agreeing', () => {
     const top = result.analysis.findings[0]
@@ -115,7 +127,7 @@ describe('run: the Blake solo, read as a player would', () => {
   })
 })
 
-describe('runWithAgent: the Blake solo through replay fixtures', () => {
+describe.skipIf(!existsSync(BLAKE))('runWithAgent: the Blake solo through replay fixtures', () => {
   it('carries all four verdicts with nothing degraded', async () => {
     const { runWithAgent } = await import('./pipeline.ts')
     const { replayClient } = await import('./agent/client.ts')

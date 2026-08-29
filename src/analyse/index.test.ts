@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { ingest, prepare } from '../index.ts'
 import { analyse } from './index.ts'
 
@@ -8,6 +8,11 @@ const analysed = (path: string) => {
   return analyse(score, prepare(score))
 }
 
+// The Blake transcription lives outside the repo (DECISIONS 2026-08-24
+// "Corpus licensing"). Invariants that any solo exhibits are asserted on a
+// fixture so a fresh clone still runs them; only what needs a long real solo
+// — merge regressions, detector convergence — is guarded on the path.
+const FIXTURE = 'fixtures/words-chords-alto.musicxml'
 const BLAKE = '/Users/michaelkourkov/Documents/MuseScore4/Scores/Hey Lock! - Seamus Blake Solo Transcription.mxl'
 
 describe('analyse', () => {
@@ -19,11 +24,33 @@ describe('analyse', () => {
   })
 
   it('sorts findings by confidence, highest first', () => {
-    const a = analysed(BLAKE)
+    // Two findings at 0.85 and 0.826: an order this fixture can actually get
+    // wrong, unlike a one-finding score.
+    const a = analysed(FIXTURE)
     const scores = a.findings.map((f) => f.confidence)
     expect([...scores].sort((x, y) => y - x)).toEqual(scores)
   })
 
+  it('gives every finding a location in the score', () => {
+    const a = analysed(FIXTURE)
+    for (const f of a.findings) {
+      expect(f.spans.length).toBeGreaterThan(0)
+      expect(f.spans[0].bar).toBeGreaterThan(0)
+    }
+  })
+
+  it('never returns a confidence above 1 or below 0', () => {
+    const a = analysed(FIXTURE)
+    for (const f of a.findings) {
+      expect(f.confidence).toBeGreaterThanOrEqual(0)
+      expect(f.confidence).toBeLessThanOrEqual(1)
+    }
+  })
+})
+
+// Needs a score where some findings converge and others do not; no fixture is
+// long enough to hold both, so this one stays on the real solo.
+describe.skipIf(!existsSync(BLAKE))('detector convergence', () => {
   it('scores a finding seen by two detectors above one seen by a single detector', () => {
     const a = analysed(BLAKE)
     const converged = a.findings.filter((f) => f.detectedBy.length > 1)
@@ -33,25 +60,11 @@ describe('analyse', () => {
         .toBeGreaterThan(Math.min(...single.map((f) => f.confidence)))
     }
   })
-
-  it('gives every finding a location in the score', () => {
-    const a = analysed(BLAKE)
-    for (const f of a.findings) {
-      expect(f.spans.length).toBeGreaterThan(0)
-      expect(f.spans[0].bar).toBeGreaterThan(0)
-    }
-  })
-
-  it('never returns a confidence above 1 or below 0', () => {
-    const a = analysed(BLAKE)
-    for (const f of a.findings) {
-      expect(f.confidence).toBeGreaterThanOrEqual(0)
-      expect(f.confidence).toBeLessThanOrEqual(1)
-    }
-  })
 })
 
-describe('finding merge rules', () => {
+// These assert magnitudes only a long real solo exhibits — a fixture with one
+// or two findings cannot regress any of them.
+describe.skipIf(!existsSync(BLAKE))('finding merge rules', () => {
   it('merges the same cell occurring in different bars into one finding', () => {
     // Regression: the first merge rule required identity AND overlapping spans,
     // so the same vocabulary in two bars stayed separate and produced two
@@ -108,8 +121,6 @@ describe('finding merge rules', () => {
     }
   })
 })
-
-import { existsSync } from 'node:fs'
 
 const ST_THOMAS = '/Users/michaelkourkov/dev/woodshed-data/peers/st-thomas-sonny-rollins-solo-transcription.mxl'
 
