@@ -835,3 +835,21 @@ Also found and not yet fixed: a fresh clone's test suite is red rather
 than skipped — six test files readFileSync the absolute Blake path in a
 describe body with no guard, so collection throws. Matters now the repo
 is public and the README invites cloning.
+
+2026-08-29 · session 16 · a fresh clone's tests skip instead of failing.
+Six test files read transcriptions kept outside the repo; three of the
+reads were in a `describe` body, and vitest runs a suite's factory even
+when `skipIf` will skip it — so `unit.test.ts`'s St Thomas suite threw at
+collection despite already being guarded. Fixed by pairing the two idioms
+the repo already had: `describe.skipIf(!existsSync(PATH))` plus the read
+moved into `beforeAll`, as `practice/steps/loop.test.ts` had written down.
+Property-shaped assertions were re-pointed at `fixtures/` rather than
+skipped — all five of `generate/index.test.ts` and the three invariants in
+`analyse`'s first suite — so a corpus-less contributor keeps that
+coverage. The Blake golden pins, merge regressions, chorus profile,
+detector convergence and `checkWriting` stay guarded: they assert
+magnitudes only a long real solo exhibits. With the corpus present the
+suite is unchanged at 53 files / 438 passed / 0 skipped; in a clone with
+the paths pointed at nothing, 53 files / 409 passed / 29 skipped and zero
+collection errors. Also: pages.yml's first line said the deploy runs on a
+push to master; the trigger below it always said main.

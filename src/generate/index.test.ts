@@ -17,7 +17,7 @@ const setup = (path: string) => {
 }
 
 describe('generateExercises', () => {
-  it('produces exercises from a real solo', () => {
+  it('produces exercises from an analysed solo', () => {
     const { score, analysis } = setup(SOLO)
     const exercises = generateExercises(analysis, score)
     expect(exercises.length).toBeGreaterThan(0)
