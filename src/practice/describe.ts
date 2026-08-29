@@ -30,9 +30,18 @@ export function teacherNames(named?: { id: string; name: string }[] | null): Tea
   return new Map((named ?? []).map((f) => [f.id, f.name]))
 }
 
-/** The name to show, or null when the engine detected a shape it cannot name. */
-export function displayName(finding: Finding, names?: TeacherNames): string | null {
-  return names?.get(finding.id) ?? (finding.unnamed ? null : finding.name)
+/**
+ * The name to show, or null when the engine detected a shape it cannot name.
+ *
+ * An agent name arrives as "what it is — why it matters" (the narrate prompt
+ * asks for the four-part shape on one line), which is a sentence where a table
+ * row wants a name: `terse` keeps the half before the dash. The engine's own
+ * names carry no dash and are unaffected.
+ */
+export function displayName(finding: Finding, names?: TeacherNames, terse = false): string | null {
+  const teacher = names?.get(finding.id)
+  if (teacher) return terse ? teacher.split(' — ')[0] : teacher
+  return finding.unnamed ? null : finding.name
 }
 
 /**
@@ -48,10 +57,10 @@ const FALLBACKS = {
 } as const
 
 /** Distinct display names, strongest first; unnamed findings drop out. */
-export function namedCells(unit: Described, names?: TeacherNames): string[] {
+export function namedCells(unit: Described, names?: TeacherNames, terse = false): string[] {
   const out: string[] = []
   for (const f of [...unit.findings].sort((a, b) => b.confidence - a.confidence)) {
-    const name = displayName(f, names)
+    const name = displayName(f, names, terse)
     if (name && !out.includes(name)) out.push(name)
   }
   return out
@@ -62,7 +71,7 @@ export function namedCells(unit: Described, names?: TeacherNames): string[] {
  * name, or an honest sentence about why it cannot. Everything else is detail.
  */
 export function headline(unit: Described, names?: TeacherNames, terse = false): string {
-  const named = namedCells(unit, names)
+  const named = namedCells(unit, names, terse)
   if (named.length > 0) return named[0]
   const at = terse ? 1 : 0
   if (unit.findings.length > 0) return FALLBACKS.unnamed[at]
@@ -83,6 +92,14 @@ export function detail(unit: Described, names?: TeacherNames): string[] {
     (n, f) => n + (f.variants?.reduce((m, v) => m + v.occurrences.length, 0) ?? 0), 0)
   if (variants > 0) out.push(`${variants} variant${variants > 1 ? 's' : ''} of the same shape`)
   if (unit.summary.alsoAt.length > 0) out.push(`also at bar${unit.summary.alsoAt.length > 1 ? 's' : ''} ${barSpans(unit.summary.alsoAt)}`)
+  // A shape with no name still happened. The headline can only stand for one
+  // of them, so the rest are counted rather than silently dropped.
+  const unnamed = new Set(unit.findings.filter((f) => !displayName(f, names)).map((f) => f.name)).size
+  const rest = unnamed - (named.length > 0 ? 0 : 1)
+  if (rest > 0) {
+    const more = named.length > 0 ? '' : 'more '
+    out.push(`${rest} ${more}shape${rest > 1 ? 's' : ''} the engine cannot name`)
+  }
   return out
 }
 

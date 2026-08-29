@@ -904,6 +904,17 @@ Blake, keyless: u1 "major-seventh arpeggio from the b3 · lands on the #11
 · also at bars 73, 102"; the sixteen findings-free units read "No named
 vocabulary — still the player's idea" instead of nothing. 54 files / 451
 passed, typecheck clean on `src/` and `app/`, page checked in Chrome.
+Then two review catches, both real. The agent path had never run: replayed
+`fixtures/agent/blake` and 4 of the 5 recorded `findingNames` substituted,
+the fifth id having drifted since the recording and falling back to the
+engine name — which is the designed behaviour, observed rather than
+assumed. Those names read "what it is — why it matters", which is a
+sentence where a table row wants a name, so `terse` now keeps the half
+before the dash. And `detail` had been *dropping* unnamed findings, not
+demoting them: a unit with two nameless shapes said nothing about the
+second. They are counted now.
 **Not fixed, and said out loud in DECISIONS:** the twelve bars were a
 segmentation error wearing a formatting costume (OPEN_QUESTIONS
-"Repetition binds"). Next sprint's candidate.
+"Repetition binds"). Note the claim is inferred from the owner's pasted
+head, not measured — Blake does not exhibit it, and that other solo was
+never re-run. Next sprint's candidate.

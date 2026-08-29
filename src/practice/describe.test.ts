@@ -93,7 +93,25 @@ describe('detail', () => {
       'lands on the b13',
       '3 variants of the same shape',
       'also at bars 194–196, 208',
+      '1 shape the engine cannot name',
     ])
+  })
+
+  it('counts the shapes the headline could not stand for', () => {
+    const two = [
+      finding({ id: 'f1', unnamed: true, name: 'recurring cell [5, -5, 0]' }),
+      finding({ id: 'f2', unnamed: true, name: 'recurring cell [2, -2, -5]' }),
+    ]
+    // The fallback headline stands for one of them; the other is counted.
+    expect(detail(unit(two))).toEqual(['1 more shape the engine cannot name'])
+    expect(detail(unit([two[0]]))).toEqual([])
+  })
+
+  it('trims an agent name to its first half for a table row', () => {
+    const names = teacherNames([{ id: 'f1', name: 'the maj7 off the b3 — a bright colour over the minor chord' }])
+    const u = unit([finding({ id: 'f1', unnamed: true })])
+    expect(headline(u, names)).toBe('the maj7 off the b3 — a bright colour over the minor chord')
+    expect(headline(u, names, true)).toBe('the maj7 off the b3')
   })
 
   it('is empty when there is nothing to add', () => {

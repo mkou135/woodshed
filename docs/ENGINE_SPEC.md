@@ -369,8 +369,10 @@ shape the dictionary has no word for, that name is an interval vector
 taken). This module is the only place that turns findings into prose, so the
 CLI, the idea head and the all-ideas table cannot drift apart.
 
-- `displayName(finding, names?)` — the agent's name for that id, else the
-  engine's, else **null** when `unnamed`.
+- `displayName(finding, names?, terse?)` — the agent's name for that id,
+  else the engine's, else **null** when `unnamed`. An agent name arrives as
+  "what it is — why it matters"; `terse` keeps the half before the dash,
+  since a table row wants a name and not a sentence.
 - `headline(unit, names?, terse?)` — one clause: the strongest **named**
   finding, else, in order, "A figure the player keeps returning to — the
   score shows it" (something detected, nothing nameable), the
@@ -379,7 +381,10 @@ CLI, the idea head and the all-ideas table cannot drift apart.
   ("a figure the player returns to", "mostly a scale run", …).
 - `detail(unit, names?)` — the asides, one line each, in the order a player
   asks: further named cells, `lands on the <degree>`, `N variants of the
-  same shape`, `also at bars <spans>`.
+  same shape`, `also at bars <spans>`, and finally a count of the shapes no
+  name could stand for (`2 shapes the engine cannot name`; `N more …` when
+  the headline was itself the unnamed fallback). A nameless shape still
+  happened — it is counted, never dropped.
 - `barSpans(labels)` — consecutive printed bars collapse into ranges
   (194…209 → `194–200, 202–203, 206, 208–209`). A label that is not a plain
   number ("17 (2nd time)") never joins a run.
@@ -388,8 +393,12 @@ CLI, the idea head and the all-ideas table cannot drift apart.
 `narrate.ts`) are applied **per finding at render time**, with the engine
 name as the fallback — units are built before `narrate` runs, so nothing is
 stored on the unit. The narrate prompt asks for "each finding worth naming",
-so partial coverage is the normal case. Keyless runs read the engine's own
-names. The engine overlays, the details drawer and the annotation export are
+so partial coverage is the normal case, and an id that has drifted since the
+fixture was recorded falls back rather than failing. Keyless runs read the
+engine's own names. The **CLI header is engine-only**: `header` is composed
+inside `buildUnits`, before `narrate` runs, so `npm run solo` prints the
+agent's names in their own list (`scripts/run.ts`) and not in the unit
+lines. The engine overlays, the details drawer and the annotation export are
 unchanged: they are the audit view, where the interval vector is the right
 thing to say.
 
