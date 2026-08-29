@@ -378,7 +378,10 @@ function soloPicker(): HTMLElement {
       // A Pages 404 answers with an HTML page; unchecked, it would reach the
       // MusicXML parser and fail there with a baffling message.
       if (!res.ok) throw new Error(`the server answered ${res.status}`)
-      await handleBytes(new Uint8Array(await res.arrayBuffer()), entry.file)
+      // The manifest's title, not the filename: it is the one field the owner
+      // writes by hand, and the header falls back to whatever name it is
+      // handed when the score carries no work-title of its own.
+      await handleBytes(new Uint8Array(await res.arrayBuffer()), entry.title)
     } catch (error) {
       setStatus(null)
       showError(`Could not fetch ${entry.title}`, (error as Error).message)
