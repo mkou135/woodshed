@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { existsSync, readFileSync } from 'node:fs'
 import { ingest, prepare } from '../index.ts'
-import { analyse } from './index.ts'
+import { analyse, markResolvingSpans } from './index.ts'
+import type { Finding, FindingSpan } from './index.ts'
+import type { ResolutionHit } from './detectors/resolutions.ts'
 
 const analysed = (path: string) => {
   const score = ingest(new Uint8Array(readFileSync(path)))
@@ -45,6 +47,50 @@ describe('analyse', () => {
       expect(f.confidence).toBeGreaterThanOrEqual(0)
       expect(f.confidence).toBeLessThanOrEqual(1)
     }
+  })
+})
+
+describe('markResolvingSpans', () => {
+  const span = (startIndex: number, endIndex: number) => ({ startIndex, endIndex, bar: 1, beat: 0 })
+  const cell = (spans: FindingSpan[]): Finding => ({
+    id: 'f1', kind: 'cell', name: 'minor seventh arpeggio', spans,
+    degrees: ['1', '3', '5', '7'], detectedBy: ['shape'], weights: { shape: 1 }, confidence: 0.8,
+  })
+  const at = (index: number): ResolutionHit =>
+    ({ index, name: 'ii–V 7-3 resolution', degrees: ['7', '3'], quality: 'minor-seventh', fall: 1 })
+
+  it('marks a cell that ends on the resolving 7', () => {
+    // Ligon's second melodic outline: our 1357, whose 7 falls to the 3 of the
+    // next chord. The cell ends at note 3; the resolution starts there.
+    const finding = cell([span(0, 3)])
+    markResolvingSpans([finding], [at(3)])
+    expect(finding.spans[0].resolves).toBe(true)
+  })
+
+  it('marks a cell that ends on the note just before the 7', () => {
+    // Outline 3: 5321, and then the 7 that resolves.
+    const finding = cell([span(0, 3)])
+    markResolvingSpans([finding], [at(4)])
+    expect(finding.spans[0].resolves).toBe(true)
+  })
+
+  it('marks only the occurrence that resolves', () => {
+    const finding = cell([span(0, 3), span(20, 23)])
+    markResolvingSpans([finding], [at(3)])
+    expect(finding.spans[0].resolves).toBe(true)
+    expect(finding.spans[1].resolves).toBeUndefined()
+  })
+
+  it('leaves a cell alone when the resolution is elsewhere', () => {
+    const finding = cell([span(0, 3)])
+    markResolvingSpans([finding], [at(9)])
+    expect(finding.spans[0].resolves).toBeUndefined()
+  })
+
+  it('never marks a device finding', () => {
+    const device: Finding = { ...cell([span(0, 3)]), kind: 'device' }
+    markResolvingSpans([device], [at(3)])
+    expect(device.spans[0].resolves).toBeUndefined()
   })
 })
 

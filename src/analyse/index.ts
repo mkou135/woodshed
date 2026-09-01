@@ -9,6 +9,7 @@ import { matchShapes } from './detectors/shapes.ts'
 import { detectTargets } from './detectors/targets.ts'
 import { findRecurring } from './detectors/recurring.ts'
 import { detectResolutions } from './detectors/resolutions.ts'
+import type { ResolutionHit } from './detectors/resolutions.ts'
 import type { Variant } from './detectors/recurring.ts'
 import { qualityFamily } from '../core/pitch.ts'
 import { chordScales } from './chordScale.ts'
@@ -21,6 +22,14 @@ export interface FindingSpan {
   endIndex: number
   bar: number
   beat: number
+  /**
+   * This occurrence ends on a 7 that falls to the 3 of the next chord — or on
+   * the note just before it. Ligon's melodic outlines 2 and 3 are our `1357`
+   * and `5321` plus exactly that resolution, so the mark is how a cell says
+   * what it was for. Per span, because a cell recurring in three bars may
+   * resolve in only one.
+   */
+  resolves?: true
 }
 
 export interface Finding {
@@ -201,6 +210,7 @@ export function analyse(score: Score, report: CleanupReport, options: AnalyseOpt
   // different bars never merges, and two detectors seeing one event never
   // merge either, which is exactly the convergence signal we score on.
   const merged = mergeByOverlap(mergeByIdentity(raw))
+  markResolvingSpans(merged, resolutions)
 
   const chordConfidence = chordTrack?.confidence ?? 0
 
@@ -290,6 +300,22 @@ function absorb(into: Finding, from: Finding, takeSpans = true): void {
   // has degrees: the vectors have different lengths, and the generators would
   // build a figure that no longer spells the cell.
   if (!into.intervals && !into.degrees && from.intervals) into.intervals = from.intervals
+}
+
+/**
+ * Mark each cell occurrence that ends on a resolving 7, or on the note just
+ * before one. A finding of its own is what the resolution *is*; this is what
+ * the cell before it was *for*, which is the half Ligon's outlines add to our
+ * `1357` and `5321`.
+ */
+export function markResolvingSpans(findings: Finding[], resolutions: ResolutionHit[]): void {
+  const resolving = new Set(resolutions.map((h) => h.index))
+  for (const finding of findings) {
+    if (finding.kind !== 'cell') continue
+    for (const span of finding.spans) {
+      if (resolving.has(span.endIndex) || resolving.has(span.endIndex + 1)) span.resolves = true
+    }
+  }
 }
 
 /** Pass 1: the same vocabulary recurring, regardless of where. */
