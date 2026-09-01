@@ -77,19 +77,28 @@ moving its resolution into DECISIONS.md.
   job has no held-out signal to check against — the app's drill stars
   are "I'd practice this"). Resolve: get a real solo annotated (more than
   the e2e smoke marks) and re-open both with the new labels as the target.
+  **Narrowed 2026-09-01**: the owner deleted four of the five annotation
+  files as not detailed enough to keep — three were engine-seeded and could
+  only confirm the engine, and `all-the-things` scored 0.00/0.00 on the
+  bar-0 pickup bug. `hey-lock.json` is the only ground truth in the repo,
+  and every segmentation ruling now in force traces to it.
 - **What formally scores outside spans and stars?** `eval:owner` only
   prints overlapping `analysis.findings`, no precision/recall — spans
   don't line up with findings or phrase starts the way boundary marks do.
   Resolve: decide a matching rule (span overlap? contained finding?) once
   there are enough owner spans to design against.
 
-- **Owner brackets: the St Thomas 8th.** `npm run brackets` (session 6)
-  scores scripts/brackets.json against the peers files. Mintzer 3–34 is the
-  owner's list (12/13, 22.1 known). St Thomas 57–76 is the engine's output
-  frozen after riff binding + articulation rest — 7 starts where session 4
-  matched 8 brackets; the bar.beat list was never written down. Resolve:
-  owner re-reads 57–76 on the page and corrects the JSON. Also still open:
-  the unmarked-pickup warn on Mintzer shifts beat positions.
+- **Owner brackets: the St Thomas 8th — probably found, not confirmed.**
+  `npm run brackets` (session 6) scores scripts/brackets.json against the
+  peers files. Mintzer 3–34 is the owner's list (12/13, 22.1 known). St
+  Thomas 57–76 was the engine's output frozen at 7 starts where session 4
+  reported 8, and the bar.beat list was never written down. Session 19's
+  window fix restored a start at **64.3½** — the old rule had suppressed it
+  by binding a 57-note slice to the 9 notes after the rest — taking the list
+  to 8. That is suggestive, not settled: it is still engine output re-pinned
+  against itself. Resolve: owner reads 57–76 on the page and confirms 64.3½
+  (and the other seven). Also still open: the unmarked-pickup warn on
+  Mintzer shifts beat positions.
 
 ## Segmentation cues (2026-08-24, from a ChatGPT comparison)
 
@@ -246,31 +255,17 @@ All of these are proposals; none is implemented.
   Mixolydian #9, and b9/#9/n9/b5 sit inside default scales elsewhere in the
   form. The full-coverage layer will mislabel blues unless it knows the form is
   a blues. Resolve: detect a blues from the changes and swap the I7 default.
-- **Repetition binds — boundaryCue has no similarity term.** Hey Lock
-  owner annotation, bars 116–120: the owner hears one phrase built from a
-  4× varied sequence (variation group C); the engine splits it into
-  phrases at 117.4½ / 118.4½ / 119.4½ because each repeat sits behind an
-  8th rest + leap (totals 0.72–0.79, threshold 0.45). The rest cue is
-  strongest exactly where repetition says "same breath". **Probed
-  2026-09-01 (session 19); the question has moved.** The mechanism already
-  exists — riff binding — and gets one of four Hey Lock calls right: it
-  demotes 87.2½, the one boundary the owner *marked*, and declines 117.4½
-  and 118.4½, the two they did not. Two distinct causes, one observation
-  each: at 117.4½ the comparison window runs between phrase-level edges,
-  so it weighs 29 notes against a 4-note statement; at 118.4½ `sameFigure`
-  requires the same first pitch class and the sequence transposes (-3).
-  And its polarity is wrong for group C — demotion yields a false *idea*
-  where the owner marks nothing, so suppression is a third kind riff
-  binding does not have. Separators tested against St Thomas (the only
-  other owner ruling): absolute gap and statement length are both dead —
-  33–41 binds a 2400t gap, exactly group D's, and its bound statements
-  span 2–12 notes. Only repetition count survives (bind 4x, 6x; split 2x),
-  n=1 on the split side. Prize if all of it worked: hey-lock phrase F1
-  0.81 → ~0.90, ideas flat at 0.72, against the 1.4 WJD phrase F1 riff
-  binding already costs. Resolve: owner decides whether that trade is
-  worth a WJD diagnostic sweep at all; if so, the two window/transposition
-  fixes and the riffMaxGap narrowing are separate items with separate
-  evidence, not one term.
+- **The riff rules rest on 20 gaps and two fitted constants.** Resolved
+  2026-09-01 (DECISIONS "A riff is a chain, and it may be transposed" and
+  "Riff binding compares the statements"): all four Hey Lock rulings and all
+  sixteen St Thomas ones now come out right. What is *not* settled is how
+  much of that is fitting. `RIFF_WINDOW_RATIO` = 3 separates two
+  observations (29-against-4 is gross, 5-against-2 is not) and
+  `riffMinStatements` = 3 separates one split case from two bind cases. Both
+  are dials with almost no evidence under them, and the corpus argues the
+  other way: WJD phrases fell 80.8 → 79.7, all recall. Resolve: a second
+  blind-annotated solo with riff chains in it — sweep both constants against
+  it before trusting either.
 - **Long-range variation tracking.** Owner group B links 97.1/99.1 to a
   return at 110.4½–112.3; the engine's recurring detectors caught 97↔99
   (major triad 1-3-5) but nothing 11 bars later. The variations field in
