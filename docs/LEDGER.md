@@ -1098,3 +1098,13 @@ Cost: WJD phrases 80.8 → 79.7, all recall, the annotators-split-riffs
 trade taken a second time. And one weakened assertion in `profile.test.ts`,
 written up rather than quietly changed.
 
+
+2026-09-01 · session 20 · a 7-3 resolution detector.
+Task: build the device Coker gives a chapter to — the b7 of a II-7 falling to
+the 3 of the V7 (also V7 → I). Brainstorming first: it is the first detector
+whose subject is a chord *change*, and two design questions come with it —
+whether it may cross an idea boundary (`samePhrase` forbids it everywhere
+today) and whether a resolution is a finding of its own or a property of the
+cell it ends (Ligon's outlines 2 and 3). Baseline Blake and the peers before
+any code; no eval score moves this, so the corpus is a regression guard, not
+evidence — last session's caution about tuning against it stands.
