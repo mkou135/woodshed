@@ -1,3 +1,4 @@
+import { existsSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { ideaViews, sessionReportHtml } from './report.ts'
 import type { IdeaView, ReportInput } from './report.ts'
@@ -302,5 +303,52 @@ describe('sessionReportHtml, printing', () => {
       const at = html.indexOf(section)
       expect(html.slice(html.lastIndexOf('<h2', at), at)).toContain('page-break')
     }
+  })
+})
+
+// The agent path, end to end against the recorded verdicts. The unit tests
+// above build an AgentOutput by hand, which cannot catch the failure that
+// actually happens: an id in `ranking.order` or `lookFors` drifting out of
+// step with the ids `buildUnits` mints, so every verdict silently renders
+// nothing. That is not hypothetical — session 17 found a recorded
+// `findingNames` id had drifted and fallen back unnoticed.
+const BLAKE = '/Users/michaelkourkov/Documents/MuseScore4/Scores/Hey Lock! - Seamus Blake Solo Transcription.mxl'
+
+describe.skipIf(!existsSync(BLAKE))('the agent path, through the replay fixtures', () => {
+  it('lands the agent’s reasons and look-fors on real units', async () => {
+    const { runWithAgent } = await import('../src/pipeline.ts')
+    const { replayClient } = await import('../src/agent/client.ts')
+    const { loadFixtures } = await import('../src/agent/fixtures.ts')
+    const result = await runWithAgent(
+      new Uint8Array(readFileSync(BLAKE)),
+      replayClient(loadFixtures('fixtures/agent/blake')),
+    )
+    const views = await ideaViews(result.units, {
+      drilled: 0,
+      engrave: noDrills,
+      agent: result.agent,
+    })
+    const withReason = views.filter((v) => v.reason)
+    const withLookFor = views.filter((v) => v.lookFor)
+    // Non-vacuous: the equalities below would both hold at zero.
+    expect(withReason.length).toBeGreaterThan(0)
+    expect(withLookFor.length).toBeGreaterThan(0)
+    expect(withReason.length).toBe(result.agent.ranking?.order.length)
+    expect(withLookFor.length).toBe(result.agent.narration?.lookFors.length)
+
+    // And the report actually prints them, with the attribution attached.
+    const html = sessionReportHtml({
+      title: 'Hey Lock!',
+      svgMarkup: SVG,
+      items: ITEMS,
+      overview: result.agent.narration?.overview ?? [],
+      degraded: result.agent.degraded,
+      ideas: views,
+      ideasTotal: views.length,
+      drilledCount: 0,
+    })
+    expect(html).toContain('What the agent hears')
+    expect(html).toContain(withReason[0].reason!)
+    expect(html).toContain(withLookFor[0].lookFor!)
   })
 })

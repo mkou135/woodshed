@@ -979,3 +979,11 @@ Chrome extension was not connected), capturing the blob, printing it and
 reading all 26 pages: 34 ideas listed, 85 drills engraved, no agent
 section on the keyless run. Two near-empty leading pages in the first PDF
 were a print-CSS bug the green suite could not see; see DECISIONS.
+Then the gap that verification had left: the browser run was keyless, so
+the agent half of the report had never actually run. Replayed
+`fixtures/agent/blake` — 6/6 ranking unitIds and 3/3 lookFor unitIds match
+the ids `buildUnits` mints, all six reasons present — and pinned it, since
+that is exactly the drift session 17 caught silently falling back. Also
+noted: Blake's MusicXML `<title>` is the literal string "Title", which
+`soloTitle` rejects, so the report is headed with the filename. Correct
+behaviour, but it means the handout carries whatever the file is called.
