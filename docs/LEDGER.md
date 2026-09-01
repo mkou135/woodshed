@@ -1108,3 +1108,33 @@ today) and whether a resolution is a finding of its own or a property of the
 cell it ends (Ligon's outlines 2 and 3). Baseline Blake and the peers before
 any code; no eval score moves this, so the corpus is a regression guard, not
 evidence — last session's caution about tuning against it stands.
+
+2026-09-01 · session 20 · the 7-3 resolution ships, with the numbers.
+Five tasks: the detector (`analyse/detectors/resolutions.ts`), its wiring
+into `analyse/index.ts` as a fourth source, `FindingSpan.resolves` +
+`markResolvingSpans`, the `describe.ts` detail line, and this reading pass.
+**Read rather than assumed.** Blake before/after came from a worktree at
+474b563 running the same throwaway script as the current tree, not from the
+design's baseline paragraph — the design's own census table sums to 58 while
+claiming 57, and re-measured through the shipped rules the count is 55.
+Every printed resolution I quote I checked: Blake bars 85 and 116 and Bartley
+124→125 were read out of the raw MusicXML (harmony `<kind>` and note steps),
+not out of the engine's own summary. Bar 116 is the pretty one — F6, the b7
+of G7, tied over the bar line into Eb6, the 3 of Cm7.
+**What moved.** Blake 13 → 15 findings, top finding untouched, both new ones
+at 0.455; the 13 that were there are all still there, unchanged, in the same
+order. Units stay 34, exercises 275 → 271 counting a write step by its
+examples (268 → 266 the way `scripts/run.ts` prints it — the delta is the
+same two units either way), but two resolution-bearing units
+climb into the top six (bars 115–117, 85–86) — the +2 rank for a finding with
+degrees, working as ENGINE_SPEC says it does. Peers gain at most +2 each.
+Tests 487 → 506. `brackets` and `eval:wjd` unmoved (79.7 / 76.5), which is
+the whole point of running them: they are guards here, not evidence.
+Corpus golden re-pinned — 161 of 452 solos moved, findings only, +1/+2/+3
+with nothing larger; `units`, `phrases` and `ideas` moved on none, so nothing
+leaked into `segment()`.
+**Cost.** One deferred tidy (a shared `isResolutionFinding` helper) and one
+pre-existing bug written down instead of fixed: `absorb` in merge pass 2
+adopts `degrees`/`name`/`kind`, which its own comment says it does not. Both
+are in OPEN_QUESTIONS. Also corrected a stale spec line — the verification
+target still said 16 phrases for Blake, which had read 15 since session 19b.

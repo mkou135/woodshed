@@ -1053,3 +1053,83 @@ fail · engine, owner chose repetition count over `riffMaxGap` · reverse by
 `riffMinStatements: 2` and restoring the pitch-class gate — but only
 together, per the 17/20 above.
 
+
+2026-09-01 · **The 7-3 resolution is a detector, and it may cross an idea
+boundary when nothing sounds between the notes** · Coker's device — the b7
+of a chord falling 1 or 2 semitones to the 3 of the chord a fourth above it
+— becomes `analyse/detectors/resolutions.ts`, a fourth detector source
+(`detectedBy: ['resolution']`, weight 1, `kind: 'device'`, two degrees).
+Not a `LickEntry`: `CELL_LENGTHS` bottoms out at 3 so a 1+1 lick is never
+reached, and `overlapsAny` would suppress the pair wherever the 7 is the
+tail of an already-matched cell — exactly Ligon's outline 2. Named from the
+quality pair (`ii–V` / `V–I` / `V–i` / `V-of-V`, else plain), because the
+pair is what says what the device is for.
+**The idea gate is the real decision.** Every other detector is forbidden to
+cross an idea boundary (`samePhrase`). This one may, when the gap between the
+two notes is below `MIN_REST` (240 ticks) — `segment.ts`'s own threshold for
+"articulation, not a rest". Stated as a musical condition rather than a
+detector privilege: a resolution is legato or it is not one. The detector
+never calls `samePhrase`, so `samePhrase` keeps its meaning for everyone
+else. Measured, the gate does exactly what it was designed to: over Blake and
+the ten peers, four events cross a boundary; the two contiguous ones are kept
+(Bartley 124→125 F5→E5 over G7→Cmaj7; Tenor Madness 12→13 F5→E5 over G7→C7,
+both gap 0, both read off the raw MusicXML) and the two with a breath in them
+are dropped (mintzer bar 58→59, gap 960 ticks; Tenor Madness 37→38, gap 1440).
+**A merge guard came with it.** A resolution finding now merges only with
+another resolution finding, in both passes. Without it, a two-note target
+device and a two-note resolution share an interval vector, `sameIdentity`
+matched them on the interval-vector branch, and `absorb` overwrote the
+resolution's name, degrees and kind. `absorb` adopting those three fields at
+all contradicts its own comment and the spec; that is pre-existing and is now
+in OPEN_QUESTIONS rather than patched here.
+**The numbers.** Blake **13 → 15 findings**, top finding unchanged
+(`major-seventh arpeggio from the b3`, bars 73 and 77, 1.00, all three of the
+older detectors); the two new ones are `7-3 resolution` at bar 85 and
+`V–i 7-3 resolution` at bar 116, both **0.455** — moderate, and the design's
+predicted "≈0.55" was wrong: that assumed a repeat bonus a single-span
+finding does not get. 0.553 is what a recurring one scores. Blake gains no
+findings elsewhere and loses none; its unit count stays 34, and units u3 and
+u5 are new arrivals in the top six (bars 115–117 and 85–86, both carrying a
+resolution), which is D4 in the spec working as written: a unit whose findings
+carry degrees gains +2 rank. Exercises move by −4 or −2 depending on how a
+`write` step is counted, and the whole delta is in those same two units. Each
+was `loop 1 / through 1 / vary 4` and is now `loop 1 / through 1 / vary 2 /
+write`: a `write` step *appeared*, because the unit now holds a finding with
+degrees (`steps/write.ts` opens on a degree cell), and `vary` halved. Counting
+a write step by its generated examples — the convention that reproduces the
+275 recorded as the baseline — the two units go 6 → 4 and the solo goes
+**275 → 271**. Counting a write step as 1, which is what `scripts/run.ts:123`
+prints, they go 6 → 5 and the solo goes **268 → 266**. Both were measured in
+both trees; every other unit is identical under either rule.
+Also settled while reading: the stale premise in OPEN_QUESTIONS that this was
+"the only device on Coker's list that looks *across* a chord change, which no
+detector of ours does". The second half was already false — `LICKS` in
+`analyse/detectors/shapes.ts` matches two-segment cross-chord entries with
+per-segment qualities and a `rootMove`.
+Peers, findings before → after: 26-2 27→29, All The Things 10→10,
+Autumn Leaves 30→30, blues-in-all-keys 38→40, Sandu 7→7, hey-lock 13→15,
+mintzer 26→28, Bartley 43→45, Tenor Madness 28→29, St Thomas 33→35. **Never
+more than +2**, against **53** detected events over the ten peers, because
+the merge collapses occurrences by name: St Thomas's 16 events are two
+findings.
+Tests 487 → **506**. `npm run brackets` unchanged (mintzer 12/13 0 false,
+St Thomas 8/8 0 false). `npm run eval:wjd` **unmoved** — phrases 79.7,
+ideas 76.5, identical to the pre-change reading, as it must be: nothing here
+touches `segment()`. Corpus golden: **161 of 452 scored solos moved, findings
+only** — +1 on 111, +2 on 45, +3 on 5, largest jump +3, totals 6908 → 7124;
+`units`, `phrases` and `ideas` moved on **zero** solos.
+**Evidence class: a 57-event census over Blake and the ten peers, plus the
+owner's reading of the four boundary-crossing cases.** Explicitly *not* an
+eval score — `eval:wjd` and `brackets` score boundaries and are regression
+guards here, not evidence. Re-measuring the census through the shipped
+detector gives **53**, not 57. Two steps account for it: the rules themselves
+reject three events the throwaway census script counted (one in 26-2, one each
+in Autumn Leaves and All The Things), taking 58 to **55** before the idea gate
+is applied; the gate then drops the two rested crossings above, taking 55 to
+53. The census's own arithmetic is loose either way — the per-solo counts
+quoted into the task brief sum to 58 against a stated 57, and the design's
+quality-pairs row (14+19+10+11+4+2) sums to 60 · owner, in brainstorming, before any code · reverse by deleting
+the detector and its wiring — nothing else depends on it; the `resolves`
+marker and the merge guard go with it. The idea-boundary exception alone
+would be reversed by dropping the `MIN_REST` clause, which costs the two
+contiguous crossings above.

@@ -61,12 +61,28 @@ moving its resolution into DECISIONS.md.
   blocks and mix keys (feels worse, retains better). Resolve: design a
   "today's session" view over units once units themselves are validated.
 - **Dictionary is 13 entries.** Grow quality-aware (Coker's elements:
-  7-3 resolution, CESH, bebop-scale runs). Resolve: add with tests per
+  CESH, bebop-scale runs — the 7-3 resolution shipped 2026-09-01 as its own
+  detector rather than a dictionary entry, because a 1+1 lick is
+  unreachable through `CELL_LENGTHS`). Resolve: add with tests per
   entry, watch the Blake goldens.
 - **WBA atom parser as substrate** — probe said its output reads as
   nothing on its own. Keep deferred unless something needs it.
 - **Analyse the head (bars 9–64)** to catch the soloist quoting the tune.
   Form phase is fixed, so this is now cheap.
+- **`absorb` in merge pass 2 adopts more than evidence.** Its own comment
+  and ENGINE_SPEC both say pass 2 adds `detectedBy`/`weights` only, never
+  spans — but it also adopts `degrees`, `name` and `kind` from the absorbed
+  finding. Pre-existing; found while building the 7-3 detector, which was
+  bitten by it (a two-note target device overwrote a resolution's name) and
+  now routes around it with a resolution-only merge guard. Resolve: decide
+  whether pass 2 should adopt those three fields at all, and if not, remove
+  them and re-read Blake and the corpus golden.
+- **The two merge guards in `analyse/index.ts` are near-duplicate
+  comments.** A shared `isResolutionFinding(f)` helper in `sameIdentity`
+  and `mergeByOverlap` would stop them drifting apart. Two-line tidy, left
+  undone deliberately so the documentation commit changed no engine code.
+  Resolve: extract the helper next time either merge pass is edited, and
+  check Blake and the corpus golden are byte-identical afterwards.
 - **displace step and 3/4+ time**: placements assume 4/4 feel (beat 2,
   and-of-1). Check against a 3/4 solo when one arrives.
 
@@ -167,13 +183,17 @@ Full write-up and citations in `docs/research/jazz-pedagogy-literature.md`
 books; ask the owner for a copy.
 All of these are proposals; none is implemented.
 
-- **7-3 resolution is undetected** (b7 of II-7 → 3 of V7; also V7 → I).
-  Coker gives it a whole chapter; Ligon and Owens arrive at it
-  independently. It is the only device on Coker's list that looks *across*
-  a chord change, which no detector of ours does. Resolve: build it from
-  the chord track and `NoteContext` degrees, and decide deliberately
-  whether it may cross an idea boundary (`samePhrase` currently forbids
-  that for every detector).
+- **Only the *adjacent* 7-3 resolution is detected.** The device itself
+  shipped 2026-09-01 (`analyse/detectors/resolutions.ts`; ENGINE_SPEC
+  "7-3 resolution"; DECISIONS 2026-09-01), and the entry that asked for it
+  is retired there. Two neighbours stay open and were declared out of scope
+  deliberately: **anticipated** resolutions, where the 3 is played before the
+  chord arrives (the same bar-line shift as "A note that fits the next chord
+  is still called chromatic"), and **non-adjacent** ones, with notes between
+  the 7 and the 3 — the census found 36 of those with a single note between,
+  and they read as a b7 that happens to precede a change rather than as the
+  device. Resolve: print a sample of each against the record and decide
+  whether either is heard as a resolution.
 - **Phrase boundaries carry a metric and formal position we ignore.**
   Baker: phrases mostly end on the upbeat of beat 1 or 3. Owens: Parker's
   phrase endings cluster in bars 7–8 of each 8-bar section. Bergonzi and
@@ -226,13 +246,16 @@ All of these are proposals; none is implemented.
   stock material the penalty exists to demote. Resolve: check whether such
   runs occur in the corpus and currently score as non-stock; if so, add a
   "stays inside one pentatonic collection" predicate.
-- **Ligon's three melodic outlines are two-thirds already in the
-  dictionary, without their resolutions.** Outline 2 opens with our `1357`
-  and outline 3 with our `5321`; both are defined by the 7th that follows
-  falling to the 3rd of the next chord. Resolve: with the 7-3 detector
-  (above), decide whether an outline is a finding in its own right or a
-  property attached to an existing cell finding — the latter would let a
-  finding say what it is *for*, which is what the summariser needs.
+- **Ligon's three melodic outlines: half-answered.** Outline 2 opens with
+  our `1357` and outline 3 with our `5321`; both are defined by the 7th that
+  follows falling to the 3rd of the next chord. Since 2026-09-01 the
+  resolution itself is a finding, and the *coincidence* is marked per span:
+  `FindingSpan.resolves` flags a cell occurrence that ends on a resolving 7
+  or the note before one, and `describe.ts` prints "its 7 falls to the 3 of
+  the next chord". What remains open is only whether an outline is a finding
+  in its own right. The marker is rare — 6 spans across the ten peers, none
+  on Blake — so there is not yet much to name. Resolve: read the six against
+  the record and decide whether they read as one gesture.
 - **We have no concept of a break** — the 2, 4 or 8 unaccompanied bars that
   often open a solo (Levine's glossary). It sits exactly where our pickup
   and intro handling already gets delicate. Resolve: check whether any

@@ -6,7 +6,7 @@ the code. Each section names the file that implements it — if this file and
 the code disagree, that is a bug to fix immediately, in whichever direction
 the DECISIONS log supports.
 
-Last updated: 2026-09-01 (session 19).
+Last updated: 2026-09-01 (session 20).
 
 ## Units
 
@@ -168,7 +168,11 @@ returning. `npm run solo` prints every adjustment under the header.
   diminished-seventh}.
 - Chords compared by rootPc + quality, never object identity.
 - Detectors never match a window that crosses an idea boundary
-  (`samePhrase`, which checks `NoteContext.idea`).
+  (`samePhrase`, which checks `NoteContext.idea`). **One named exception:**
+  the 7-3 resolution detector may cross an idea or phrase boundary when the
+  two notes are separated by less than `MIN_REST` (240 ticks) — see below. It
+  does not call `samePhrase`; it applies its own gate, so `samePhrase` keeps
+  its meaning for every other detector.
 
 ## Chord scales (`analyse/chordScale.ts`)
 
@@ -274,6 +278,56 @@ stock split; rank/narrate prompts may weigh and name them (judging only).
   min(0.2, chromatics·0.1) − (window−2)·0.03. **Score is used**: it is the
   detector's weight in confidence.
 
+## 7-3 resolution (`analyse/detectors/resolutions.ts`)
+
+Coker's device: the b7 of a chord falls to the 3 of the chord a fourth above
+it. The only detector whose subject is a chord *change* rather than notes
+against a chord. Design: `docs/superpowers/specs/2026-09-01-7-3-resolution-design.md`.
+
+For each **adjacent** pair of contexts `i`, `i+1`, all five must hold:
+
+1. both notes carry a chord;
+2. `a.degree` is `'b7'` or `'7'` (the minor family labels the b7 as `'7'`)
+   and `b.degree` is `'3'`;
+3. `b.chord.rootPc === (a.chord.rootPc + ROOT_MOVE) % 12`, `ROOT_MOVE` = **5**
+   — the house convention for "resolves down a fifth". Because +5 ≠ 0, this
+   also rejects the same chord;
+4. the fall `a.midi − b.midi` is **1 or 2** semitones, read off the MIDI
+   numbers and never inferred from the degree pair: V7 → Imaj is `b7`|`3` and
+   a half step, V7 → i minor is `b7`|`3` and a whole step;
+5. the pair sits in one idea, **or** crosses an idea/phrase boundary with a
+   gap below `MIN_REST` = `TICKS_PER_QUARTER / 4` = **240 ticks** — the same
+   threshold `segment.ts` uses to call a gap articulation rather than a rest.
+   Stated as a musical condition, not a detector privilege: a resolution is
+   legato or it is not one.
+
+Named from the quality pair, because the pair says what the device is *for*.
+Dominant family = {dominant, augmented-seventh}; major = {major,
+major-seventh}; minor family as in "Note context".
+
+| first chord | second chord | name |
+|---|---|---|
+| minor | dominant | `ii–V 7-3 resolution` |
+| dominant | dominant | `V-of-V 7-3 resolution` |
+| dominant | major | `V–I 7-3 resolution` |
+| dominant | minor | `V–i 7-3 resolution` |
+| anything else at +5 | | `7-3 resolution` |
+
+Findings: `kind: 'device'`, `detectedBy: ['resolution']`, weight **1**,
+`degrees: [a.degree, '3']`, `quality` from the first chord, `intervals` the
+played step. Two degrees, so `SHORT_CELL_FACTOR` applies and confidence lands
+**0.455** for a single span, **0.553** with the repeat bonus — moderate, and
+structurally unable to outrank a full figure at 1.00.
+
+`FindingSpan.resolves?: true` — `markResolvingSpans` runs after the merge and
+marks any span of a **cell** finding that ends on a resolving 7 or on the note
+immediately before one (Ligon's outlines 2 and 3). Per span, not per finding.
+`describe.ts:detail()` prints *its 7 falls to the 3 of the next chord*.
+
+Deliberately out: anticipated resolutions (the 3 must onset under the new
+chord), non-adjacent resolutions, and any scale-walk exclusion — a descending
+line still resolves (design D6).
+
 ## Recurring (`analyse/detectors/recurring.ts`)
 
 Interval n-grams length 3–6, ≥2 occurrences; trivia (all steps, one
@@ -294,11 +348,16 @@ min(1, min(0.6, Σ 0.3·weight_detector) + 0.25 if degrees + 0.15 if >1 span
 finding is a degree cell of fewer than 4 notes (a bare triad is stock by
 definition and never scores as a full figure; without this a 17-note
 mostly-scalar unit at Blake 74–75 outranked the maj7 figure). Weight is 1
-for shape/recurring, the hit score for target. Findings below **0.4** are dropped. Labels
+for shape/recurring/resolution, the hit score for target. Findings below **0.4** are dropped. Labels
 (`pipeline.ts`): strong ≥ 0.7, moderate ≥ 0.45.
 
 Merge: pass 1 by identity (degrees+family, else name, else interval
 vector); pass 2 by overlap adds detectedBy/weights only, never spans.
+**A resolution finding merges only with another resolution finding**, in
+both passes: a two-note resolution and a two-note target device share an
+interval vector, and without the guard the interval-vector branch of
+`sameIdentity` matched them and the absorbing finding overwrote the other's
+name, degrees and kind.
 
 ## Practice units (`practice/unit.ts`)
 
@@ -426,9 +485,12 @@ print keeps vector-sharp and a rasterising library would not.
   the desk's order with its headline, detail, the agent's keep/reason and
   its look-for, then the annotated score, tables and legend. Drills are
   engraved for the first **`REPORT_DRILLED_IDEAS` = 8** ideas only; the
-  rest are listed without notation. Blake is 34 units holding 275
-  exercises (loop 34, through 47, vary 178, write 16), which prints to
-  about a hundred pages; the top eight is 85 exercises and 26 pages.
+  rest are listed without notation. Blake is 34 units holding 271
+  exercises (loop 34, through 47, vary 174, write 16), which prints to
+  about a hundred pages; the top eight is 69 exercises. (275 / vary 178 /
+  top eight 85 before the 7-3 resolution detector, 2026-09-01; a write step
+  counts here by the examples it generates, which is not how
+  `scripts/run.ts:123` prints it — that rule reads 268 → 266.)
 
 Prose in the report composes through `practice/describe.ts`, never from
 `Finding.name` (§ "A finding's name is an identity"). A keyless run drops
@@ -828,9 +890,13 @@ browser-direct); keyless runs are byte-identical to the engine alone.
 Blake (`npm run solo`): form 56 bars, chorus starts **9 and 65** (8-bar
 intro, head, solo from a pickup at 63); profile regions 63–64, 65–122.
 Top finding "major-seventh arpeggio from the b3", bars 73+77, all three
-detectors; **13 findings** including "dominant arpeggio 3 to the b9" at
-bar 92 marked common language; 16 phrases, 34 practice units, u1 = bars
-76–77 with that cell; cycle exercise bars all ascend. (The 18/21/32
+detectors; **15 findings** including "dominant arpeggio 3 to the b9" at
+bar 92 marked common language and two 7-3 resolutions at 0.455 (bar 85
+`7-3 resolution`, bar 116 `V–i 7-3 resolution`); 15 phrases, 34 practice
+units, u1 = bars 76–77 with that cell; cycle exercise bars all ascend.
+(13 findings before the resolution detector, 2026-09-01. The "16 phrases"
+recorded here reads **15**, measured on both sides of this change, so the
+drift predates it; it was not traced further.) (The 18/21/32
 counts recorded in session 10 had already drifted by session 13 — the
 2026-08-27 baseline check measured 16 phrases / 13 findings / 34 units
 *before* the common-language change. The change itself swapped one
