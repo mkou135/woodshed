@@ -981,24 +981,37 @@ an agent run showing the ranking reasons read badly in print.
 it the whole segments between neighbouring phrase-level boundaries. So an
 unbroken run before the rest put the wrong note at the front: Hey Lock
 117.4½ weighed 29 notes beginning four bars earlier against the 4-note
-statement after it, and declined to bind. The mirror case binds a gap
-whose distant slice starts agree while the material at the gap does not.
-Now it compares the n notes either side of the rest, n the shorter of the
-two segments, so the answer depends on the music at the gap rather than on
-where the previous boundary landed. Trimming the *after* side is a no-op
-for `sameFigure` today — it reads only the first note and three intervals
-— and is passed for symmetry · WJD phrases 80.8 → 81.0 (P 78.1 → 78.2,
-R 83.7 → 84.1), ideas 76.5 unchanged, 456 solos; hey-lock phrases F1
-0.81 → 0.84 (P 0.81 → 0.87), ideas unchanged at 0.72; owner's Mintzer
-brackets unchanged at 12/13, 0 false; Blake pipeline pin and all 485 tests
-green; corpus golden re-pinned, 126 solos moved phrases, +48 net · engine,
-from the session-19 probe of the "Repetition binds" open question · reverse
-by comparing the untrimmed slices again.
-**Left failing deliberately.** `npm run brackets` now reads 6/7 on St
-Thomas 57–76, swapping a start at 64.3½ in for one at 69.3. That list is
-the *engine's own frozen output*, not the owner's marks (OPEN_QUESTIONS,
+statement after it, and declined to bind. The mirror case binds a gap whose
+distant slice starts agree while the material at the gap does not — St
+Thomas 64.3½ was bound on a **57-note** slice sharing a pitch class and
+three intervals with the 9 notes after it. Now, when the segment before is
+more than `RIFF_WINDOW_RATIO` = 3 times longer than the one after, the
+comparison takes the last n notes before against the n after.
+**The ratio guard is the whole design, and it is fitted to two
+observations.** Trimming unconditionally is wrong: where the two segments
+are comparable the segment's own first note *is* the figure's first note.
+Unguarded it broke St Thomas 37.3½ (8 notes against 5; the last 5 do not
+match) inside the 33–41 chain the owner hears as one phrase, and bound
+69.3 on a degenerate 2-against-2 window — a single semitone matching a
+single semitone. 3 is chosen so 5-against-2 is not "gross" and 29-against-4
+is; nothing but those two cases fixes it there, so treat it as a dial ·
+Hey Lock 117.4½ now binds (phrases F1 0.81 → 0.84, P 0.81 → 0.87), ideas
+unchanged at 0.72; every 33–41 bind and 69.3 preserved; owner's Mintzer
+brackets 12/13, 0 false; WJD **unmoved** at 80.8 / 76.5, 11394 predicted
+phrases against 11387; 485 tests, typecheck clean; golden re-pinned, 97
+solos moved phrases, −45 net · engine, from the session-19 probe of the
+"Repetition binds" open question · reverse by comparing the untrimmed
+slices again.
+**Worth recording about the corpus.** Unguarded, the same change read WJD
+phrases 80.8 → **81.0** and 11436 predicted phrases — a gain earned by
+splitting more, including at the two gaps the owner rules should bind.
+The corpus rewarded the regression, because WJD annotators split riffs 78%
+of the time (2026-08-24 "Riff binding"). The guarded version gives that
+gain back. `eval:wjd` cannot adjudicate riff binding; only the owner can.
+**Left failing deliberately.** `npm run brackets` reads 7/7 matched with
+one false start at St Thomas 64.3½. That start is the one the 57-note
+slice used to suppress, so its appearance is this fix working; the pinned
+list is the *engine's own frozen output* from before it (OPEN_QUESTIONS,
 "the St Thomas 8th": session 4 matched 8 brackets and the bar.beat list was
-never written down), so re-pinning it would be pinning this change against
-itself. The gate stays red until the owner reads 57–76 on the page and
-says which of 64.3½ and 69.3 they hear.
-
+never written down). Re-pinning it would pin the change against itself, so
+the gate stays red until the owner reads 57–76 on the page.

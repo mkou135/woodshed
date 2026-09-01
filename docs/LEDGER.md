@@ -1046,6 +1046,29 @@ the old code *bound*. WJD phrases 80.8 → 81.0, ideas flat; hey-lock
 phrases 0.81 → 0.84 with 117.4½ demoted to an idea exactly as predicted;
 118.4½ still a false phrase (it needs the transposition half, not built)
 and 87.2½ still wrongly bound. 485 tests, typecheck clean, golden re-pinned.
-`npm run brackets` is left **red** at 6/7 on St Thomas 57–76 — that list is
-the engine's own frozen output, so re-pinning it would pin the change
-against itself. Owner's read of 64.3½ vs 69.3 decides it.
+`npm run brackets` went **red** at 6/7 on St Thomas 57–76, and the reflex
+was to call it a stale pin. It was not. Tracing the two moved gaps with a
+replication of `segment()`'s own boundary pass (fidelity-checked against
+its output, unlike the earlier approximate probes) showed one of each: at
+64.3½ the *old* code bound on a 57-note slice that shares a pitch class
+and three intervals with the 9 notes after it — a spurious bind, so
+unbinding it is the fix working — while at 69.3 the *new* code bound on a
+degenerate 2-against-2 window, a single semitone against a single
+semitone. Widening the check to the whole 33–41 chain the owner ruled on
+found a second regression the brackets gate does not cover: 37.3½, 8 notes
+against 5, where trimming loses the figure's first note.
+So trimming unconditionally is wrong, and the shipped commit was +2/−2 on
+the rulings rather than the clean win it claimed. Guarded it with
+`RIFF_WINDOW_RATIO` = 3: trim only when the segment before is grossly
+longer. Every 33–41 bind and 69.3 come back, 117.4½ stays fixed, hey-lock
+holds at 0.84, brackets is 7/7 matched with one false start at 64.3½ — the
+start the 57-note slice used to suppress. The two synthetic tests had to be
+rewritten as gross cases (10 and 9 notes of run) since the guard is exactly
+what they now exercise.
+And the corpus reversed its verdict: WJD went back to 80.8 from the
+unguarded 81.0. That gain came from splitting at gaps the owner says bind —
+the corpus rewarded the regression, which is what 78% annotator splitting
+predicts. `eval:wjd` cannot adjudicate this rule.
+Left red on purpose: brackets, one false start at 64.3½, because the pinned
+list is the engine's own frozen output from before this fix. Owner reads
+57–76 and decides.

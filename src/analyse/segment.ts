@@ -159,6 +159,16 @@ export const DEFAULTS: SegmentOptions = {
 
 const EIGHTH = TICKS_PER_QUARTER / 2
 
+/**
+ * Riff binding trims the segment before the rest down to the statement after
+ * it only when the segment is this many times longer — grossly longer, so
+ * plainly not one statement. Where the two are comparable the segment's own
+ * first note *is* the figure's first note, and trimming loses it (St Thomas
+ * 37.3½, inside the 33–41 chain the owner hears as one phrase: 8 notes
+ * against 5, and the last 5 do not match).
+ */
+const RIFF_WINDOW_RATIO = 3
+
 function median(xs: number[]): number {
   if (xs.length === 0) return 0
   const sorted = [...xs].sort((a, b) => a - b)
@@ -456,7 +466,9 @@ export function segment(
       // intervals — and is passed for the symmetry, not the behaviour.
       const before = notes.slice(start, b.at)
       const after = notes.slice(b.at, end)
-      const n = Math.min(before.length, after.length)
+      const n = before.length > RIFF_WINDOW_RATIO * after.length
+        ? after.length
+        : before.length
       if (sameFigure(before.slice(-n), after.slice(0, n))) b.kind = 'arrival'
     }
   }

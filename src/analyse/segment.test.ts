@@ -315,16 +315,16 @@ describe('riff binding', () => {
   it('compares the statement before the rest, not everything since the last boundary', () => {
     // Hey Lock 117.4½: the same figure either side of the rest, but the
     // material before it runs on without a break back to the previous phrase
-    // edge. Comparing whole inter-boundary segments reads the figure against
+    // edge — 29 notes against 4 there, well past `RIFF_WINDOW_RATIO`. Comparing whole inter-boundary segments reads the figure against
     // a line that starts six notes earlier and declines — so whether a riff
     // binds depended on where the *previous* boundary landed rather than on
     // the music at this gap.
     const run: [number, number, number][] =
-      [e(60), e(62), e(64), e(65), e(67), e(69)]
+      [e(48), e(50), e(52), e(53), e(55), e(57), e(59), e(60), e(62), e(64)]
     const notes = notesFrom([...run, ...riff(62, 1.5), ...riff(62, 0)])
     const phrases = segment(notes)
     expect(phrases).toHaveLength(1)
-    expect(phrases[0].ideas.map((i) => i.notes.length)).toEqual([10, 4])
+    expect(phrases[0].ideas.map((i) => i.notes.length)).toEqual([14, 4])
   })
 
   it('still declines when the notes just before the rest are a different figure', () => {
@@ -332,8 +332,9 @@ describe('riff binding', () => {
     // the riff and then walks away from it, so comparing from the slice's
     // first note bound a gap whose material does not repeat. The four notes
     // either side of the rest are what the ear has to go on.
-    const notes = notesFrom([...riff(62, 0), e(60), e(62), e(64), e(65, 1.5), ...riff(62, 0)])
-    expect(segment(notes)).toHaveLength(2)
+    const walk: [number, number, number][] =
+      [e(60), e(62), e(64), e(65), e(67), e(69), e(71), e(72), e(74, 1.5)]
+    expect(segment(notesFrom([...riff(62, 0), ...walk, ...riff(62, 0)]))).toHaveLength(2)
   })
 })
 
