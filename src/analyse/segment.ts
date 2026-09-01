@@ -115,6 +115,12 @@ export interface SegmentOptions {
    */
   riffMaxGap: number
   /**
+   * How many statements of the figure a chain needs before riff binding
+   * holds it together. A pair is a repeat and the ear still breathes between
+   * the two (Hey Lock 87.2½, the owner's phrase mark); a chain is a riff.
+   */
+  riffMinStatements: number
+  /**
    * The chorus-start prior. At a gap into a chorus downbeat the rest gate is
    * lifted and the test becomes min(1, total + wChorus) >= threshold, so the
    * double bar argues for a break without deciding alone. At 0.45 — the value
@@ -154,6 +160,7 @@ export const DEFAULTS: SegmentOptions = {
   peakWindow: 4,
   pickupHeld: 3,
   riffMaxGap: 3 * TICKS_PER_QUARTER,
+  riffMinStatements: 3,
   wChorus: 0.45,
 }
 
@@ -273,13 +280,16 @@ interface Boundary {
 }
 
 /**
- * The same figure again: same contour over the first three intervals, the
- * same starting pitch class, and an opening note of comparable length.
- * Loose on purpose — Rollins' "A Eb A E A" and "A E A D A" are one riff.
+ * The same figure again: same contour over the first three intervals and an
+ * opening note of comparable length. Loose on purpose — Rollins' "A Eb A E
+ * A" and "A E A D A" are one riff. It does **not** ask for the same starting
+ * pitch: a player who moves the figure is still repeating it, and requiring
+ * a shared pitch class broke Hey Lock 116-120 at exactly the repeat the
+ * owner hears as one breath. The chain rule below, not this test, is what
+ * keeps the tolerance from binding everything that merely rises twice.
  */
 export function sameFigure(a: Note[], b: Note[]): boolean {
   if (a.length < 2 || b.length < 2) return false
-  if (((a[0].midi - b[0].midi) % 12 + 12) % 12 !== 0) return false
   const ratio = a[0].duration / b[0].duration
   if (ratio > 2 || ratio < 0.5) return false
   const n = Math.min(3, a.length - 1, b.length - 1)
@@ -442,16 +452,15 @@ export function segment(
     }
   }
 
-  // Riff binding: a rest between two statements of one figure is inside
-  // the phrase. Groups are taken between phrase-level boundaries.
+  // Riff binding: the rests inside a chain of statements of one figure are
+  // inside the phrase. Groups are taken between phrase-level boundaries.
   if (o.riffMaxGap > 0) {
     const edges = all.filter((b) => b.kind !== 'arrival')
-    for (let k = 0; k < edges.length; k++) {
-      const b = edges[k]
-      if (b.kind !== 'rest') continue
+    const binds = edges.map((b, k) => {
+      if (b.kind !== 'rest') return false
       const start = k > 0 ? edges[k - 1].at : 0
       const end = k + 1 < edges.length ? edges[k + 1].at : notes.length
-      if (cues[b.at - 1].gap > o.riffMaxGap) continue
+      if (cues[b.at - 1].gap > o.riffMaxGap) return false
       // Compare the statements either side of *this* rest, not the whole
       // segments between neighbouring boundaries. `sameFigure` reads each
       // slice from its first note, so an unbroken run before the rest put
@@ -469,7 +478,22 @@ export function segment(
       const n = before.length > RIFF_WINDOW_RATIO * after.length
         ? after.length
         : before.length
-      if (sameFigure(before.slice(-n), after.slice(0, n))) b.kind = 'arrival'
+      return sameFigure(before.slice(-n), after.slice(0, n))
+    })
+
+    // Only a *chain* binds. k adjacent bindable gaps join k + 1 statements,
+    // and a gap that does not bind — or a chorus boundary, which never does
+    // — ends the chain. Two statements are a repeat the ear breathes
+    // between; the figure test alone, now that it tolerates transposition,
+    // would otherwise fold every pair of similar gestures into one phrase.
+    for (let k = 0; k < binds.length;) {
+      if (!binds[k]) { k++; continue }
+      let end = k
+      while (end < binds.length && binds[end]) end++
+      if (end - k + 1 >= o.riffMinStatements) {
+        for (let m = k; m < end; m++) edges[m].kind = 'arrival'
+      }
+      k = end
     }
   }
 

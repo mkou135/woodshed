@@ -1015,3 +1015,41 @@ list is the *engine's own frozen output* from before it (OPEN_QUESTIONS,
 "the St Thomas 8th": session 4 matched 8 brackets and the bar.beat list was
 never written down). Re-pinning it would pin the change against itself, so
 the gate stays red until the owner reads 57–76 on the page.
+
+2026-09-01 · **A riff is a chain, and it may be transposed** · Two changes
+that only work together, from the owner's decision to attack Hey Lock
+87.2½ through repetition count rather than `riffMaxGap` (which cannot do
+it: 87.2½'s gap is 2400 ticks and so are St Thomas 34.2½ and 36.1½, inside
+the chain the owner rules is one phrase). (a) `sameFigure` no longer asks
+for the same starting pitch class — a player who moves the figure is still
+repeating it. (b) Riff binding now demotes only a **chain**: k adjacent
+bindable gaps join k+1 statements, and a non-binding gap or a chorus
+boundary ends the chain; fewer than `riffMinStatements` = 3 statements and
+nothing binds.
+**Neither half is shippable alone.** Scored against all 20 gaps the owner
+has ruled on (Hey Lock 87.2½ / 117.4½ / 118.4½ / 119.4½; St Thomas 33–41's
+five binds and 41.3½; 49–56's two splits; the eight pinned starts on
+57–76): the window fix alone 18/20, transposition alone 19/20, the chain
+rule alone **17/20** — it undoes 117.4½, because group C reads as three
+separate pairs until the figure test can see the transposed statement —
+and the two together **20/20**.
+**The corpus disagrees, and is overruled on precedent.** WJD phrases
+80.8 → **79.7**, all of it recall (11007 predicted against 11394): the
+engine binds more, the annotators split. Ideas unchanged at 76.5. That is
+the same trade as 2026-08-24 "Riff binding", which cost 1.4 F1 because
+annotators split riffs 78% of the time; riff binding as a whole now costs
+about 2.5. Against the owner's marks it runs the other way — hey-lock
+phrases F1 0.81 → 0.84 (window) → **0.90** (P 0.93, R 0.88).
+**On Blake, exactly two phrase starts move, and both are corrections**:
+87.2½ appears, 118.4½ goes. Blake *is* Hey Lock, so this is not independent
+evidence — it is the same two rulings arriving in the pipeline. It did cost
+one test: `profile.test.ts` asserted phrase starts are strictly more
+chromatic than phrase ends, and the two sides came level at 0.167, so the
+assertion is weakened to ≥. Said plainly because weakening a test to admit
+a change is the move this project distrusts: the asymmetry is a *corpus*
+claim resting on a handful of notes across 15 phrases, the two moves that
+levelled it are both the owner's own marks, and a reversal would still
+fail · engine, owner chose repetition count over `riffMaxGap` · reverse by
+`riffMinStatements: 2` and restoring the pitch-class gate — but only
+together, per the 17/20 above.
+

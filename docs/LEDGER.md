@@ -1072,3 +1072,29 @@ predicts. `eval:wjd` cannot adjudicate this rule.
 Left red on purpose: brackets, one false start at 64.3½, because the pinned
 list is the engine's own frozen output from before this fix. Owner reads
 57–76 and decides.
+
+2026-09-01 · session 19b · the riff rules, on the owner's call.
+Owner: re-pin what needs re-pinning, delete the annotations ("none of it
+is particularly detailed"), and do the riffMaxGap. Two of the three went
+straight through; the third could not.
+`riffMaxGap` cannot split Hey Lock 87.2½: its gap is 2400 ticks, and so are
+St Thomas 34.2½ and 36.1½ inside the chain the owner rules is one phrase.
+No value separates them. Offered the repetition-count lever instead — the
+one separator that survived step 1 — and the owner took it.
+Annotations: kept `hey-lock.json`, deleted the other four. Three were
+engine-seeded and could only ever confirm the engine; `all-the-things`
+scored 0.00/0.00 on the bar-0 pickup bug. All recoverable from git.
+Brackets re-pinned: St Thomas 57–76 gains 64.3½, the start the old 57-note
+slice suppressed, taking the list to **8** — the count session 4 reported
+before the bar.beat list was lost. Still engine output, not an owner
+ruling, and the note says so.
+Then the rule change. Probed four variants against all 20 ruled gaps
+before writing any of it: window alone 18/20, transposition alone 19/20,
+chain alone 17/20, both **20/20**. The chain rule alone *undoes* 117.4½,
+which is why the two halves ship together — see DECISIONS. hey-lock
+phrases F1 0.84 → **0.90**, both bracket gates green, 487 tests, golden
+re-pinned (239 solos moved phrases, −376 net).
+Cost: WJD phrases 80.8 → 79.7, all recall, the annotators-split-riffs
+trade taken a second time. And one weakened assertion in `profile.test.ts`,
+written up rather than quietly changed.
+

@@ -38,7 +38,8 @@ Boundary strength per gap = min(1, wRest·rest + wLength·length + wLeap·leap):
 | rhythmWindow | 4 | notes each side for the rhythm-change cue |
 | ideaThreshold | 0.45 | idea profile (wIdeaRest·rest + wLength·length + wLeap·leap + wRhythm·rhythm) ≥ this opens an idea |
 | pickupHeld | 3 × median | pickup gesture: note held ≥ this, then a lone note in the bar's last half-beat landing on the next downbeat → **idea** opens at the pickup (owner's ear on Blake 69→70, 70→71; costs 0.3 WJD idea F1) |
-| riffMaxGap | 3 beats | riff binding: a rest ≤ this between two statements of the same figure (`sameFigure`: ≥ 2 notes each, same first pitch class, same contour over the first 3 intervals with at least one move, opening durations within 2×) ends an **idea**, not a phrase (owner: St Thomas printed 33–41 is one phrase). The two statements are the segments between neighbouring phrase-level boundaries, **except** that when the one before is more than `RIFF_WINDOW_RATIO` = 3 times longer than the one after, it is trimmed to its last n notes, n the length of the one after — a segment that much longer is plainly not one statement, and comparing from its first note made the answer depend on where the previous boundary landed (2026-09-01; WJD unmoved at 80.8, hey-lock phrases 0.81 → 0.84). Trimming *unconditionally* is wrong — where the two are comparable the segment's first note is the figure's first note — see DECISIONS. The 1.4 F1 the rule costs against no riff binding at all predates this and has not been re-run |
+| riffMinStatements | 3 | riff binding needs a **chain**: k adjacent bindable gaps join k+1 statements, and a gap that does not bind — or a chorus boundary, which never does — ends the chain. Two statements are a repeat the ear breathes between (Hey Lock 87.2½, the owner's phrase mark); three are a riff. This is what keeps transposition tolerance from folding every pair of similar gestures into one phrase |
+| riffMaxGap | 3 beats | riff binding: a rest ≤ this between two statements of the same figure (`sameFigure`: ≥ 2 notes each, same contour over the first 3 intervals with at least one move, opening durations within 2× — **not** the same starting pitch, since a player who moves the figure is still repeating it; 2026-09-01) ends an **idea**, not a phrase (owner: St Thomas printed 33–41 is one phrase). The two statements are the segments between neighbouring phrase-level boundaries, **except** that when the one before is more than `RIFF_WINDOW_RATIO` = 3 times longer than the one after, it is trimmed to its last n notes, n the length of the one after — a segment that much longer is plainly not one statement, and comparing from its first note made the answer depend on where the previous boundary landed (2026-09-01; WJD unmoved at 80.8, hey-lock phrases 0.81 → 0.84). Trimming *unconditionally* is wrong — where the two are comparable the segment's first note is the figure's first note — see DECISIONS. The 1.4 F1 the rule costs against no riff binding at all predates this and has not been re-run |
 | peakMin / peakRatio / peakWindow | 0.35 / 2.5 / 4 | local peak: a gap ≥ peakMin that is the strongest within ±peakWindow gaps and ≥ peakRatio × their mean opens an **idea** (never a phrase) |
 | wChorus | 0.45 | chorus-start prior: at a gap into a chorus downbeat the rest gate is lifted and the test is min(1, total + wChorus) ≥ threshold. At 0.45 (= threshold) it always fires, which is the hard wall it replaced; the boundary's confidence is that boosted total, not a constant |
 
@@ -70,10 +71,16 @@ measured with the chorus rule unwired and are not comparable:
 | 0.35 | 80.9 / 83.6 / **82.2** | 77.4 | 10982 |
 | **0.45 (in force)** | 78.1 / 83.7 / **80.8** | 76.5 | 11387 |
 
-The 2026-09-01 riff-binding window fix leaves this table's value in force
-at 78.1 / 83.7 / **80.8**, ideas 76.5, 11394 phrases against 11387 — WJD
-does not move. An unguarded version of that fix read **81.0**, a gain it
-earned by splitting at two gaps the owner rules should bind; see DECISIONS.
+The 2026-09-01 riff-binding work moves this table's value in force to
+78.3 / 81.2 / **79.7**, ideas 76.5, 11007 predicted phrases against 11387.
+The window fix alone was neutral (80.8, 11394); the −1.1 is the cost of
+transposition tolerance plus the chain rule, and it is **all recall** — the
+engine binds more, the annotators split. That is the same trade as the
+original riff-binding decision (2026-08-24, which cost 1.4 F1 on the same
+grounds: annotators split riffs 78% of the time), taken again on the same
+evidence class. Against the owner's own marks it runs the other way:
+hey-lock phrases F1 0.81 → 0.90. Riff binding as a whole now costs roughly
+2.5 phrase F1 against no riff binding at all.
 
 Human ceiling on phrases is .83. The corpus prefers the prior off: the
 wall costs **1.7 phrase F1** across 456 solos, all of it precision. That

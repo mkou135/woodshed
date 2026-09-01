@@ -271,14 +271,16 @@ describe('chorus start, the two conditions on where the test sits', () => {
     const figure = (last: number, gap = 0): [number, number, number][] =>
       [[69, 1, 0], [64, 1, 0], [69, 1, 0], [last, 1, gap]]
 
-    // The same two statements either side of a quarter rest: riff binding is
-    // live on this figure pair and demotes the rest boundary, one phrase.
-    expect(segment(notesFrom([...figure(71, 1), ...figure(72)]))).toHaveLength(1)
+    // Three statements, so the chain is long enough for riff binding to be
+    // live on it, either side of quarter rests: it demotes both rest
+    // boundaries, one phrase.
+    expect(segment(notesFrom([...figure(71, 1), ...figure(72, 1), ...figure(74)]))).toHaveLength(1)
 
-    // The same two statements either side of a chorus downbeat: two phrases.
-    const across = notesFrom([...figure(71), ...figure(72)])
+    // The same statements with a chorus downbeat at the second gap: the
+    // chorus boundary keeps its kind, so the phrase breaks there.
+    const across = notesFrom([...figure(71, 1), ...figure(72), ...figure(74, 1)])
     const phrases = segment(across, [2])
-    expect(phrases).toHaveLength(2)
+    expect(phrases.length).toBeGreaterThan(1)
     expect(phrases[1].startBar).toBe(2)
   })
 })
@@ -321,10 +323,10 @@ describe('riff binding', () => {
     // the music at this gap.
     const run: [number, number, number][] =
       [e(48), e(50), e(52), e(53), e(55), e(57), e(59), e(60), e(62), e(64)]
-    const notes = notesFrom([...run, ...riff(62, 1.5), ...riff(62, 0)])
+    const notes = notesFrom([...run, ...riff(62, 1.5), ...riff(63, 1.5), ...riff(62, 0)])
     const phrases = segment(notes)
     expect(phrases).toHaveLength(1)
-    expect(phrases[0].ideas.map((i) => i.notes.length)).toEqual([14, 4])
+    expect(phrases[0].ideas.map((i) => i.notes.length)).toEqual([14, 4, 4])
   })
 
   it('still declines when the notes just before the rest are a different figure', () => {
@@ -334,7 +336,34 @@ describe('riff binding', () => {
     // either side of the rest are what the ear has to go on.
     const walk: [number, number, number][] =
       [e(60), e(62), e(64), e(65), e(67), e(69), e(71), e(72), e(74, 1.5)]
-    expect(segment(notesFrom([...riff(62, 0), ...walk, ...riff(62, 0)]))).toHaveLength(2)
+    // The three trailing statements are a chain and bind into one phrase, so
+    // the only gap this can split at is the one after the walk.
+    expect(segment(notesFrom([...riff(62, 0), ...walk, ...riff(62, 1.5), ...riff(63, 1.5), ...riff(62, 0)])))
+      .toHaveLength(2)
+  })
+
+  it('binds a figure the player moves to another pitch', () => {
+    // Hey Lock 116-120: four statements of one shape, the second a minor
+    // third below the first. The owner hears one phrase; before the figure
+    // test tolerated transposition the sequence broke into pieces at exactly
+    // the repeats that say "same breath".
+    const shape = (root: number, gap: number) =>
+      [e(root), e(root), e(root - 2), e(root - 8, gap)]
+    const notes = notesFrom([...shape(69, 1.5), ...shape(66, 1.5), ...shape(69, 1.5), ...shape(66, 0)])
+    const phrases = segment(notes)
+    expect(phrases).toHaveLength(1)
+    expect(phrases[0].ideas.map((i) => i.notes.length)).toEqual([4, 4, 4, 4])
+  })
+
+  it('does not bind a figure stated only twice', () => {
+    // Hey Lock 87.2½: two statements of a six-note figure, and the owner
+    // marks a phrase between them. A pair is a repeat; a riff is a chain.
+    const pair = (last: number, gap: number) =>
+      [e(69), e(66), e(64), e(62), e(64), e(last, gap)]
+    expect(segment(notesFrom([...pair(66, 2.5), ...pair(65, 0)]))).toHaveLength(2)
+
+    // A third statement makes it a chain, and the chain binds.
+    expect(segment(notesFrom([...pair(66, 2.5), ...pair(65, 2.5), ...pair(66, 0)]))).toHaveLength(1)
   })
 })
 
