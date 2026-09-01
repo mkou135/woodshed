@@ -61,8 +61,8 @@ export function detectResolutions(ctx: NoteContext[]): ResolutionHit[] {
     if (!seventh.chord || !third.chord) continue
     if (!SEVENTHS.has(seventh.degree ?? '') || third.degree !== '3') continue
 
-    // By value, never identity: a chord written again in the next bar is two
-    // <harmony> elements and no change at all.
+    // The whole test: does the second chord's root sit a fourth above the
+    // first's? Both degrees can read right and the move still be something else.
     if (third.chord.rootPc !== (seventh.chord.rootPc + ROOT_MOVE) % 12) continue
 
     // On the MIDI numbers, because the degree pair cannot tell a V7 → Imaj

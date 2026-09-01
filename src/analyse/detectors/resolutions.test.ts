@@ -47,8 +47,10 @@ describe('detectResolutions', () => {
   })
 
   it('ignores a chord change that is not up a fourth', () => {
-    // D-7 | F7 : the same two notes, a root move of 3.
-    const ctx = contextualise(line([62, 65, 72, 71]), changeAt(2, 'minor-seventh', 5, 'dominant'))
+    // D-7 | Gbmaj7 : C5 falls to Bb4, and both degrees are exactly what a
+    // resolution needs — the b7 of the first chord and the 3 of the second.
+    // Only the root move, 4 rather than 5, says this is not one.
+    const ctx = contextualise(line([62, 65, 72, 70]), changeAt(2, 'minor-seventh', 6, 'major-seventh'))
     expect(detectResolutions(ctx)).toEqual([])
   })
 
