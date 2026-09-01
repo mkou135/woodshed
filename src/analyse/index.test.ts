@@ -131,3 +131,19 @@ describe.skipIf(!existsSync(ST_THOMAS))('language marker', () => {
     expect(named.map((f) => f.name)).toContain('dominant arpeggio 3 to the b9')
   })
 })
+
+describe.skipIf(!existsSync(BLAKE))('7-3 resolutions', () => {
+  it('reports a resolution across a chord change as a finding of its own', () => {
+    const a = analysed(BLAKE)
+    const found = a.findings.filter((f) => f.name.endsWith('7-3 resolution'))
+    expect(found.length).toBeGreaterThan(0)
+    for (const f of found) {
+      expect(f.kind).toBe('device')
+      expect(f.detectedBy).toContain('resolution')
+      expect(f.degrees).toHaveLength(2)
+      expect(f.degrees![1]).toBe('3')
+      // The span is the two notes: the 7 and the 3 it falls to.
+      for (const s of f.spans) expect(s.endIndex - s.startIndex).toBe(1)
+    }
+  })
+})

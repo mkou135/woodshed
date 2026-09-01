@@ -8,6 +8,7 @@ import type { NoteContext } from './context.ts'
 import { matchShapes } from './detectors/shapes.ts'
 import { detectTargets } from './detectors/targets.ts'
 import { findRecurring } from './detectors/recurring.ts'
+import { detectResolutions } from './detectors/resolutions.ts'
 import type { Variant } from './detectors/recurring.ts'
 import { qualityFamily } from '../core/pitch.ts'
 import { chordScales } from './chordScale.ts'
@@ -177,6 +178,24 @@ export function analyse(score: Score, report: CleanupReport, options: AnalyseOpt
     })
   }
 
+  // The only detector that looks across a chord change. Its intervals are the
+  // fall itself, so a generator can rebuild the gesture over other changes.
+  const resolutions = detectResolutions(contexts)
+  for (const hit of resolutions) {
+    raw.push({
+      id: '',
+      kind: 'device',
+      name: hit.name,
+      spans: [spanOf(hit.index, hit.index + 1)],
+      degrees: hit.degrees,
+      intervals: [-hit.fall],
+      quality: hit.quality,
+      detectedBy: ['resolution'],
+      weights: { resolution: 1 },
+      confidence: 0,
+    })
+  }
+
   // Two independent reasons to merge, applied as separate passes. Requiring
   // both at once (the first version of this) breaks each: the same cell in two
   // different bars never merges, and two detectors seeing one event never
@@ -223,6 +242,11 @@ function detectorCredit(f: Finding): number {
  * Literal intervals only identify an unnamed recurring cell.
  */
 function sameIdentity(a: Finding, b: Finding): boolean {
+  // A resolution's subject is a chord change, not notes against one chord —
+  // its degree pair and its single-step interval are coincidences waiting to
+  // happen against a note-level device's degrees or intervals, not the same
+  // vocabulary. Only another resolution finding can be this one.
+  if (a.detectedBy.includes('resolution') !== b.detectedBy.includes('resolution')) return false
   if (a.degrees && b.degrees) {
     // Compare the numbering family, not the exact quality: the same cell over
     // an Fm triad and a Cm7 is the same piece of vocabulary.
@@ -297,7 +321,13 @@ function mergeByOverlap(findings: Finding[]): Finding[] {
   const out: Finding[] = []
   for (const finding of findings) {
     const match = out.find(
-      (m) => overlaps(m, finding) && m.detectedBy.some((d) => !finding.detectedBy.includes(d)),
+      (m) =>
+        overlaps(m, finding) &&
+        m.detectedBy.some((d) => !finding.detectedBy.includes(d)) &&
+        // Same reasoning as sameIdentity: a resolution overlapping a
+        // note-level device's span is coincidence, not two detectors seeing
+        // the same event.
+        m.detectedBy.includes('resolution') === finding.detectedBy.includes('resolution'),
     )
     if (match) absorb(match, finding, false)
     else out.push(finding)
