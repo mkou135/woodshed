@@ -1037,3 +1037,15 @@ comparison windows are approximate — one 57–76 gap (64.3½) reads as
 newly bound under the probe and needs `segment()` itself to confirm.
 Nothing shipped: no engine change, spec unchanged. Owner's call whether
 step 2 (the WJD diagnostic) is worth it — see the report.
+Then the owner asked for the window flaw fixed. Riff binding now compares
+the n notes either side of the rest, n the shorter of the two segments,
+instead of the whole inter-boundary segments — see DECISIONS. Two tests
+first, both red: one for the decline at Hey Lock 117.4½, one for its
+mirror, a segment that opens with the riff and walks away from it, which
+the old code *bound*. WJD phrases 80.8 → 81.0, ideas flat; hey-lock
+phrases 0.81 → 0.84 with 117.4½ demoted to an idea exactly as predicted;
+118.4½ still a false phrase (it needs the transposition half, not built)
+and 87.2½ still wrongly bound. 485 tests, typecheck clean, golden re-pinned.
+`npm run brackets` is left **red** at 6/7 on St Thomas 57–76 — that list is
+the engine's own frozen output, so re-pinning it would pin the change
+against itself. Owner's read of 64.3½ vs 69.3 decides it.

@@ -6,7 +6,7 @@ the code. Each section names the file that implements it — if this file and
 the code disagree, that is a bug to fix immediately, in whichever direction
 the DECISIONS log supports.
 
-Last updated: 2026-08-29 (session 17).
+Last updated: 2026-09-01 (session 19).
 
 ## Units
 
@@ -38,7 +38,7 @@ Boundary strength per gap = min(1, wRest·rest + wLength·length + wLeap·leap):
 | rhythmWindow | 4 | notes each side for the rhythm-change cue |
 | ideaThreshold | 0.45 | idea profile (wIdeaRest·rest + wLength·length + wLeap·leap + wRhythm·rhythm) ≥ this opens an idea |
 | pickupHeld | 3 × median | pickup gesture: note held ≥ this, then a lone note in the bar's last half-beat landing on the next downbeat → **idea** opens at the pickup (owner's ear on Blake 69→70, 70→71; costs 0.3 WJD idea F1) |
-| riffMaxGap | 3 beats | riff binding: a rest ≤ this between two statements of the same figure (`sameFigure`: ≥ 2 notes each, same first pitch class, same contour over the first 3 intervals with at least one move, opening durations within 2×) ends an **idea**, not a phrase (owner: St Thomas printed 33–41 is one phrase; costs 1.4 WJD phrase F1) |
+| riffMaxGap | 3 beats | riff binding: a rest ≤ this between two statements of the same figure (`sameFigure`: ≥ 2 notes each, same first pitch class, same contour over the first 3 intervals with at least one move, opening durations within 2×) ends an **idea**, not a phrase (owner: St Thomas printed 33–41 is one phrase). The two statements are the **n notes either side of this rest**, n the shorter of the two segments between neighbouring phrase-level boundaries — not the whole segments, which made the answer depend on where the previous boundary landed (2026-09-01; phrases 80.8 → 81.0). The 1.4 F1 the rule costs against no riff binding at all was measured before that fix and has not been re-run |
 | peakMin / peakRatio / peakWindow | 0.35 / 2.5 / 4 | local peak: a gap ≥ peakMin that is the strongest within ±peakWindow gaps and ≥ peakRatio × their mean opens an **idea** (never a phrase) |
 | wChorus | 0.45 | chorus-start prior: at a gap into a chorus downbeat the rest gate is lifted and the test is min(1, total + wChorus) ≥ threshold. At 0.45 (= threshold) it always fires, which is the hard wall it replaced; the boundary's confidence is that boosted total, not a constant |
 
@@ -69,6 +69,12 @@ measured with the chorus rule unwired and are not comparable:
 | 0.30 | 81.1 / 83.6 / **82.4** | 77.5 | 10955 |
 | 0.35 | 80.9 / 83.6 / **82.2** | 77.4 | 10982 |
 | **0.45 (in force)** | 78.1 / 83.7 / **80.8** | 76.5 | 11387 |
+
+Since 2026-09-01, with riff binding's comparison windowed to the statements
+either side of the rest, the value in force reads 78.2 / 84.1 / **81.0**,
+ideas 76.5, 11436 phrases. The `wChorus` rows above are **not** re-measured
+under it; they are kept because the shape of that sweep, not its absolute
+level, is what the decision rests on.
 
 Human ceiling on phrases is .83. The corpus prefers the prior off: the
 wall costs **1.7 phrase F1** across 456 solos, all of it precision. That

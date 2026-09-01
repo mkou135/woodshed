@@ -442,7 +442,22 @@ export function segment(
       const start = k > 0 ? edges[k - 1].at : 0
       const end = k + 1 < edges.length ? edges[k + 1].at : notes.length
       if (cues[b.at - 1].gap > o.riffMaxGap) continue
-      if (sameFigure(notes.slice(start, b.at), notes.slice(b.at, end))) b.kind = 'arrival'
+      // Compare the statements either side of *this* rest, not the whole
+      // segments between neighbouring boundaries. `sameFigure` reads each
+      // slice from its first note, so an unbroken run before the rest put
+      // the wrong note there: Hey Lock 117.4½ weighed 29 notes beginning
+      // four bars earlier against the 4-note statement after, and declined;
+      // the same flaw binds a gap whose distant slice starts happen to
+      // agree while the material at the gap does not. Take the last n notes
+      // before and the first n after, n the shorter of the two, so the
+      // answer depends on the music at the gap rather than on where the
+      // previous boundary landed. Trimming `after` is a no-op for
+      // `sameFigure` today — it reads only the first note and three
+      // intervals — and is passed for the symmetry, not the behaviour.
+      const before = notes.slice(start, b.at)
+      const after = notes.slice(b.at, end)
+      const n = Math.min(before.length, after.length)
+      if (sameFigure(before.slice(-n), after.slice(0, n))) b.kind = 'arrival'
     }
   }
 

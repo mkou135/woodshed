@@ -975,3 +975,30 @@ Evidence class: exported the Blake run through a real browser, printed it,
 read all 26 pages · owner chose the scope, Claude measured it · would
 reverse: a player wanting the full 275 (raise `REPORT_DRILLED_IDEAS`), or
 an agent run showing the ranking reasons read badly in print.
+
+2026-09-01 · **Riff binding compares the statements, not the segments** ·
+`sameFigure` reads each slice from its first note, and riff binding handed
+it the whole segments between neighbouring phrase-level boundaries. So an
+unbroken run before the rest put the wrong note at the front: Hey Lock
+117.4½ weighed 29 notes beginning four bars earlier against the 4-note
+statement after it, and declined to bind. The mirror case binds a gap
+whose distant slice starts agree while the material at the gap does not.
+Now it compares the n notes either side of the rest, n the shorter of the
+two segments, so the answer depends on the music at the gap rather than on
+where the previous boundary landed. Trimming the *after* side is a no-op
+for `sameFigure` today — it reads only the first note and three intervals
+— and is passed for symmetry · WJD phrases 80.8 → 81.0 (P 78.1 → 78.2,
+R 83.7 → 84.1), ideas 76.5 unchanged, 456 solos; hey-lock phrases F1
+0.81 → 0.84 (P 0.81 → 0.87), ideas unchanged at 0.72; owner's Mintzer
+brackets unchanged at 12/13, 0 false; Blake pipeline pin and all 485 tests
+green; corpus golden re-pinned, 126 solos moved phrases, +48 net · engine,
+from the session-19 probe of the "Repetition binds" open question · reverse
+by comparing the untrimmed slices again.
+**Left failing deliberately.** `npm run brackets` now reads 6/7 on St
+Thomas 57–76, swapping a start at 64.3½ in for one at 69.3. That list is
+the *engine's own frozen output*, not the owner's marks (OPEN_QUESTIONS,
+"the St Thomas 8th": session 4 matched 8 brackets and the bar.beat list was
+never written down), so re-pinning it would be pinning this change against
+itself. The gate stays red until the owner reads 57–76 on the page and
+says which of 64.3½ and 69.3 they hear.
+
