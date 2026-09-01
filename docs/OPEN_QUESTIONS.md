@@ -18,9 +18,6 @@ moving its resolution into DECISIONS.md.
 - **Mixed-meter solos** (3 in WJD) are rejected; MusicXML with a mid-score
   `<time>` change silently takes the last one. Resolve: per-bar time
   signatures in `Score`, or reject in `parseScore` the same way.
-- **Corpus numbers are printed, not pinned.** Resolve: a golden file for
-  `corpus:wjd` (per-solo findings/units counts) so a change shows its blast
-  radius — like `pipeline.test.ts` does for Blake.
 - **Omnibook as a regression corpus.** 50 Parker heads+solos (Inria, CC
   BY-NC-SA, `~/dev/woodshed-data/omnibook`) all run; ~1,800 units. Not in
   the repo (licence, 50 MB with the WJD copy). Resolve: an
@@ -85,14 +82,6 @@ moving its resolution into DECISIONS.md.
   don't line up with findings or phrase starts the way boundary marks do.
   Resolve: decide a matching rule (span overlap? contained finding?) once
   there are enough owner spans to design against.
-- **`npm run typecheck` only covers `src/`.** `tsconfig.json` has
-  `"include": ["src"]` and `lib: ["ES2022"]` with no DOM — deliberate, it's
-  what enforces "`src/` is DOM-free" — but that also means nothing under
-  `app/` or `scripts/` is type-checked by the standard command (caught only
-  by ad hoc direct `tsc` invocations during the annotation-app work).
-  Resolve: add a `tsconfig.app.json` (DOM lib for `app/`, node types for
-  `scripts/`) and wire it into the `typecheck` script, rather than widening
-  the main `include`.
 
 - **Owner brackets: the St Thomas 8th.** `npm run brackets` (session 6)
   scores scripts/brackets.json against the peers files. Mintzer 3–34 is the
@@ -359,6 +348,14 @@ All of these are proposals; none is implemented.
   bars for variation seeding, and seed the far-flung high-count cells
   (e.g. chromatic enclosure into the 1 from above, 7 hits) as **star**
   candidates instead — recurring vocabulary is what drilling wants.
+- **Does a machine transcription of the player's own playing count as "note
+  data" under the non-negotiable?** Blocks any audio-in feature that analyses
+  a played solo (not one that only grades reps against expected notes).
+  Resolve: a DECISIONS entry ruling whether a self-transcription is a
+  different object that shares detectors — own confidence track, never a
+  fixture, never feeds the goldens. Background:
+  `docs/research/audio-and-intent.md`, **local only** (gitignored: it
+  describes a private repo) — ask the owner for a copy.
 
 ## Overlap merge consumes a multi-span device when one span converges
 

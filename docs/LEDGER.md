@@ -918,3 +918,32 @@ segmentation error wearing a formatting costume (OPEN_QUESTIONS
 "Repetition binds"). Note the claim is inferred from the owner's pasted
 head, not measured — Blake does not exhibit it, and that other solo was
 never re-run. Next sprint's candidate.
+
+2026-09-01 · session 18 · shipping session 17 and telling the truth about
+what is open.
+No engineering. `sprint/finding-presentation` had been sitting two commits
+ahead of main since session 17, complete and unshipped: 453 tests green,
+typecheck clean over both configs, `corpus:wjd` golden unchanged 456/456
+at that HEAD. Merged fast-forward and pushed, which deploys Pages. The
+agent switch is off by default (98d0672), so neither open BYOK-on-Pages
+question is touched by the deploy.
+Two OPEN_QUESTIONS entries were resolved and never closed — the
+`typecheck` one (tsconfig.app.json has existed and been wired into the
+script) and "corpus numbers are printed, not pinned" (goldens/corpus-wjd.json
+plus the non-zero exit). Closed through DECISIONS rather than deleted, per
+the protocol. `eval:omnibook` stays open: that script genuinely does not
+exist. `bench:bopland` stays open too — the script exists, the coverage
+question it reports is the open part.
+The Aug-25 branch `worktree-audio-listening-ideas` (docs only, 5e0a723)
+had never landed, so its open question was missing from main. Not merged —
+its diffs anchor at LEDGER line ~226 against a file now over 900 lines —
+so the question was hand-placed at the end of the pedagogy section and the
+253-line idea store `docs/research/audio-and-intent.md` was written to
+disk and **gitignored**, beside `jazz-pedagogy-literature.md` and for the
+same class of reason: it describes the private `cadenceplayground` repo's
+architecture and file paths. Stating the exposure plainly rather than
+filing it as a near-miss: woodshed is a public repo and that branch was
+pushed, so those details were readable on GitHub from 2026-08-25 until the
+branch was deleted today. Deleting the branch removes them going forward;
+it does not unpublish what was already there.
+Also deleted the merged local branch `sprint/chorus-prior-and-design`.

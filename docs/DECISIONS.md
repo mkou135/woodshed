@@ -900,3 +900,39 @@ Evidence class: owner's own reading of the page, one solo · owner decided
 the direction, Claude scoped it · would reverse: a player reporting the
 headline hides something they needed, or agent names proving worse than
 the dictionary's on a real run.
+
+## 2026-09-01 · Two open questions were resolved by work already shipped
+
+**Question.** `OPEN_QUESTIONS.md` still listed "`npm run typecheck` only
+covers `src/`" and "Corpus numbers are printed, not pinned". Both name a
+resolution that is now in the repo. Are they open?
+
+**Decision.** Neither is. Closing both.
+
+*Typecheck coverage.* The entry asked for "a `tsconfig.app.json` (DOM lib
+for `app/`, node types for `scripts/`) wired into the `typecheck` script,
+rather than widening the main `include`". That file exists and does
+exactly that — it extends `tsconfig.json`, adds `DOM`/`DOM.Iterable` to
+`lib` and `vite/client`/`node` to `types`, and includes `app`, `scripts`
+and `src`. `package.json` runs `tsc --noEmit && tsc --noEmit -p
+tsconfig.app.json`, so the DOM-free `src/` pass still stands alone and
+still enforces the non-negotiable. Verified clean this session.
+
+*Corpus pinning.* The entry asked for "a golden file for `corpus:wjd`
+(per-solo findings/units counts) so a change shows its blast radius —
+like `pipeline.test.ts` does for Blake". `goldens/corpus-wjd.json` pins
+456 solos and the script exits non-zero on any change, with
+`--write-golden` to re-pin; CLAUDE.md documents the command that way. Run
+this session: unchanged 456, changed 0, added 0, removed 0.
+
+The two questions the same section raises that are **not** closed:
+`eval:omnibook` does not exist as a script, so the Omnibook regression
+entry stands as written; and `bench:bopland` does exist, but that entry's
+open part is dictionary coverage and the owner's call on adding cells, not
+the tooling.
+
+Evidence class: read of `tsconfig.app.json`, `package.json` and
+`goldens/`, plus a clean run of `npm run typecheck` and `npm run
+corpus:wjd` at 16d9ba4 · Claude, closing bookkeeping the owner asked for ·
+would reverse: dropping the second `tsc` invocation from the `typecheck`
+script, or deleting the corpus golden / relaxing its exit code.
