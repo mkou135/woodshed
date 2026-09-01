@@ -251,10 +251,26 @@ All of these are proposals; none is implemented.
   4× varied sequence (variation group C); the engine splits it into
   phrases at 117.4½ / 118.4½ / 119.4½ because each repeat sits behind an
   8th rest + leap (totals 0.72–0.79, threshold 0.45). The rest cue is
-  strongest exactly where repetition says "same breath". Resolve: prototype
-  a parallelism term (interval-shape similarity of the material either
-  side of a candidate gap) that suppresses boundary strength, score it
-  against eval:owner + eval:wjd + brackets.
+  strongest exactly where repetition says "same breath". **Probed
+  2026-09-01 (session 19); the question has moved.** The mechanism already
+  exists — riff binding — and gets one of four Hey Lock calls right: it
+  demotes 87.2½, the one boundary the owner *marked*, and declines 117.4½
+  and 118.4½, the two they did not. Two distinct causes, one observation
+  each: at 117.4½ the comparison window runs between phrase-level edges,
+  so it weighs 29 notes against a 4-note statement; at 118.4½ `sameFigure`
+  requires the same first pitch class and the sequence transposes (-3).
+  And its polarity is wrong for group C — demotion yields a false *idea*
+  where the owner marks nothing, so suppression is a third kind riff
+  binding does not have. Separators tested against St Thomas (the only
+  other owner ruling): absolute gap and statement length are both dead —
+  33–41 binds a 2400t gap, exactly group D's, and its bound statements
+  span 2–12 notes. Only repetition count survives (bind 4x, 6x; split 2x),
+  n=1 on the split side. Prize if all of it worked: hey-lock phrase F1
+  0.81 → ~0.90, ideas flat at 0.72, against the 1.4 WJD phrase F1 riff
+  binding already costs. Resolve: owner decides whether that trade is
+  worth a WJD diagnostic sweep at all; if so, the two window/transposition
+  fixes and the riffMaxGap narrowing are separate items with separate
+  evidence, not one term.
 - **Long-range variation tracking.** Owner group B links 97.1/99.1 to a
   return at 110.4½–112.3; the engine's recurring detectors caught 97↔99
   (major triad 1-3-5) but nothing 11 bars later. The variations field in

@@ -987,3 +987,53 @@ that is exactly the drift session 17 caught silently falling back. Also
 noted: Blake's MusicXML `<title>` is the literal string "Title", which
 `soloTitle` rejects, so the report is headed with the filename. Correct
 behaviour, but it means the handout carries whatever the file is called.
+
+2026-09-01 · session 19 · spike: does repetition suppress a boundary?
+OPEN_QUESTIONS "Repetition binds — boundaryCue has no similarity term":
+Hey Lock 116–120, owner hears one phrase built from a 4× varied sequence,
+engine splits it at 117.4½ / 118.4½ / 119.4½. Step 1 is a probe, not a
+term: find whether any single scalar separates the owner's *bind* case
+(group C) from their *split* case (group D, 85.3–86.3½ / 87.2½–88.3½,
+where the owner marks a phrase at 87.2½ and the engine already misses it).
+Both are repetition; the owner reads them opposite ways. If nothing
+separates them the spike is answered negatively and cheaply.
+Step 1 answered, and it reframes the item. Three facts, all from
+`hey-lock.mxl` (the only uncontaminated owner annotation — mintzer,
+blues-in-all-keys and bartley are seeded at P/R 1.00, and all-the-things
+scores 0.00/0.00 on the known bar-0 pickup bug):
+(a) The mechanism already exists and gets one of four calls right. Riff
+binding demotes 87.2½ — the one boundary the owner *marked* — and declines
+117.4½ and 118.4½, the two they did not. It demotes 119.4½ correctly at
+phrase level, but the owner marks no idea there either, so it survives as
+a false idea. Suppression, not demotion, is what group C wants.
+(b) Why it declines: `sameFigure` requires the same first pitch class and
+group C is a *transposed* sequence (-3 at 118.4½). At 117.4½ it does not
+even compare statements — the window runs between phrase-level edges, so
+it weighs 29 notes (113.1½–117.2½) against a 4-note statement. The rule's
+answer depends on where the previous boundary landed, not on the music at
+the gap.
+(c) gap/statement ratio is falsified as the discriminator: C is 0.50/0.60/
+0.60 and D is 0.50. What does separate them on this evidence is absolute
+gap (1440t vs 2400t), statement length (2.5–3.5 beats / 4 notes vs
+5.0–5.5 / 6) and repetition count (4x vs 2x) — but n=1 on the split side,
+and the gap separator collides with St Thomas, where riffMaxGap is 3 beats
+precisely to cover Rollins' 2.5-beat rests (`brackets` is the gate).
+Probes are throwaway, in the job dir, not committed.
+Then St Thomas, the only other solo the owner has ruled on for riff
+binding (DECISIONS 2026-08-24: 33–41 is one phrase, 49–56 stays three),
+which kills two of the three separators. 33–41 binds a gap of **2400t**
+at 34.2½ — exactly group D's gap — so narrowing `riffMaxGap` to 2 beats
+would unbind the span the owner asked to bind. Its bound statements run
+2–12 notes / 1.5–8.5 beats, straddling D's 6 notes / 5.0–5.5 beats, so
+statement length does not separate either. Only **repetition count**
+survives: bind at 4x (Hey Lock C) and 6x (St Thomas 33–41), split at 2x
+(group D) — still n=1 on the split side.
+Also checked the fear that transposition-tolerance would over-bind: on
+St Thomas 49–56, dropping `sameFigure`'s first-pitch-class gate leaves
+both owner splits split (51.1½ and 53.3½), so the tolerance is not
+obviously unsafe. Caveat: the probes rebuild the edge list from rest
+boundaries only, without the idea/chorus branches or `enforceMinimum`, so
+comparison windows are approximate — one 57–76 gap (64.3½) reads as
+newly bound under the probe and needs `segment()` itself to confirm.
+Nothing shipped: no engine change, spec unchanged. Owner's call whether
+step 2 (the WJD diagnostic) is worth it — see the report.
