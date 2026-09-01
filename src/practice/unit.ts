@@ -69,6 +69,8 @@ export interface UnitSummary {
    * "mostly common jazz language". Absent below the threshold.
    */
   stockKind?: 'scale-run' | 'common-language'
+  /** A finding in this unit ends on a 7 that falls to the 3 of the next chord. */
+  resolves: boolean
 }
 
 /** Stock share at or above this reads as "mostly a scale run" on the page. */
@@ -85,6 +87,8 @@ function summary(
   for (const f of unit.findings) {
     for (const s of f.spans) if (!inside.has(writtenBar(score, s.bar).bar)) also.add(barLabel(score, s.bar))
   }
+  const resolves = unit.findings.some((f) =>
+    f.spans.some((s) => s.resolves && s.startIndex >= unit.startIndex && s.endIndex <= unit.endIndex))
   return {
     bars: barRange(score, first.bar, last.bar, true),
     chords: unit.harmony.map(chordName),
@@ -92,6 +96,7 @@ function summary(
     alsoAt: [...also].sort((a, b) => parseInt(a) - parseInt(b)),
     stock: unit.stock >= STOCK_SHOWN,
     stockKind: stockKind(unit.stockParts),
+    resolves,
   }
 }
 

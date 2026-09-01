@@ -201,4 +201,16 @@ describe.skipIf(!existsSync(ST_THOMAS))('common-language framing on St Thomas', 
     const plainLoop = plain?.steps.find((s) => s.kind === 'loop')
     expect(plainLoop?.kind === 'loop' && plainLoop.exercise.rationale).not.toContain(cliche)
   })
+
+  it('reports a resolution only on the unit that holds it', () => {
+    const marked = result.units.filter((u) => u.summary.resolves)
+    expect(marked.length).toBeGreaterThan(0)
+    // A cell recurring in three bars resolves in one of them; `alsoAt` says
+    // where else it is, and this line must not follow it there.
+    for (const u of marked) {
+      const inside = u.findings.some((f) =>
+        f.spans.some((s) => s.resolves && s.startIndex >= u.startIndex && s.endIndex <= u.endIndex))
+      expect(inside, `unit ${u.id} claims a resolution it does not contain`).toBe(true)
+    }
+  })
 })

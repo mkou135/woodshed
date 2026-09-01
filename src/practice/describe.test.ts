@@ -16,7 +16,7 @@ function unit(findings: Finding[], summary: Partial<UnitSummary> = {}): Describe
     findings,
     summary: {
       bars: 'Bars 204–205', chords: ['Gmaj7', 'C7'], landing: null, alsoAt: [],
-      stock: false, ...summary,
+      stock: false, resolves: false, ...summary,
     },
   }
 }
@@ -116,6 +116,16 @@ describe('detail', () => {
 
   it('is empty when there is nothing to add', () => {
     expect(detail(unit([finding({ id: 'f1' })]))).toEqual([])
+  })
+
+  it('says when the idea resolves its 7 to the 3 of the next chord', () => {
+    const u = unit([finding({ id: 'f1' })], { resolves: true })
+    expect(detail(u)).toContain('its 7 falls to the 3 of the next chord')
+  })
+
+  it('says nothing about resolution when nothing in the idea resolves', () => {
+    const u = unit([finding({ id: 'f1' })])
+    expect(detail(u)).not.toContain('its 7 falls to the 3 of the next chord')
   })
 })
 

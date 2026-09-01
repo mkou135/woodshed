@@ -88,6 +88,7 @@ export function detail(unit: Described, names?: TeacherNames): string[] {
   const named = namedCells(unit, names)
   for (const name of named.slice(1)) out.push(name)
   if (unit.summary.landing) out.push(`lands on the ${unit.summary.landing}`)
+  if (unit.summary.resolves) out.push('its 7 falls to the 3 of the next chord')
   const variants = unit.findings.reduce(
     (n, f) => n + (f.variants?.reduce((m, v) => m + v.occurrences.length, 0) ?? 0), 0)
   if (variants > 0) out.push(`${variants} variant${variants > 1 ? 's' : ''} of the same shape`)
