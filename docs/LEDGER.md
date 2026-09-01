@@ -958,3 +958,15 @@ build` at 23f811f was compared against the served
 `assets/index-BIaRF8Ox.js` — byte-identical (sha256
 75b80646…502855). That proves the deployed bundle is this commit; it does
 not re-check the rendering, which session 17 read in Chrome.
+
+2026-09-01 · session 18b · a session report to hand a peer.
+Owner's ask: run the AI once, then export the whole thing — agent output
+and annotations — as something shareable, to stop paying for a re-run just
+to show someone. `app/export.ts` already emitted a standalone annotated
+score with tables and a legend; it carried nothing the agent said. Widening
+that export rather than building a second one. PDF via the browser's own
+print (the score is inline SVG, so print keeps it vector-sharp; a PDF
+library would rasterise the notation and add bundle weight to a page that
+ships to Pages). Measured before designing: Blake is 34 units / 108 steps /
+225 exercises, and only `through` (47) and `vary` (178) engrave anything —
+so "every drill" is ~100 pages. Top 8 ideas by default, all 34 on request.
