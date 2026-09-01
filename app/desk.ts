@@ -20,7 +20,7 @@ export interface Desk {
   onDone(cb: () => void): void
 }
 
-const TITLES: Record<Step['kind'], string> = {
+export const STEP_TITLES: Record<Step['kind'], string> = {
   loop: 'Loop it as played',
   through: 'Through the tune',
   vary: 'Vary it',
@@ -176,7 +176,7 @@ export function practiceDesk(
     unit.steps.forEach((s, i) => {
       const li = el('li')
       li.tabIndex = 0
-      li.append(el('span', 'n', String(i + 1)), el('span', 't', TITLES[s.kind]), el('span', 's', intent(s, unit, result)))
+      li.append(el('span', 'n', String(i + 1)), el('span', 't', STEP_TITLES[s.kind]), el('span', 's', intent(s, unit, result)))
       li.addEventListener('click', () => { void show(i) })
       li.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); void show(i) } })
       path.appendChild(li)
@@ -197,7 +197,7 @@ export function practiceDesk(
         if (s.kind === 'write') body.appendChild(writeBlock(s, unit))
         const foot = el('div', 'foot')
         const last = i === unit.steps.length - 1
-        const label = last ? 'Done — next idea →' : `Done — ${TITLES[unit.steps[i + 1].kind].toLowerCase()} →`
+        const label = last ? 'Done — next idea →' : `Done — ${STEP_TITLES[unit.steps[i + 1].kind].toLowerCase()} →`
         foot.appendChild(button('btn solid', label, () => {
           done.mark(unit.id, s.kind)
           for (const cb of doneListeners) cb()

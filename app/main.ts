@@ -1,4 +1,4 @@
-import { headline, liveClient, namedCells, readScoreXml, run, runWithAgent, teacherNames, UnsupportedScoreError } from '../src/index.ts'
+import { exerciseToMusicXml, headline, liveClient, namedCells, readScoreXml, run, runWithAgent, teacherNames, UnsupportedScoreError } from '../src/index.ts'
 import type { AgentOutput, PipelineResult, PracticeUnit, TeacherNames } from '../src/index.ts'
 import { agentEnabled, agentKey, agentKeyRow, agentModel, agentPersona } from './agentKey.ts'
 import { button, el } from './dom.ts'
@@ -6,6 +6,8 @@ import { renderScore } from './score.ts'
 import type { OverlaySettings, ScaleMode } from './score.ts'
 import { OVERLAY_DEFAULTS } from './score.ts'
 import { annotationExportHtml, downloadHtml } from './export.ts'
+import { withEngraver } from './engrave.ts'
+import { ideaViews, sessionReportHtml } from './report.ts'
 import { tuneChip } from './tune.ts'
 import { detailsDrawer, whereOf } from './details.ts'
 import { doneStore } from './done.ts'
@@ -79,6 +81,12 @@ function soloTitle(result: PipelineResult, filename: string): string {
 
 /** Which scales the band shows; one setting for the browser, not per solo. */
 const SCALES_KEY = 'woodshed.scales'
+/**
+ * How many ideas the session report engraves drills for. Blake's 34 units
+ * hold 275 exercises between them, which prints to about a hundred pages;
+ * eight is a handout. Every idea is still listed, drills or not.
+ */
+const REPORT_DRILLED_IDEAS = 8
 const OVERLAYS_KEY = 'woodshed.overlays'
 
 function header(result: PipelineResult, filename: string, chip: HTMLElement, picker: HTMLElement, details: HTMLElement): void {
@@ -247,10 +255,12 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
   }
 
   const exportButton = button('btn quiet export-annotations', 'Export annotations', () => {})
+  const reportButton = button('btn quiet export-report', 'Export session report', () => {})
+  reportButton.title = 'The whole run — the agent’s reading, every idea, and the drills for the strongest few — as one file to print or send'
   const marks = el('div', 'ctl-row ctl-marks')
   marks.append(el('span', 'ctl-lbl', 'Engine marks'), overlays)
   const reading = el('div', 'ctl-row ctl-read')
-  reading.append(el('span', 'ctl-lbl', 'Score'), hl, scales, goto, exportButton)
+  reading.append(el('span', 'ctl-lbl', 'Score'), hl, scales, goto, exportButton, reportButton)
   controls.append(marks, reading)
   const solo = el('div', 'solo')
   sheet.append(controls, solo)
@@ -307,6 +317,48 @@ async function renderResult(result: PipelineResult, xml: string, filename: strin
   let units = agent?.ranking ? agentOrder(result.units, agent) : result.units
   let selectedId: string | null = null
   let strip: HTMLElement | null = null
+
+  // The whole run in one file. Every idea is listed; drills are engraved for
+  // the strongest few only, because a full Blake run is 275 exercises. The
+  // score snapshot is taken the same way the annotation export takes it.
+  reportButton.addEventListener('click', () => {
+    void (async () => {
+      const snap = view.exportAnnotations()
+      view.showOverlays(overlaySettings)
+      if (!snap) return
+      const title = soloTitle(result, filename)
+      const label = reportButton.textContent
+      reportButton.disabled = true
+      try {
+        const { instrument, keyFifths } = result.score
+        const drilled = Math.min(REPORT_DRILLED_IDEAS, units.length)
+        let engraved = 0
+        const ideas = await withEngraver((engrave) => ideaViews(units, {
+          drilled,
+          agent,
+          names,
+          engrave: (exercise) => {
+            reportButton.textContent = `Engraving ${++engraved}…`
+            return engrave(exerciseToMusicXml(exercise, instrument, { keyFifths, forDisplay: true }))
+          },
+        }))
+        downloadHtml(`${title.replace(/[^\w-]+/g, '-').toLowerCase()}-session-report.html`,
+          sessionReportHtml({
+            title,
+            svgMarkup: snap.svg,
+            items: snap.items,
+            overview: agent?.narration?.overview ?? [],
+            degraded: agent?.degraded ?? [],
+            ideas,
+            ideasTotal: units.length,
+            drilledCount: drilled,
+          }))
+      } finally {
+        reportButton.disabled = false
+        reportButton.textContent = label
+      }
+    })()
+  })
 
   const fillDrawer = (): void => {
     drawerTitle.textContent = `All ${units.length} ideas`
