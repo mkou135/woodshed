@@ -192,7 +192,7 @@ export function sessionReportHtml(input: ReportInput): string {
     : `<p class="note">All ${input.ideasTotal} ideas this run found, with their drills.</p>`
 
   const body = `${agentHtml(input)}
-<h2 class="page-break">The ideas, and the drills</h2>
+<h2>The ideas, and the drills</h2>
 ${scope}
 ${input.ideas.map(ideaHtml).join('\n')}
 <h2 class="page-break">The score, annotated</h2>

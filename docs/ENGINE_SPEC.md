@@ -402,6 +402,37 @@ lines. The engine overlays, the details drawer and the annotation export are
 unchanged: they are the audit view, where the interval vector is the right
 thing to say.
 
+## The exports (`app/export.ts`, `app/report.ts`, `app/engrave.ts`)
+
+Two standalone HTML files, both printed to PDF by the browser rather than
+built by a PDF library: the score and the exercises are inline SVG, which
+print keeps vector-sharp and a rasterising library would not.
+
+- **Annotation export** — the annotated score, the annotation tables and
+  the legend. The audit view, engine-only.
+- **Session report** — the whole run: the agent's overview, every idea in
+  the desk's order with its headline, detail, the agent's keep/reason and
+  its look-for, then the annotated score, tables and legend. Drills are
+  engraved for the first **`REPORT_DRILLED_IDEAS` = 8** ideas only; the
+  rest are listed without notation. Blake is 34 units holding 275
+  exercises (loop 34, through 47, vary 178, write 16), which prints to
+  about a hundred pages; the top eight is 85 exercises and 26 pages.
+
+Prose in the report composes through `practice/describe.ts`, never from
+`Finding.name` (§ "A finding's name is an identity"). A keyless run drops
+the agent sections **entirely** rather than heading an empty one. An
+exercise OSMD cannot lay out drops that one drill and keeps the report.
+
+Print rules: `.drill` and `.entry` refuse to break inside; an `.idea` does
+not, because one runs longer than a page and a block that cannot fit is
+pushed whole, which stranded two near-empty pages before the fix. The
+first section shares page 1 with the title; the score and the legend each
+start a new page.
+
+The legend's parameter prose is a copy of the values above — update it in
+the same commit as any parameter change, the same rule the spec sets for
+itself.
+
 ## Exercise rendering (`render/musicxml.ts`)
 
 Key: `Score.keyFifths` (first `<key><fifths>`, 0 if none) is written into

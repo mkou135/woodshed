@@ -936,3 +936,42 @@ Evidence class: read of `tsconfig.app.json`, `package.json` and
 corpus:wjd` at 16d9ba4 · Claude, closing bookkeeping the owner asked for ·
 would reverse: dropping the second `tsc` invocation from the `typecheck`
 script, or deleting the corpus golden / relaxing its exit code.
+
+## 2026-09-01 · A run is exported, not re-run; and the PDF is the browser's
+
+**Question.** The owner wants the whole output of a run — the agent's
+words and all the annotations — as something to show peers, explicitly to
+avoid paying for a second run. What produces it, and how much goes in?
+
+**Decision.** Widen the existing export rather than build a second one.
+`app/export.ts` already emitted a standalone annotated score; it is split
+into a shared shell plus the legend and tables, `app/report.ts` composes
+the fuller session report over it, and `app/engrave.ts` holds the only
+part that needs a browser. That split is what makes the report testable:
+drills arrive as SVG strings, so the composition is a pure function.
+
+**PDF via the browser's own print**, not a library. The score and every
+exercise are inline SVG; printing keeps them vector-sharp at any zoom,
+where a rasterising library would degrade the notation *and* add bundle
+weight to a page that ships to Pages. Measured: 26 pages, 8.2 MB of HTML
+in, 2.2 MB of PDF out, notation crisp.
+
+**Eight ideas get drills; all of them get listed.** Blake's 34 units hold
+275 exercises (loop 34, through 47, vary 178, write 16) — about a hundred
+printed pages, which is not a thing a peer reads. The top eight is 85
+exercises and 26 pages. Listing every idea's headline costs a line each
+and is what shows the shape of the whole run, so the cut is on notation
+only.
+
+**What the verification caught.** The composition tests were green and the
+first PDF still had two near-empty leading pages: `break-before: page` on
+the first section, and `break-inside: avoid` on an `.idea` that runs
+longer than a page, which browsers resolve by pushing the whole block to a
+fresh sheet. Only `.drill` and `.entry` avoid breaking now. Worth naming
+because it is the failure mode the project already knows — green tests are
+not evidence the output is good; the fix came from reading the artefact.
+
+Evidence class: exported the Blake run through a real browser, printed it,
+read all 26 pages · owner chose the scope, Claude measured it · would
+reverse: a player wanting the full 275 (raise `REPORT_DRILLED_IDEAS`), or
+an agent run showing the ranking reasons read badly in print.

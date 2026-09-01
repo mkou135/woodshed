@@ -970,3 +970,12 @@ library would rasterise the notation and add bundle weight to a page that
 ships to Pages). Measured before designing: Blake is 34 units / 108 steps /
 225 exercises, and only `through` (47) and `vary` (178) engrave anything —
 so "every drill" is ~100 pages. Top 8 ideas by default, all 34 on request.
+Built. `app/export.ts` split into shell + legend + tables; `app/report.ts`
+composes the report (pure, 29 tests); `app/engrave.ts` renders exercises
+through OSMD in an offscreen but laid-out host — `display:none` is not an
+option there, OSMD measures its container. 480 tests, typecheck clean over
+`src/` and `app/`. Verified by exporting Blake through agent-browser (the
+Chrome extension was not connected), capturing the blob, printing it and
+reading all 26 pages: 34 ideas listed, 85 drills engraved, no agent
+section on the keyless run. Two near-empty leading pages in the first PDF
+were a print-CSS bug the green suite could not see; see DECISIONS.

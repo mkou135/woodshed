@@ -166,8 +166,11 @@ export function pageHtml(docTitle: string, heading: string, body: string): strin
   @media print {
     body { margin: 0; max-width: none }
     .score { border: none; overflow: visible }
-    h2 { break-after: avoid }
-    .idea, .drill, .entry { break-inside: avoid }
+    h2, h3, h4 { break-after: avoid }
+    /* An idea runs to a page or more of drills, and a block that cannot fit
+       is pushed whole to the next page — which left two near-empty pages
+       before the first one. Only the parts that do fit refuse to split. */
+    .drill, .entry { break-inside: avoid }
     .page-break { break-before: page }
   }
 </style></head><body>

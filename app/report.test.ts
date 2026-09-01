@@ -284,3 +284,23 @@ describe('ideaViews', () => {
     expect(view.steps[0].drills.map((d) => d.title)).toEqual(['good'])
   })
 })
+
+describe('sessionReportHtml, printing', () => {
+  // Printed, `break-before: page` on the first section left page 1 holding
+  // nothing but the h1. The first heading follows the title on the same page;
+  // only later sections start a new one.
+  it('does not force a page break before the first section', () => {
+    const html = sessionReportHtml(input())
+    const first = html.indexOf('The ideas, and the drills')
+    const heading = html.lastIndexOf('<h2', first)
+    expect(html.slice(heading, first)).not.toContain('page-break')
+  })
+
+  it('still breaks the page before the score and the legend', () => {
+    const html = sessionReportHtml(input())
+    for (const section of ['The score, annotated', 'Legend —']) {
+      const at = html.indexOf(section)
+      expect(html.slice(html.lastIndexOf('<h2', at), at)).toContain('page-break')
+    }
+  })
+})
