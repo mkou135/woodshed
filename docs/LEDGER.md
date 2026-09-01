@@ -944,8 +944,13 @@ same class of reason: it describes the private `cadenceplayground` repo's
 architecture and file paths. Stating the exposure plainly rather than
 filing it as a near-miss: woodshed is a public repo and that branch was
 pushed, so those details were readable on GitHub from 2026-08-25 until the
-branch was deleted today. Deleting the branch removes them going forward;
-it does not unpublish what was already there.
+branch was deleted today. Deleting the branch does **not** unpublish them:
+checked after the delete, both
+`github.com/mkou135/woodshed/commit/5e0a723` and the raw file at that SHA
+still answer 200, because GitHub keeps unreachable objects. So the 253
+lines remain readable by anyone holding the SHA, right now, not merely
+historically. Owner's call whether to accept that or ask GitHub Support to
+purge unreachable objects.
 Also deleted the merged local branch `sprint/chorus-prior-and-design`.
 Deploy verified by hash rather than by eye: the Chrome extension was not
 connected this session, so instead of reading the live page, `npm run
