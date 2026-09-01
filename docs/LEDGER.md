@@ -947,3 +947,9 @@ pushed, so those details were readable on GitHub from 2026-08-25 until the
 branch was deleted today. Deleting the branch removes them going forward;
 it does not unpublish what was already there.
 Also deleted the merged local branch `sprint/chorus-prior-and-design`.
+Deploy verified by hash rather than by eye: the Chrome extension was not
+connected this session, so instead of reading the live page, `npm run
+build` at 23f811f was compared against the served
+`assets/index-BIaRF8Ox.js` — byte-identical (sha256
+75b80646…502855). That proves the deployed bundle is this commit; it does
+not re-check the rendering, which session 17 read in Chrome.
