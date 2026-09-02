@@ -1203,3 +1203,10 @@ owner. Corpus golden 456/456 unchanged (rank is not in it — the guard
 that nothing leaked). Tests 516, typecheck clean, eval:stock rows for
 stockShare and runShare now identical.
 
+
+2026-09-02 · session 21 (cont.) · `engine.html` ("How it works") caught up:
+four detectors (a Resolutions card), the stock paragraph states the
+direction-only run rule and the WJD lick/line evidence behind it,
+`eval:stock` listed under the corpora, the Blake target reads fifteen
+findings. `app/engine.css` widens the detector card minimum so four cards
+lay out 2 × 2 instead of 3 + 1 (checked in the browser at 952px).
