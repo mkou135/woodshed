@@ -224,7 +224,18 @@ All of these are proposals; none is implemented.
   form-position bonus at bars 7–8 of each section, scored against
   `eval:wjd` and `npm run brackets`. This is the most promising lead on
   "Idea recall is 68%", since a form prior helps precisely the boundaries
-  that have no surface cue.
+  that have no surface cue. **Measured 2026-09-02 for phrases** (DECISIONS
+  "Fitted segmentation weights rejected"): as gap-level logistic features,
+  next-note-on-beat-1-or-3 carries a *negative* weight (starts avoid the
+  strong beats) and section-start adds AUC +0.0005; neither earns an
+  engine term. Not measured: the same two as **idea** cues, which is
+  where the recall ceiling actually is — the phrase fit says nothing
+  about that.
+- **Phrase starts avoid beats 1 and 3.** A side-finding of the 2026-09-02
+  fit: on the WJD, a gap whose next note lands on a strong beat is *less*
+  likely to be a phrase start (logistic weight −0.94 alongside rest 6.6).
+  This is Galper's "& 1" measured, and the pickup rule already leans on it.
+  Resolve: nothing to build; the profile item below could report it.
 - **We never report where the player's phrases start and end.** `Phrase.onset`
   exists; the profile says nothing about it. Resolve: add a metric-position
   summary to `SoloProfile` ("phrases mostly begin on the and-of-4").

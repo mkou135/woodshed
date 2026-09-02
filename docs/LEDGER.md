@@ -1210,3 +1210,17 @@ direction-only run rule and the WJD lick/line evidence behind it,
 `eval:stock` listed under the corpora, the Blake target reads fifteen
 findings. `app/engine.css` widens the detector card minimum so four cards
 lay out 2 × 2 instead of 3 + 1 (checked in the browser at 952px).
+
+2026-09-02 · session 21 (cont.) · spike: fitted segmentation weights.
+Throwaway `scripts/_fit-seg.ts` (deleted) fit a logistic regression over
+every WJD gap; `segment.ts` DEFAULTS edited for the brackets/owner reads
+and reverted with `git checkout` — tree clean, nothing but docs changed.
+**Answer: no.** Fit wants 0.55 / 0.15 / 0.15 (length and leap at a third
+of hand-tuned); gap-level +0.7 F1, end to end +0.2 phrases / −0.5 ideas,
+and the owner's Mintzer brackets fall 12/13 → 9/13. The two candidate
+features (strong-beat, section-start) add nothing for phrases; strong-beat
+carries a negative sign, which is Galper's "& 1" — recorded as a
+side-finding. Not measured: the same features as *idea* cues, which is
+where the recall ceiling is. DECISIONS "Fitted segmentation weights
+rejected"; OPEN_QUESTIONS metric/formal-position entry narrowed.
+

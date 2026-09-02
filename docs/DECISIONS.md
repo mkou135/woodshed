@@ -1199,3 +1199,44 @@ exemption (the 7-3 finding has two degrees, below the ≥ 4 exemption), not
 a return to the kind rule; or a second annotated solo where the
 direction-only rule demotes the owner's stars.
 
+## 2026-09-02 · Fitted segmentation weights rejected: the corpus optimum fails the owner's brackets
+
+**Question.** The phrase cue is a linear score over rest, length and leap
+with hand-tuned weights 0.6 / 0.45 / 0.25 at threshold 0.45. Would weights
+fitted to the Weimar phrase marks beat them, and do a metric-position or a
+section-start feature add anything?
+
+**Decision.** No, on both counts. Weights stay as they are; neither feature
+enters the engine. Spike only — throwaway fitter, nothing committed but
+this record.
+
+**Evidence.** Logistic regression (plain gradient descent, L2 1e-4) over
+199,165 WJD gaps, 1,188 chorus gaps excluded so `wChorus` stays as decided,
+label = annotated phrase start at the next note. Fitted on the 18,015 gaps
+with rest > 0 (the ones the weights actually decide): rest 6.59, length
+1.84, leap 1.75, bias −5.38, which rescales to **0.550 / 0.154 / 0.146**
+at threshold 0.45 — the fit wants length and leap at a third of their
+hand-tuned weight. Gap-level: hand-tuned AUC 0.876, best F1 85.7 (at
+0.556) and 84.9 at 0.45; fitted AUC 0.895, best F1 86.4. Adding
+"next note on beat 1 or 3" gives AUC 0.904 and F1 +0.1 with a **negative**
+weight (−0.94: phrase starts avoid the strong beats — Galper's "& 1",
+already in the pickup rule); "gap into a new form section" +0.56, AUC
++0.0005. Neither is worth an engine feature. End to end through
+`segment()` (`eval:wjd --opts`): baseline 78.3 / 81.2 / **79.7** phrases,
+76.5 ideas; fitted 82.1 / 77.9 / **79.9**, ideas **75.8** (76.0 with
+`ideaThreshold` rescaled to 0.193, since the same weights drive the idea
+profile and the fitted maximum is 0.30); hand-tuned rescaled to threshold
+0.556: 79.4 / 75.9. So +0.2 phrases, −0.5 ideas: noise, and all of it a
+precision-for-recall trade. **Owner marks decide**: with the fitted
+weights `npm run brackets` fails — Mintzer 12/13 → **9/13** (new misses
+7.4½, 24.1½, 34.4½; 22.1 was already known), St Thomas 8/8 unchanged;
+`eval:owner` on hey-lock phrases 0.90 → 0.90, ideas 0.72 → 0.73. The
+corpus optimum takes exactly the held-note and leap boundaries the
+owner's ear keeps.
+
+**Who.** Owner asked for the spike; Claude ran it.
+
+**Would reverse it.** A second blind-annotated solo where the owner's
+phrase marks side with the corpus on length and leap; or a fit against
+the owner's own marks once there are enough of them to fit on.
+
