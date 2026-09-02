@@ -1256,3 +1256,15 @@ played order — now one order per starting degree. Tests 535, typecheck
 clean. Spec Through bullet, DECISIONS, OPEN_QUESTIONS (b) closed and the
 "four steps" entry reads three.
 
+2026-09-02 · session 21 (cont.) · the describe line for permuted orders.
+`displayName` shows the lemma for a permuted cell; `detail` adds "played
+in the order …" once per distinct order. First cut inferred "permuted"
+from lemma ≠ name and so caught every triad — Blake's headers changed to
+"major triad" + "played in the order 1-3-5", which is wrong twice over.
+Now the dictionary sets `permuted` on the hit (non-canonical entry only),
+it rides through `Finding` and `absorb`, and describe reads the flag.
+Blake and St Thomas top-six headers byte-identical; the peers' permuted
+units read "digital pattern 1235 … played in the order 3-2-1-5". Five
+tests. Tests 540, typecheck clean. Spec "Naming" section, OPEN_QUESTIONS
+(c) closed. No DECISIONS entry — prose, not a rule.
+

@@ -260,3 +260,14 @@ describe('canonical order wins at equal length', () => {
     expect(hits[0]).toMatchObject({ startIndex: 2, name: 'digital pattern 1235' })
   })
 })
+
+describe('permuted flag', () => {
+  it('marks a non-canonical Bergonzi order and nothing else', () => {
+    const p = matchShapes(contextualise(line([64, 60, 62, 67]), [chord(1, 0, 'major-seventh')]))[0]
+    const c = matchShapes(contextualise(line([60, 62, 64, 67]), [chord(1, 0, 'major-seventh')]))[0]
+    const t = matchShapes(contextualise(line([67, 64, 60]), [chord(1, 0, 'major')]))[0]
+    expect(p.permuted).toBe(true)
+    expect(c.permuted).toBeUndefined()
+    expect(t.permuted).toBeUndefined()
+  })
+})

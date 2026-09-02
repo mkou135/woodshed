@@ -276,11 +276,11 @@ All of these are proposals; none is implemented.
   (DECISIONS "Bergonzi cells accept every ordering"): 1235 and 1345 in all
   24 orders, canonical-first tie-break, +37 corpus findings, Blake
   unmoved. (b) **Shipped 2026-09-02** as a `permutation` exercise inside
-  Through (ENGINE_SPEC "Play it in another order"). Still open: (c)
-  `describe.ts` saying "1-2-3-5 in the order
-  3-1-2-5" — today the name carries it, which is fine in the audit view
-  and clumsy in the headline; (d) whether the minor 1235 should widen
-  too, which Bergonzi does not do and no peer solo has asked for.
+  Through (ENGINE_SPEC "Play it in another order"). (c) **Shipped
+  2026-09-02**: `describe.ts` shows the lemma and adds "played in the
+  order 3-1-2-5" as an aside, via `Finding.permuted`; the audit view keeps
+  the full name. Still open: (d) whether the minor 1235 should widen too,
+  which Bergonzi does not do and no peer solo has asked for.
 - **Three practice steps the sources have and we do not**: visualise (away
   from the horn — Bergonzi; answers the faculty consensus that memorising
   beats notating), edit (omit notes for rhythmic variety), and

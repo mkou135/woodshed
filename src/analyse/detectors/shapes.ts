@@ -24,6 +24,8 @@ export interface ShapeHit {
   lemma: string
   /** The degrees in the order played, as a player would say them: "5-3-1". */
   ordering: string
+  /** A non-canonical order of a permuted set (not a triad, whose orders are each their own figure). */
+  permuted?: true
 }
 
 /**
@@ -335,6 +337,7 @@ export function matchShapes(ctx: NoteContext[]): ShapeHit[] {
         name: entry.name,
         lemma: entry.lemma,
         ordering: spell(degrees),
+        permuted: entry.canonical ? undefined : true,
         degrees,
         quality: chord.quality,
         intervals: intervalsOf(cell.map((c) => c.note.midi)),

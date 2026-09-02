@@ -490,7 +490,11 @@ taken). This module is the only place that turns findings into prose, so the
 CLI, the idea head and the all-ideas table cannot drift apart.
 
 - `displayName(finding, names?, terse?)` — the agent's name for that id,
-  else the engine's, else **null** when `unnamed`. An agent name arrives as
+  else the engine's, else **null** when `unnamed`. A **permuted** cell
+  (`Finding.permuted`, set by the dictionary for a non-canonical order of
+  a Bergonzi set — never for a triad, whose six orders are each their own
+  figure) shows its **lemma** ("digital pattern 1235"); the order lives in
+  `name` as identity and reaches the player through `detail` (2026-09-02). An agent name arrives as
   "what it is — why it matters"; `terse` keeps the half before the dash,
   since a table row wants a name and not a sentence.
 - `headline(unit, names?, terse?)` — one clause: the strongest **named**
@@ -500,7 +504,9 @@ CLI, the idea head and the all-ideas table cannot drift apart.
   the player's idea". `terse` picks the table-row wording of the same four
   ("a figure the player returns to", "mostly a scale run", …).
 - `detail(unit, names?)` — the asides, one line each, in the order a player
-  asks: further named cells, `lands on the <degree>`, `N variants of the
+  asks: further named cells, `played in the order 3-1-2-5` (once per
+  distinct permuted order in the unit; nothing for the canonical order),
+  `lands on the <degree>`, `N variants of the
   same shape`, `also at bars <spans>`, and finally a count of the shapes no
   name could stand for (`2 shapes the engine cannot name`; `N more …` when
   the headline was itself the unnamed fallback). A nameless shape still

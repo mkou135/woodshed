@@ -150,3 +150,31 @@ describe('barSpans', () => {
     expect(barSpans(['16', '17 (2nd time)', '18'])).toBe('16, 17 (2nd time), 18')
   })
 })
+
+describe('permuted orderings', () => {
+  const permuted = (id: string, ordering: string) => finding({
+    id, name: `digital pattern 1235 in the order ${ordering}`, lemma: 'digital pattern 1235', ordering, permuted: true,
+    degrees: ordering.split('-'),
+  })
+  const canonical = finding({ id: 'c1', name: 'digital pattern 1235', lemma: 'digital pattern 1235', ordering: '1-2-3-5' })
+
+  it('shows the lemma, not the order, as the name', () => {
+    expect(displayName(permuted('p1', '3-1-2-5'))).toBe('digital pattern 1235')
+    expect(displayName(canonical)).toBe('digital pattern 1235')
+  })
+
+  it('says the order as an aside, once per distinct order', () => {
+    const u = unit([permuted('p1', '3-1-2-5'), permuted('p2', '3-1-2-5'), permuted('p3', '5-2-3-1')])
+    expect(headline(u)).toBe('digital pattern 1235')
+    expect(detail(u)).toEqual(['played in the order 3-1-2-5', 'played in the order 5-2-3-1'])
+  })
+
+  it('says nothing about the order of a canonical cell', () => {
+    expect(detail(unit([canonical]))).toEqual([])
+  })
+
+  it('lets an agent name win over the lemma', () => {
+    const names = teacherNames([{ id: 'p1', name: 'a Bergonzi cell turned around' }])
+    expect(displayName(permuted('p1', '3-1-2-5'), names)).toBe('a Bergonzi cell turned around')
+  })
+})

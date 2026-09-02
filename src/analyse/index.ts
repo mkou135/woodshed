@@ -45,6 +45,8 @@ export interface Finding {
    */
   lemma?: string
   ordering?: string
+  /** The cell was played in a non-canonical order; `name` says which, `describe.ts` says the lemma. */
+  permuted?: true
   /** Bent or inverted forms of a recurring cell; their spans are already in `spans`. */
   variants?: Variant[]
   quality?: Quality
@@ -148,6 +150,7 @@ export function analyse(score: Score, report: CleanupReport, options: AnalyseOpt
       intervals: hit.intervals,
       lemma: hit.lemma,
       ordering: hit.ordering,
+      permuted: hit.permuted,
       quality: hit.quality,
       language: hit.language,
       lickShare: hit.lickShare,
@@ -301,6 +304,7 @@ function absorb(into: Finding, from: Finding, takeSpans = true): void {
     into.kind = from.kind
     into.lemma = from.lemma
     into.ordering = from.ordering
+    into.permuted = from.permuted
     // The name it just took is a real one, so the vector-name flag goes with it.
     delete into.unnamed
   }
