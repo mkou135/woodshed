@@ -1138,3 +1138,35 @@ pre-existing bug written down instead of fixed: `absorb` in merge pass 2
 adopts `degrees`/`name`/`kind`, which its own comment says it does not. Both
 are in OPEN_QUESTIONS. Also corrected a stale spec line — the verification
 target still said 16 phrases for Blake, which had read 15 since session 19b.
+
+2026-09-02 · session 21 · assessment only: lemmatization, unsupervised ML,
+feature construction (three ideas from the owner's brother). No code, no
+spec change, nothing decided beyond "not now" — the owner asked for the
+reading, then chose to record it rather than build from it.
+**Feature construction** is what the engine already does under another
+name: every segmentation parameter, the target strength, the outside-span
+weight are hand-built features with hand-tuned weights, and the
+OPEN_QUESTIONS backlog reads as a list of unbuilt ones (metric position of
+phrase ends, form position at bars 7–8, chord-tone-on-downbeat share,
+next-chord fit, pentatonic membership). Two extensions named: fit the
+segmentation weights by logistic regression against the WJD marks with
+`wChorus` held fixed (DECISIONS 2026-08-27 — the corpus and the owner's
+ear disagree there and a corpus fit alone would undo that ruling), and use
+the WJD midlevel-unit labels as a supervised target for the stock penalty
+(new OPEN_QUESTIONS entry; the labels sit unread in `sections.value`).
+**Lemmatization** names the canonicalisation levels the engine has without
+saying so (pitch → interval → degree string → quality bucket → bend/
+inversion family) and the missing ones already open: retrograde, same idea
+at another length, Bergonzi set + permutation. Contour stays the display
+form (DECISIONS 2026-08-23 "Exercise contour"); a lemma would be a second
+field, never a replacement.
+**Unsupervised learning**, heavy form, rejected on evidence already in the
+log: five pitch-content inference detectors at or below chance (DECISIONS
+2026-08-25), similarity as an idea cue at 3% precision (2026-08-24), and
+"recurs often" being vacuous on one solo (research/what-is-a-pattern.md).
+456 solos, and the output has to be a name a player recognises. Two
+offline, human-reviewed uses survive: cluster the mined lick table to
+propose dictionary entries a person then writes by hand, and generalise
+`variantOf` to a distance threshold (label source: owner variation groups,
+of which only hey-lock.json remains). Neither moves idea recall off 68%;
+the lead there is still the form-position feature.

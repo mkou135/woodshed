@@ -23,6 +23,17 @@ moving its resolution into DECISIONS.md.
   the repo (licence, 50 MB with the WJD copy). Resolve: an
   `npm run eval:omnibook` that points at the folder and pins counts, like
   `eval:wjd`; decide whether the licence allows a few as fixtures.
+- **The WJD midlevel-unit labels are unused.** `scripts/eval-wjd.ts:104`
+  reads only `start` from `sections where type='IDEA'`; the `value` column
+  of those same rows carries ~15,400 human labels (2026-09-02 count on the
+  local `wjazzd.db`: lick ≈7,400 across its variants, line ≈3,300, melody
+  ≈950, plus expressive / rhythm / fragment / void). That is a supervised
+  target for the lick-vs-line distinction the stock penalty (`STOCK_PENALTY`,
+  `stockShare` / `corpusShare`, `practice/unit.ts`) draws with a constant
+  today. The `#` and `~` prefixes are Frieler's modifiers and need reading
+  up before use. Resolve: a feature set over practice units scored against
+  these labels; decide whether the penalty becomes a fitted score. Raised
+  by the 2026-09-02 assessment (LEDGER session 21).
 - **Correct tune, weak vote** — Barbados 33%, Perhaps 41%, Cheryl 24%
   (period detected as 24 not 12), Blue Bird, Relaxing With Lee (title →
   Donna Lee). Resolve: try the vote over period × phase offsets, not just
