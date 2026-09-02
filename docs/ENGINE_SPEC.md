@@ -6,7 +6,7 @@ the code. Each section names the file that implements it — if this file and
 the code disagree, that is a bug to fix immediately, in whichever direction
 the DECISIONS log supports.
 
-Last updated: 2026-09-01 (session 20).
+Last updated: 2026-09-02 (session 21).
 
 ## Units
 
@@ -852,6 +852,46 @@ Owner ground truth on the score, dev-only.
   (no positional score yet — see OPEN_QUESTIONS "what formally scores
   outside spans and stars").
   `ANNOTATIONS_DIR`/`PEERS_DIR` override the default paths; exits 0 always.
+
+## Stock signals vs the WJD midlevel-unit labels (`scripts/eval-stock.ts`, `npm run eval:stock`)
+
+A report, not a gate (like `eval:owner`). The Weimar `sections` rows of type
+`IDEA` carry Frieler's midlevel-unit labels in `value`; `mluBase`
+(`practice/stockFeatures.ts`) reduces `~#-lick` / `line_w_alds` /
+`void->melody` to a base class. Unit of measurement is the **annotated
+section** (never an engine unit, so segmentation error stays out), notes
+rebuilt by `scoreFromWjd`, contextualised against the solo's chords,
+sections of < `MIN_NOTES` **3** dropped. Target: base `line` (the
+annotators' scale and arpeggio runs) vs `lick` (vocabulary); every other
+class is counted and excluded. Per signal: AUC for "line" (0.5 chance,
+threshold-free), P/R for "line" at `STOCK_SHOWN` **0.5**, and AUC within
+four length bins (3–5, 6–9, 10–15, 16+ notes), because length alone
+separates the classes and every share-type signal grows with it.
+
+Measured 2026-09-02, 451 solos, 12,393 lick/line sections (4,598 line,
+7,795 lick; 5.1% line among 3–5-note sections, 76.9% among 16+):
+
+| signal | pooled AUC | 3–5 | 6–9 | 10–15 | 16+ |
+|---|---|---|---|---|---|
+| `stockShare` (run, one interval kind) | 0.754 | 0.717 | 0.719 | 0.702 | 0.714 |
+| `corpusShare` | 0.729 | 0.721 | 0.676 | 0.672 | 0.670 |
+| max(run, corpus) = `stock` | 0.729 | 0.778 | 0.722 | 0.686 | 0.679 |
+| `languageShare` | 0.698 | 0.541 | 0.609 | 0.616 | 0.639 |
+| `stepShare` | 0.630 | 0.556 | 0.641 | 0.644 | 0.634 |
+| `runShare` (direction only) | **0.753** | **0.837** | **0.798** | **0.724** | 0.711 |
+| `intervalVariety` (inverted: high = lick) | 0.163 | 0.402 | 0.346 | 0.330 | 0.293 |
+| `chordToneDownbeatShare` | 0.522 | 0.527 | 0.503 | 0.501 | 0.489 |
+| length in notes | **0.842** | — | — | — | — |
+
+Reading: `stockShare` is a real, length-independent but modest line
+detector (≈0.71 in every bin; at ≥ 0.5 it flags 47.9% of lines at 61.7%
+precision against a 37% base rate). The direction-only run predicate
+beats it in every bin, most where it matters for the page (short units).
+`chordToneDownbeatShare` is chance in every bin — Baker's metric rule does
+not separate vocabulary from running, because both put chord tones on
+beats. `languageShare` never reaches 0.5 (document shares top out ≈ 0.24),
+so the P/R row for it reads 0 by construction. Nothing in the rank changed
+on this evidence; see DECISIONS 2026-09-02.
 
 ## Agent layer (`src/agent/`, spec docs/superpowers/specs/2026-08-25-agent-layer-design.md)
 

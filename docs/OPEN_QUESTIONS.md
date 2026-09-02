@@ -30,10 +30,21 @@ moving its resolution into DECISIONS.md.
   ≈950, plus expressive / rhythm / fragment / void). That is a supervised
   target for the lick-vs-line distinction the stock penalty (`STOCK_PENALTY`,
   `stockShare` / `corpusShare`, `practice/unit.ts`) draws with a constant
-  today. The `#` and `~` prefixes are Frieler's modifiers and need reading
-  up before use. Resolve: a feature set over practice units scored against
-  these labels; decide whether the penalty becomes a fitted score. Raised
-  by the 2026-09-02 assessment (LEDGER session 21).
+  today. **Measured 2026-09-02** (`npm run eval:stock`, ENGINE_SPEC "Stock
+  signals vs the WJD midlevel-unit labels"): `stockShare` separates line
+  from lick at AUC ≈ 0.71 in every length bin; a direction-only run
+  predicate (`runShare`, `practice/stockFeatures.ts`) beats it in every
+  bin (0.84 on 3–5-note sections, 0.80 on 6–9); chord-tone-on-downbeat is
+  chance. What is still open: (a) whether `stockShare` should drop its
+  one-interval-kind requirement and become `runShare` — a rank change, so
+  it needs the Blake unit order and the corpus golden read before and
+  after; (b) whether length should enter the rank at all, since the
+  annotators' "line" is partly *defined* as a long run (research/
+  phrases-and-ideas.md §3) and a length term would demote long ideas
+  wholesale; (c) a fitted combination, which the eval does not attempt.
+  The `#`/`~` modifiers are stripped by `mluBase` without being
+  interpreted; the labels also carry `melody`, `theme`, `quote` and
+  `expressive` classes nothing here uses yet.
 - **Correct tune, weak vote** — Barbados 33%, Perhaps 41%, Cheryl 24%
   (period detected as 24 not 12), Blue Bird, Relaxing With Lee (title →
   Donna Lee). Resolve: try the vote over period × phase offsets, not just
@@ -222,7 +233,12 @@ All of these are proposals; none is implemented.
   that chord tones land on downbeats. `stockShare` penalises any run of ≥ 4
   same-direction steps regardless of placement. Resolve: measure the
   chord-tone-on-downbeat share of a run, and decide whether it earns a
-  detector of its own or a term that lifts the stock penalty.
+  detector of its own or a term that lifts the stock penalty. **Partly
+  measured 2026-09-02**: `chordToneDownbeatShare` is at chance (AUC
+  0.49–0.53 in every length bin) for lick-vs-line on the WJD labels, so
+  it does not tell vocabulary from running. That is a different question
+  from bebop-scale-vs-random-run, which has no label set; the term is
+  built (`practice/stockFeatures.ts`) and unused.
 - **A note that fits the next chord is still called chromatic.**
   `analyse/context.ts` judges each note against the current chord only.
   Coker's rule is to look at the chords before *and* after before drawing a

@@ -1170,3 +1170,22 @@ propose dictionary entries a person then writes by hand, and generalise
 `variantOf` to a distance threshold (label source: owner variation groups,
 of which only hey-lock.json remains). Neither moves idea recall off 68%;
 the lead there is still the form-position feature.
+
+2026-09-02 · session 21 (cont.) · `npm run eval:stock` ships. New:
+`scripts/eval-stock.ts`, `src/practice/stockFeatures.ts` (+ 9 tests:
+`stepShare`, `runShare`, `intervalVariety`, `chordToneDownbeatShare`,
+`mluBase`), the npm script, a CLAUDE.md line. Docs: ENGINE_SPEC section
+with the full table, DECISIONS 2026-09-02, the OPEN_QUESTIONS entry
+updated with numbers and three narrower questions. Engine untouched;
+tests 506 → 515; typecheck clean; corpus golden not re-run because
+nothing under `src/analyse` or the rank moved.
+**What it says.** Length is the annotators' biggest cue (AUC 0.84), so
+the pooled table lies — I added length bins before reading anything.
+Within bins `stockShare` is a steady ≈ 0.71; the direction-only run
+predicate is better in every bin and much better on short units (0.84 on
+3–5 notes). Chord-tone-on-downbeat is chance: Baker's rule is how a line
+is *built*, not what makes it a line rather than a lick. `languageShare`
+cannot cross the 0.5 display threshold by construction. Nothing changed
+in the rank; the swap is the next measurable item and needs Blake read
+either side.
+

@@ -1133,3 +1133,31 @@ the detector and its wiring — nothing else depends on it; the `resolves`
 marker and the merge guard go with it. The idea-boundary exception alone
 would be reversed by dropping the `MIN_REST` clause, which costs the two
 contiguous crossings above.
+
+## 2026-09-02 · The stock signals are measured against the WJD midlevel-unit labels; the rank does not change yet
+
+**Question.** The stock penalty (`STOCK_PENALTY` × max(`stockShare`,
+`corpusShare`)) demotes units on a hand-picked constant. The Weimar `IDEA`
+sections carry ~15,400 human labels (lick, line, melody …) that the repo
+had never read. Do the engine's stock signals actually separate the
+annotators' *lines* from their *licks*?
+
+**Decision.** Build `npm run eval:stock` as a report, not a gate, over the
+annotated sections (not engine units). Record the numbers in ENGINE_SPEC.
+Change nothing in the rank on this evidence alone: the candidate swap
+(`stockShare` → direction-only `runShare`) is a rank change and takes a
+Blake read plus the corpus golden first (OPEN_QUESTIONS).
+
+**Evidence.** 451 solos, 12,393 sections. `stockShare` AUC ≈ 0.71 in every
+length bin (real, modest); `runShare` 0.84 / 0.80 / 0.72 / 0.71 by bin
+(better everywhere, most on short units); `chordToneDownbeatShare` at
+chance (0.49–0.53); length alone 0.84 pooled, but "line" is partly defined
+by length so that is not a free term. Class: corpus measurement against
+human labels, the first the stock penalty has had.
+
+**Who.** Owner asked for the measurement; Claude ran it.
+
+**Would reverse it.** A Blake/peers read showing `runShare` reorders units
+for the better (then swap); or an owner star/outside annotation set that
+disagrees with the WJD labels on what "stock" means.
+

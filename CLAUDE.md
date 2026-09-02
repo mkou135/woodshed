@@ -36,6 +36,7 @@ npm run corpus:wjd # sweep all 456 WJD solos; diffs goldens/corpus-wjd.json and
 npm run brackets   # score phrase starts against the owner's brackets (scripts/brackets.json)
 npm run eval:agent # score agent-adjudicated boundaries from recordings (never live)
 npm run eval:owner # score phrase/idea boundaries against the owner's own annotations (annotations/)
+npm run eval:stock # score the stock signals against the WJD lick/line labels (report, not a gate)
 npm run test:run   # NEVER bare `npm test` — watch mode, hangs tool calls
 npm run typecheck
 npm run build
