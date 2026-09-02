@@ -35,6 +35,19 @@ export function barContains(bar: ExerciseBar, finding: Finding): boolean {
 }
 
 /**
+ * Does the bar re-detect as *some* ordering of the lemma? The gate for the
+ * permutation drill, whose bars are the cell in other orders and so cannot
+ * carry the finding's exact name. Same fail-closed shape as `barContains`.
+ */
+export function barHasLemma(bar: ExerciseBar, lemma: string): boolean {
+  const chord: Chord = { onset: 0, bar: 1, rootPc: bar.rootPc, quality: bar.quality, tensions: [] }
+  const notes: Note[] = bar.midis.map((midi, i) => ({
+    midi, onset: i * (TICKS_PER_QUARTER / 2), duration: TICKS_PER_QUARTER / 2, bar: 1, beat: i / 2,
+  }))
+  return matchShapes(contextualise(notes, [chord])).some((hit) => hit.lemma === lemma && hit.length === bar.midis.length)
+}
+
+/**
  * Re-detect a finding over an actual note line with its chords — the check
  * for excerpt-shaped exercises (vary on-ramps, worked examples), whose bars
  * carry events rather than one cell per bar.

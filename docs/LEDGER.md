@@ -1246,3 +1246,13 @@ Thomas are byte-identical to the pre-widening runs. Corpus 37 solos
 (deleted) printed all 17 permuted-cell findings across Blake + peers with
 their notes; they read as vocabulary. Tests 527, typecheck clean.
 
+2026-09-02 · session 21 (cont.) · permutation drill ships inside Through.
+`shapes.ts` `orderingsOf`; `validity.ts` `barHasLemma`; `transform.ts`
+`permutationDrill` + `'permutation'` kind; `through.ts` inserts it after
+the cell drill. Eight tests. A throwaway (deleted) summed step exercises
+and printed the bars across Blake + peers: 27 drills, Blake 0, every
+other count unchanged. Caught and fixed: five bars for a non-rotation
+played order — now one order per starting degree. Tests 535, typecheck
+clean. Spec Through bullet, DECISIONS, OPEN_QUESTIONS (b) closed and the
+"four steps" entry reads three.
+

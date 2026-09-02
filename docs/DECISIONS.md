@@ -1299,3 +1299,29 @@ seen on Blake or the peers, but the widened cell is the first entry
 whose orders can look like a run (1-2-3-5 is not, 5-3-2-1 has its own
 name, 2-3-5-1 might).
 
+## 2026-09-02 · "Play it in another order" lives inside Through
+
+**Question.** With Bergonzi cells matching in every order, where does his
+permutation drill go — its own step, inside Vary, or inside Through?
+
+**Decision.** Inside Through, between the "cell alone on every chord" drill
+and the cycle, which is Bergonzi's own sequence. No new step kind: the
+page, report, CLI and agent schema are untouched. Four bars on the cell's
+own chord — the order played, then one rotation per other starting degree.
+Only cells the dictionary permutes qualify (`orderingsOf`), and every bar
+must re-detect as the lemma (`barHasLemma`). Vary was rejected because its
+framing is a fixed arrival and a permutation moves it.
+
+**Evidence.** Blake, hey-lock, Mintzer, Sandu, Parker ATTYA: 0 drills (no
+Bergonzi cell); the other peers 27 between them, each read as four bars of
+the same pitches reordered ("E D C G | C D E G | D E G C | G C D E"). The
+first build gave five bars when the played order was not a rotation; the
+rule became one order per starting degree, pinned by a test. Every other
+count unchanged on Blake (34 / 47 / 174 / 16). Tests 527 → 535.
+
+**Who.** Owner chose the placement; Claude built and read.
+
+**Would reverse it.** The owner finding four bars too few or too many on
+the horn, or wanting the drill on the *tune's* chords rather than the
+cell's own — both are one-line changes to `permutationDrill`.
+

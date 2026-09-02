@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { semitonesOfDegree, degreeOf } from '../core/pitch.ts'
-import { throughCycleOfFourths, overChanges } from './transform.ts'
+import { throughCycleOfFourths, overChanges, permutationDrill } from './transform.ts'
 import { instrumentFromTranspose } from '../core/instrument.ts'
 import { TICKS_PER_QUARTER as Q } from '../core/types.ts'
 import type { Chord } from '../core/types.ts'
@@ -148,5 +148,39 @@ describe('contour', () => {
     ]
     const ex = overChanges(f, chords, tenor)!
     expect(ex.bars.map((b) => b.quality)).toEqual(['major-seventh'])
+  })
+})
+
+describe('permutationDrill', () => {
+  const cmaj7: Chord = { onset: 0, bar: 5, rootPc: 0, quality: 'major-seventh', tensions: [] }
+
+  it('plays the order given, then the three rotations, on the cell\'s own chord', () => {
+    const ex = permutationDrill(cellFinding(), cmaj7, tenor)
+    expect(ex?.transformation).toBe('permutation')
+    expect(ex?.bars).toHaveLength(4)
+    const degrees = ex!.bars.map((b) => b.midis.map((m) => degreeOf(m, cmaj7)).join('-'))
+    expect(degrees).toEqual(['1-2-3-5', '2-3-5-1', '3-5-1-2', '5-1-2-3'])
+    // The same four pitches in one octave, reordered — Bergonzi's page, not a new line.
+    for (const bar of ex!.bars) expect([...bar.midis].sort((a, b) => a - b)).toEqual([...ex!.bars[0].midis].sort((a, b) => a - b))
+  })
+
+  it('starts from the order as played and drops the rotation that equals it', () => {
+    const f = { ...cellFinding(), name: 'digital pattern 1235 in the order 3-5-1-2', lemma: 'digital pattern 1235', degrees: ['3', '5', '1', '2'], intervals: [3, -7, 2], ordering: '3-5-1-2' }
+    const ex = permutationDrill(f, cmaj7, tenor)
+    const degrees = ex!.bars.map((b) => b.midis.map((m) => degreeOf(m, cmaj7)).join('-'))
+    expect(degrees).toEqual(['3-5-1-2', '1-2-3-5', '2-3-5-1', '5-1-2-3'])
+  })
+
+  it('gives one order per starting degree when the played order is not a rotation', () => {
+    // E D C G over Cmaj7: 3-2-1-5 stands for the orders starting on 3.
+    const f = { ...cellFinding(), name: 'digital pattern 1235 in the order 3-2-1-5', lemma: 'digital pattern 1235', degrees: ['3', '2', '1', '5'], intervals: [-2, -2, 7], ordering: '3-2-1-5' }
+    const ex = permutationDrill(f, cmaj7, tenor)
+    const degrees = ex!.bars.map((b) => b.midis.map((m) => degreeOf(m, cmaj7)).join('-'))
+    expect(degrees).toEqual(['3-2-1-5', '1-2-3-5', '2-3-5-1', '5-1-2-3'])
+  })
+
+  it('is null for a cell the dictionary does not permute', () => {
+    const f = { ...cellFinding(), name: 'major-seventh arpeggio', degrees: ['1', '3', '5', '7'], intervals: [4, 3, 4] }
+    expect(permutationDrill(f, cmaj7, tenor)).toBeNull()
   })
 })

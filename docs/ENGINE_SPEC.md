@@ -420,6 +420,21 @@ name, degrees and kind.
   written range is used; a rest bar prints a cross-bar resolution. A named
   cell on each compatible chord remains as a separate Bergonzi drill,
   followed by the twelve-key cycle.
+  - **Play it in another order** (`generate/transform.ts` `permutationDrill`,
+    2026-09-02): for each finding whose lemma the dictionary permutes
+    (`shapes.ts` `orderingsOf` — today 1235 major-family, 1345 minor-family;
+    triads and single-order cells get nothing), one exercise of **four
+    bars** on the cell's own chord, inserted between the Bergonzi cell drill
+    and the cycle: the order as played, then the rotations of the canonical
+    set that start on each *other* degree (one per starting degree — his
+    "one from each column"). Bars are the same four pitches in one octave of
+    the root, reordered (raw degree differences, so 5 → 1 falls a fifth),
+    then octave-clamped. Gate: every bar must re-detect as a hit with the
+    same lemma (`validity.ts` `barHasLemma`), fail-closed like `isValid`.
+    Transformation kind `permutation`. Measured on Blake + the ten peers: 27
+    drills (Blake 0 — no Bergonzi cell in it; St Thomas 1; Mintzer blues 8;
+    Bartley 6; Tenor Madness 6; 26-2 4; Autumn Leaves 2); findings, units,
+    order and every other step count unchanged.
   - Matches are **grouped by transposition**, in tune order, capped at 8
     *keys*: one entry per key listing every bar that shares it, written onto
     the first occurrence's chords. The same progression in the same key at

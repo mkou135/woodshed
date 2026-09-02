@@ -234,6 +234,17 @@ function shareFor(key: string | null): number | undefined {
   return entry ? entry.wjd / LICK_WJD_SOLOS : undefined
 }
 
+/**
+ * The orderings a lemma's set may be played in, canonical first — or null
+ * when the cell has a single order or every order is its own figure (a
+ * triad). What the permutation drill asks before it offers anything.
+ */
+export function orderingsOf(lemma: string): string[][] | null {
+  const cell = CELLS.find((c) => c.lemma === lemma)
+  if (!cell || !cell.orders || cell.orders.length < 2 || cell.everyOrderCanonical) return null
+  return cell.orders.map(tokens)
+}
+
 /** The dictionary entry a degree string names over this quality, if any. */
 export function lookup(degrees: string[], quality: Quality, canonicalOnly = false): Entry | undefined {
   const key = degrees.join('')

@@ -127,3 +127,33 @@ describe('cell drill provenance', () => {
     expect(step.prompt).toContain('transferable')
   })
 })
+
+describe('throughStep: play it in another order', () => {
+  const bergonzi = (): Omit<PracticeUnit, 'steps'> => ({
+    ...unit,
+    notes: [62, 64, 65, 69].map((midi, i) => ({ midi, onset: i * Q / 2, duration: Q / 2, bar: 1, beat: i / 2 })),
+    endIndex: 3, degrees: ['1', '2', '3', '5'],
+    findings: [{
+      id: 'f2', kind: 'cell', name: 'minor cell 1345', lemma: 'minor cell 1345', ordering: '1-3-4-5',
+      spans: [{ startIndex: 0, endIndex: 3, bar: 1, beat: 0 }],
+      degrees: ['1', '3', '4', '5'], intervals: [3, 2, 2], quality: 'minor-seventh',
+      detectedBy: ['shape'], weights: { shape: 1 }, confidence: 1,
+    }],
+  })
+
+  it('sits between the cell drill and the cycle for a Bergonzi cell', () => {
+    const [step] = throughStep(bergonzi(), tune, score, tune.title)
+    const kinds = step.exercises.map((e) => e.transformation)
+    const perm = kinds.indexOf('permutation')
+    expect(perm).toBeGreaterThan(kinds.indexOf('over-changes'))
+    expect(perm).toBeLessThan(kinds.indexOf('cycle-of-fourths'))
+    const ex = step.exercises[perm]
+    expect(ex.bars).toHaveLength(4)
+    expect(ex.bars.every((b) => b.rootPc === 2 && b.quality === 'minor-seventh')).toBe(true)
+  })
+
+  it('offers nothing for a cell with one order', () => {
+    const [step] = throughStep(unit, tune, score, tune.title)
+    expect(step.exercises.some((e) => e.transformation === 'permutation')).toBe(false)
+  })
+})

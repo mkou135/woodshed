@@ -275,16 +275,18 @@ All of these are proposals; none is implemented.
   and `ordering`, output byte-identical. (a) **Widened 2026-09-02**
   (DECISIONS "Bergonzi cells accept every ordering"): 1235 and 1345 in all
   24 orders, canonical-first tie-break, +37 corpus findings, Blake
-  unmoved. Still open: (b) a "play it in another order" practice step
-  reading `ordering`; (c) `describe.ts` saying "1-2-3-5 in the order
+  unmoved. (b) **Shipped 2026-09-02** as a `permutation` exercise inside
+  Through (ENGINE_SPEC "Play it in another order"). Still open: (c)
+  `describe.ts` saying "1-2-3-5 in the order
   3-1-2-5" — today the name carries it, which is fine in the audit view
   and clumsy in the headline; (d) whether the minor 1235 should widen
   too, which Bergonzi does not do and no peer solo has asked for.
-- **Four practice steps the sources have and we do not**: visualise (away
+- **Three practice steps the sources have and we do not**: visualise (away
   from the horn — Bergonzi; answers the faculty consensus that memorising
-  beats notating), edit (omit notes for rhythmic variety), permutation, and
-  connect-by-step into the next chord. Resolve: owner tries them; visualise
-  is nearly free since it renders no exercise.
+  beats notating), edit (omit notes for rhythmic variety), and
+  connect-by-step into the next chord. Permutation shipped 2026-09-02
+  inside Through. Resolve: owner tries them; visualise is nearly free since
+  it renders no exercise.
 - **A pentatonic run may escape the stock penalty.** `stockShare` matches
   a run of ≥ 4 notes moving one way by steps of 1–2 semitones *or* by
   3–5 semitones. A major (1-2-3-5-6) or minor (1-b3-4-5-b7) pentatonic run

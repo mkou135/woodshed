@@ -1,6 +1,7 @@
 import { semitonesOfDegree, qualityFamily } from '../core/pitch.ts'
 import type { Chord, Instrument, Quality } from '../core/types.ts'
 import type { Finding } from '../analyse/index.ts'
+import { orderingsOf } from '../analyse/detectors/shapes.ts'
 import { barContains } from './validity.ts'
 
 /** A note or rest with a real duration, in ticks. */
@@ -32,6 +33,7 @@ export interface ExerciseBar {
 
 export type Transformation =
   | 'cycle-of-fourths' | 'over-changes' | 'through-tune' | 'loop' | 'displace' | 'vary-approach' | 'device' | 'template'
+  | 'permutation'
 
 export interface Exercise {
   id: string
@@ -85,6 +87,56 @@ function intervalsFor(finding: Finding): number[] | null {
     out.push((semis[i + 1] as number) - (semis[i] as number))
   }
   return out
+}
+
+/**
+ * Bergonzi's page: the same four notes, in one octave of the root, in other
+ * orders. The order as played comes first, then the three rotations of the
+ * canonical set — one starting on each other degree, his "one from each
+ * column". Only a cell the dictionary permutes (`orderingsOf`) gets one, and
+ * every bar must re-detect as that lemma (`barHasLemma`, checked by the
+ * caller). The intervals are raw degree differences, so a 5 → 1 falls a
+ * fifth rather than climbing to the next octave: the set stays one handful.
+ */
+export function permutationDrill(
+  finding: Finding,
+  chord: Chord,
+  instrument: Instrument,
+): Exercise | null {
+  const { degrees, quality } = finding
+  if (!degrees || !quality) return null
+  // A hand-built finding may carry no lemma; the canonical name is one.
+  const orders = orderingsOf(finding.lemma ?? finding.name)
+  if (!orders) return null
+  const canonical = orders[0]
+  if (canonical.length !== degrees.length) return null
+  // One order per starting degree: the played order stands for its own
+  // start, so the rotation beginning on that degree is the one left out.
+  const rotations = canonical.map((_, k) => [...canonical.slice(k), ...canonical.slice(0, k)])
+  const sequence = [degrees, ...rotations.filter((r) => r[0] !== degrees[0])]
+
+  const bars: ExerciseBar[] = []
+  for (const order of sequence) {
+    const semis = order.map((d) => semitonesOfDegree(d, quality))
+    if (semis.some((x) => x === null)) return null
+    const intervals = semis.slice(1).map((x, i) => (x as number) - (semis[i] as number))
+    const bar = buildBar(chord.rootPc, chord.quality, order, intervals, instrument)
+    if (!bar) return null
+    bars.push(bar)
+  }
+
+  return {
+    id: `${finding.id}-perm`,
+    title: 'Same four notes, other orders',
+    findingId: finding.id,
+    findingName: finding.name,
+    transformation: 'permutation',
+    bars,
+    sourceBar: finding.spans[0]?.bar ?? 0,
+    rationale:
+      'Bergonzi: a four-note cell is a set, and its orders are the drill. The order you played, then one starting on each other degree — ' +
+      'one or two from each column is enough before taking it through the changes.',
+  }
 }
 
 export function throughCycleOfFourths(
