@@ -212,6 +212,18 @@ first 24.
 
 ## Shape dictionary (`analyse/detectors/shapes.ts`)
 
+Stated as **cells** (since 2026-09-02): a `lemma` ("major triad"), a
+canonical degree `set` ('135'), the `orders` it permits (omitted = the
+canonical order only; a bare triad permits all six), a `name` per ordering
+(omitted = the lemma) and the qualities. `CELLS` compiles at load to the
+flat `DICTIONARY` the matcher searches — one entry per permitted ordering,
+in table order, so `lookup` finds exactly what it found before. Every hit
+and every cell finding carries `lemma` and `ordering` ("5-3-1", the degrees
+as played); `Finding.name` remains the identity (§ "Naming what a player
+sees") and nothing reads the two fields yet. Widening a cell to all 24
+orderings (Bergonzi) is a detection change and takes a Blake read plus the
+corpus golden (OPEN_QUESTIONS "The shape dictionary hand-lists orderings").
+
 Cell lengths 8 down to 3, longest first; a shorter hit sharing any note
 with a longer one is dropped (1357 contains 135; 3-5-1 across two 1235s is
 no triad). At equal length, cross-chord licks (below) are tried before

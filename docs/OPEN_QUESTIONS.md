@@ -269,9 +269,16 @@ All of these are proposals; none is implemented.
   interesting because it explains the *absence* of change running.
 - **The shape dictionary hand-lists orderings.** Bergonzi's system is one
   four-note set (1-2-3-5 major/dominant, 1-3-4-5 minor — both already ours)
-  times its 24 permutations. Resolve: consider restating entries as
-  set + permutation, which would collapse the six triad entries into one
-  and generate a "play it in another order" practice step.
+  times its 24 permutations. **Restated 2026-09-02** (DECISIONS "The
+  dictionary is stated as cells"): entries are set + permitted orderings,
+  the twelve triad entries are two cells, every cell hit carries `lemma`
+  and `ordering`, output byte-identical. Still open, in order: (a) widen
+  1235 / 1345 to all 24 orderings — a detection change; measure Blake
+  finding counts and the corpus golden before and after, and expect the
+  stock exemption to matter, since a named ≥ 4-degree cell exempts its
+  notes from the penalty; (b) a "play it in another order" practice step
+  reading `ordering`; (c) `describe.ts` saying "1-2-3-5 in the order
+  3-1-2-5" once (a) makes orderings vary.
 - **Four practice steps the sources have and we do not**: visualise (away
   from the horn — Bergonzi; answers the faculty consensus that memorising
   beats notating), edit (omit notes for rhythmic variety), permutation, and

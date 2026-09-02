@@ -178,3 +178,43 @@ describe('lick entries', () => {
     expect(hits[0]).toMatchObject({ length: 5, name: 'bebop dominant descent', language: 'bebop' })
   })
 })
+
+describe('lemma and ordering', () => {
+  // A cell is a pitch-degree set plus the order it was played in (Bergonzi's
+  // set × permutation; ENGINE_SPEC "Shape dictionary"). The name stays the
+  // identity; the lemma is what the six triad orders have in common.
+  it('a triad hit carries the lemma and the ordering as played', () => {
+    const ctx = contextualise(line([67, 64, 60]), [chord(1, 0, 'major')])
+    expect(matchShapes(ctx)[0]).toMatchObject({ name: 'major triad 5-3-1', lemma: 'major triad', ordering: '5-3-1' })
+  })
+
+  it('a minor triad shares the lemma across its orders', () => {
+    const a = contextualise(line([62, 65, 69]), [chord(1, 2, 'minor-seventh')])
+    const b = contextualise(line([69, 62, 65]), [chord(1, 2, 'minor-seventh')])
+    expect(matchShapes(a)[0]).toMatchObject({ lemma: 'minor triad', ordering: '1-3-5' })
+    expect(matchShapes(b)[0]).toMatchObject({ name: 'minor triad 5-1-3', lemma: 'minor triad', ordering: '5-1-3' })
+  })
+
+  it('a single-order cell reports its canonical ordering', () => {
+    const ctx = contextualise(line([60, 62, 64, 67]), [chord(1, 0, 'major-seventh')])
+    expect(matchShapes(ctx)[0]).toMatchObject({ lemma: 'digital pattern 1235', ordering: '1-2-3-5' })
+  })
+
+  it('a cross-chord lick has a lemma too', () => {
+    const chords = [chord(1, 2, 'minor-seventh'), chord(2, 7, 'dominant')]
+    const ctx = contextualise(line([62, 64, 65, 69, 71, 74, 77, 81]), chords)
+    const lick = matchShapes(ctx).find((h) => h.length === 8)
+    expect(lick).toMatchObject({ lemma: 'ii–V digital pattern 1235 into 3-5-7-9', ordering: '1-2-3-5-3-5-b7-2' })
+  })
+})
+
+describe('the compiled dictionary', () => {
+  it('still names all twelve triad orders', () => {
+    for (const [pcs, quality, word] of [[[60, 64, 67], 'major', 'major'], [[60, 63, 67], 'minor', 'minor']] as const) {
+      const orders = [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]]
+      const names = orders.map((o) => matchShapes(contextualise(line(o.map((k) => pcs[k])), [chord(1, 0, quality)]))[0]?.name)
+      expect(new Set(names).size).toBe(6)
+      for (const n of names) expect(n).toMatch(new RegExp(`^${word} triad [135]-[135]-[135]$`))
+    }
+  })
+})

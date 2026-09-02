@@ -17,17 +17,55 @@ export interface ShapeHit {
   language?: 'bebop'
   /** Share of WJD solos containing this degree pattern, when the mined table has it. */
   lickShare?: number
+  /**
+   * What the cell is, ordering aside: the six triad orders share the lemma
+   * "major triad". `name` stays the identity a finding merges and drills by.
+   */
+  lemma: string
+  /** The degrees in the order played, as a player would say them: "5-3-1". */
+  ordering: string
 }
 
+/**
+ * A cell as Bergonzi organises them: a degree set in canonical order, and the
+ * orderings the dictionary accepts. Most cells accept only the canonical one;
+ * a bare triad accepts all six. Widening a cell to every permutation is a
+ * detection change and takes a corpus read (OPEN_QUESTIONS).
+ */
+interface Cell {
+  lemma: string
+  /** Canonical degree string, one token per degree ('1357', '35b72'). */
+  set: string
+  /** Permitted orderings as degree strings; omitted = the canonical order only. */
+  orders?: string[]
+  /** Name for a given ordering; omitted = the lemma itself. */
+  name?: (ordering: string) => string
+  qualities: Quality[]
+  language?: 'bebop'
+}
+
+/** The flat entry the matcher searches: one per permitted ordering. */
 interface Entry {
   degrees: string
   name: string
+  lemma: string
   /** The chord qualities this cell is vocabulary over. */
   qualities: Quality[]
   language?: 'bebop'
 }
 
 const TRIAD_ORDERS = ['135', '153', '315', '351', '513', '531']
+const triad = (word: string, qualities: Quality[]): Cell => ({
+  lemma: `${word} triad`,
+  set: '135',
+  orders: TRIAD_ORDERS,
+  name: (o) => `${word} triad ${o}`,
+  qualities,
+})
+
+/** '35b72' → ['3', '5', 'b7', '2']; a degree is an optional accidental and a digit. */
+const tokens = (degrees: string): string[] => degrees.match(/[#b]?\d/g) ?? []
+const spell = (degrees: string[]): string => degrees.join('-')
 
 const MAJOR: Quality[] = ['major', 'major-seventh']
 const DOMINANT: Quality[] = ['dominant', 'augmented-seventh']
@@ -43,37 +81,52 @@ const MINOR_FAMILY: Quality[] = [...MINOR, 'half-diminished', 'diminished', 'dim
  * is not vocabulary over a dominant, where that note clashes with the b7 —
  * keying by family alone once drilled C E G B through every dominant in a tune.
  */
-const DICTIONARY: Entry[] = [
-  { degrees: '1235', name: 'digital pattern 1235', qualities: MAJOR_FAMILY },
-  { degrees: '1234', name: 'scalar cell 1234', qualities: MAJOR_FAMILY },
-  { degrees: '5321', name: '5-3-2-1 descent', qualities: MAJOR_FAMILY },
-  { degrees: '3572', name: '3-5-7-9 upper structure', qualities: MAJOR },
-  { degrees: '35b72', name: '3-5-b7-9 upper structure', qualities: DOMINANT },
-  { degrees: '1357', name: 'major-seventh arpeggio', qualities: MAJOR },
-  { degrees: '135b7', name: 'dominant seventh arpeggio', qualities: DOMINANT },
-  { degrees: 'b7#9b91', name: 'dominant b9 cell b7-#9-b9-1', qualities: DOMINANT },
-  { degrees: '3b91', name: 'dominant b9 cell 3-b9-1', qualities: DOMINANT },
-  { degrees: '1b9b7', name: 'dominant b9 cell 1-b9-b7', qualities: DOMINANT },
+const CELLS: Cell[] = [
+  { lemma: 'digital pattern 1235', set: '1235', qualities: MAJOR_FAMILY },
+  { lemma: 'scalar cell 1234', set: '1234', qualities: MAJOR_FAMILY },
+  { lemma: '5-3-2-1 descent', set: '5321', qualities: MAJOR_FAMILY },
+  { lemma: '3-5-7-9 upper structure', set: '3572', qualities: MAJOR },
+  { lemma: '3-5-b7-9 upper structure', set: '35b72', qualities: DOMINANT },
+  { lemma: 'major-seventh arpeggio', set: '1357', qualities: MAJOR },
+  { lemma: 'dominant seventh arpeggio', set: '135b7', qualities: DOMINANT },
+  { lemma: 'dominant b9 cell b7-#9-b9-1', set: 'b7#9b91', qualities: DOMINANT },
+  { lemma: 'dominant b9 cell 3-b9-1', set: '3b91', qualities: DOMINANT },
+  { lemma: 'dominant b9 cell 1-b9-b7', set: '1b9b7', qualities: DOMINANT },
   // Named clichés from the pedagogy literature (Baker's bebop scales, Owens'
   // Parker formulas) — hand-written degree strings, never quoted from a corpus.
-  { degrees: '17b765', name: 'bebop dominant descent', qualities: DOMINANT, language: 'bebop' },
-  { degrees: '176b135', name: 'bebop major descent', qualities: MAJOR, language: 'bebop' },
-  { degrees: 'b9b753', name: 'b9 diminished arpeggio descent', qualities: DOMINANT, language: 'bebop' },
-  { degrees: '35b7b9', name: 'dominant arpeggio 3 to the b9', qualities: DOMINANT, language: 'bebop' },
+  { lemma: 'bebop dominant descent', set: '17b765', qualities: DOMINANT, language: 'bebop' },
+  { lemma: 'bebop major descent', set: '176b135', qualities: MAJOR, language: 'bebop' },
+  { lemma: 'b9 diminished arpeggio descent', set: 'b9b753', qualities: DOMINANT, language: 'bebop' },
+  { lemma: 'dominant arpeggio 3 to the b9', set: '35b7b9', qualities: DOMINANT, language: 'bebop' },
 
-  { degrees: '1345', name: 'minor cell 1345', qualities: MINOR_FAMILY },
-  { degrees: '1235', name: 'minor digital pattern 1235', qualities: MINOR_FAMILY },
-  { degrees: '5321', name: '5-3-2-1 descent', qualities: MINOR_FAMILY },
-  { degrees: '3572', name: 'major-seventh arpeggio from the b3', qualities: MINOR },
-  { degrees: '1357', name: 'minor seventh arpeggio', qualities: MINOR },
-  { degrees: '13b57', name: 'half-diminished arpeggio', qualities: ['half-diminished'] },
+  { lemma: 'minor cell 1345', set: '1345', qualities: MINOR_FAMILY },
+  { lemma: 'minor digital pattern 1235', set: '1235', qualities: MINOR_FAMILY },
+  { lemma: '5-3-2-1 descent', set: '5321', qualities: MINOR_FAMILY },
+  { lemma: 'major-seventh arpeggio from the b3', set: '3572', qualities: MINOR },
+  { lemma: 'minor seventh arpeggio', set: '1357', qualities: MINOR },
+  { lemma: 'half-diminished arpeggio', set: '13b57', qualities: ['half-diminished'] },
 
   // Bare triads, three notes in any order; each order is its own figure to
   // drill. Over a minor chord the third is labelled '3' (context.ts), so the
   // same strings name the minor triad.
-  ...TRIAD_ORDERS.map((degrees) => ({ degrees, name: `major triad ${degrees.split('').join('-')}`, qualities: MAJOR_FAMILY })),
-  ...TRIAD_ORDERS.map((degrees) => ({ degrees, name: `minor triad ${degrees.split('').join('-')}`, qualities: MINOR_FAMILY })),
+  triad('major', MAJOR_FAMILY),
+  triad('minor', MINOR_FAMILY),
 ]
+
+/**
+ * The cells flattened to one entry per permitted ordering, in table order —
+ * the same list, in the same order, that the dictionary was before it was
+ * stated as set + orderings, so `lookup` finds exactly what it found.
+ */
+const DICTIONARY: Entry[] = CELLS.flatMap((cell) =>
+  (cell.orders ?? [cell.set]).map((degrees) => ({
+    degrees,
+    name: cell.name ? cell.name(spell(tokens(degrees))) : cell.lemma,
+    lemma: cell.lemma,
+    qualities: cell.qualities,
+    language: cell.language,
+  })),
+)
 
 interface LickSegment {
   degrees: string[]
@@ -163,6 +216,8 @@ function matchLick(ctx: NoteContext[], i: number, lick: LickEntry): ShapeHit | n
     startIndex: i,
     length,
     name: lick.name,
+    lemma: lick.name,
+    ordering: spell([...s1.degrees, ...s2.degrees]),
     degrees: [...s1.degrees, ...s2.degrees],
     quality: a.quality,
     intervals: intervalsOf(ctx.slice(i, end).map((c) => c.note.midi)),
@@ -210,6 +265,8 @@ export function matchShapes(ctx: NoteContext[]): ShapeHit[] {
         startIndex: i,
         length: cellLength,
         name: entry.name,
+        lemma: entry.lemma,
+        ordering: spell(degrees),
         degrees,
         quality: chord.quality,
         intervals: intervalsOf(cell.map((c) => c.note.midi)),

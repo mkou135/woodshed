@@ -1240,3 +1240,28 @@ owner's ear keeps.
 phrase marks side with the corpus on length and leap; or a fit against
 the owner's own marks once there are enough of them to fit on.
 
+## 2026-09-02 · The dictionary is stated as cells: a lemma, a set, its orderings
+
+**Question.** The shape dictionary hand-listed every ordering as its own
+entry (six per triad). Bergonzi's system, and the "lemmatization" framing
+from this session's assessment, say a cell is a pitch-degree set plus the
+order it was played in. Restate it that way?
+
+**Decision.** Yes, descriptively and byte-identically. `CELLS` (lemma,
+set, permitted orders, name-per-order, qualities) compiles to the flat
+`DICTIONARY` in the same order as before; `ShapeHit` and `Finding` gain
+`lemma` and `ordering`; `absorb` carries them with `degrees`. Nothing reads
+the fields. Widening to all 24 orderings, the permutation practice step and
+the describe line are follow-ups, not part of this.
+
+**Evidence.** Blake and St Thomas CLI output byte-identical (St Thomas
+against a worktree at HEAD); corpus golden 456 unchanged; tests 516 → 521,
+the five new ones pinning lemma/ordering on triads, single-order cells and
+a cross-chord lick, and that all twelve triad names still compile.
+
+**Who.** Owner chose the descriptive-first scope; Claude built it.
+
+**Would reverse it.** Nothing here to reverse — it is the same dictionary
+stated differently. What would *stop the follow-up* is the 24-ordering
+widening flooding Blake with permuted 1235 hits that are not vocabulary.
+

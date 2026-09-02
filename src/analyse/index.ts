@@ -39,6 +39,12 @@ export interface Finding {
   spans: FindingSpan[]
   degrees?: string[]
   intervals?: number[]
+  /**
+   * For a dictionary cell: what it is ordering aside ("major triad") and the
+   * order played ("5-3-1"). Descriptive only — `name` remains the identity.
+   */
+  lemma?: string
+  ordering?: string
   /** Bent or inverted forms of a recurring cell; their spans are already in `spans`. */
   variants?: Variant[]
   quality?: Quality
@@ -140,6 +146,8 @@ export function analyse(score: Score, report: CleanupReport, options: AnalyseOpt
       spans: [spanOf(hit.startIndex, hit.startIndex + hit.length - 1)],
       degrees: hit.degrees,
       intervals: hit.intervals,
+      lemma: hit.lemma,
+      ordering: hit.ordering,
       quality: hit.quality,
       language: hit.language,
       lickShare: hit.lickShare,
@@ -291,6 +299,8 @@ function absorb(into: Finding, from: Finding, takeSpans = true): void {
     into.quality = from.quality
     into.name = from.name
     into.kind = from.kind
+    into.lemma = from.lemma
+    into.ordering = from.ordering
     // The name it just took is a real one, so the vector-name flag goes with it.
     delete into.unnamed
   }

@@ -1224,3 +1224,14 @@ side-finding. Not measured: the same features as *idea* cues, which is
 where the recall ceiling is. DECISIONS "Fitted segmentation weights
 rejected"; OPEN_QUESTIONS metric/formal-position entry narrowed.
 
+2026-09-02 · session 21 (cont.) · lemma layer, descriptive pass.
+`shapes.ts`: `CELLS` → compiled `DICTIONARY`; the twelve triad entries are
+two cells with six orders; hits carry `lemma` + `ordering`. `analyse/
+index.ts`: `Finding.lemma?` / `ordering?`, copied from hits and through
+`absorb`. Five tests. **Byte-identical, read three ways**: Blake CLI
+diffed against this morning's post-swap run, St Thomas against a worktree
+at HEAD, corpus golden 456/456. Tests 521, typecheck clean. Spec dictionary
+section rewritten; DECISIONS "The dictionary is stated as cells";
+OPEN_QUESTIONS set-plus-permutation entry narrowed to the widening, the
+permutation step and the describe line.
+
