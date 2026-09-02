@@ -1235,3 +1235,14 @@ section rewritten; DECISIONS "The dictionary is stated as cells";
 OPEN_QUESTIONS set-plus-permutation entry narrowed to the widening, the
 permutation step and the describe line.
 
+2026-09-02 · session 21 (cont.) · Bergonzi widening ships. `bergonzi()`
+gives 1235 / 1345 all 24 orders; descent listed first; duplicate check
+at load; canonical-before-permuted pass in `matchShapes`. Seven tests.
+**Read, not assumed**: the first build changed one St Thomas finding —
+a permuted 3-5-1-2 at bar 104 swallowed the canonical 1-2-3-5 two notes
+later — which is what the tie-break exists for; after it Blake and St
+Thomas are byte-identical to the pre-widening runs. Corpus 37 solos
++37 findings, nothing else moved; golden re-pinned. A throwaway sampler
+(deleted) printed all 17 permuted-cell findings across Blake + peers with
+their notes; they read as vocabulary. Tests 527, typecheck clean.
+

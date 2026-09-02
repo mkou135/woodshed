@@ -220,9 +220,26 @@ flat `DICTIONARY` the matcher searches — one entry per permitted ordering,
 in table order, so `lookup` finds exactly what it found before. Every hit
 and every cell finding carries `lemma` and `ordering` ("5-3-1", the degrees
 as played); `Finding.name` remains the identity (§ "Naming what a player
-sees") and nothing reads the two fields yet. Widening a cell to all 24
-orderings (Bergonzi) is a detection change and takes a Blake read plus the
-corpus golden (OPEN_QUESTIONS "The shape dictionary hand-lists orderings").
+sees") and nothing reads the two fields yet.
+
+**Bergonzi cells** (2026-09-02, later the same day): the major-family
+`1235` and the minor-family `1345` accept **all 24 orderings**
+(`bergonzi()`); the minor `1235` stays canonical, since Bergonzi's minor
+set is 1345. The canonical order keeps the bare lemma as its name; any
+other order is named "digital pattern 1235 in the order 3-1-2-5". Two
+rules keep this honest: (1) **table order resolves collisions** — the
+5-3-2-1 descent is listed before the widened 1235, of which it is an
+ordering, so `lookup` returns the descent and its lick-table key still
+applies; a load-time check throws on any other duplicate degree string
+within a quality. (2) **Canonical before permuted at equal length**:
+`matchShapes` runs each cell length twice, `lookup(…, canonicalOnly)`
+first, so a permuted window that starts earlier cannot swallow a
+canonical 1-2-3-5 it overlaps (St Thomas bar 104: Gb A D E Gb A). A bare
+triad's six orders are all canonical (`everyOrderCanonical`). Measured:
+Blake and St Thomas byte-identical; corpus +37 findings over 7,124, 37
+solos moved (+1 to +5, five solos −1 where a permuted cell absorbed a
+triad); units, phrases, ideas unmoved; 17 permuted-cell findings across
+Blake + the ten peers, none on Blake.
 
 Cell lengths 8 down to 3, longest first; a shorter hit sharing any note
 with a longer one is dropped (1357 contains 135; 3-5-1 across two 1235s is

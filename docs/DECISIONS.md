@@ -1265,3 +1265,37 @@ a cross-chord lick, and that all twelve triad names still compile.
 stated differently. What would *stop the follow-up* is the 24-ordering
 widening flooding Blake with permuted 1235 hits that are not vocabulary.
 
+## 2026-09-02 · Bergonzi cells accept every ordering
+
+**Question.** With the dictionary stated as set + orderings, should the two
+Bergonzi sets — major-family 1235, minor-family 1345 — match in all 24
+orders, as his method drills them?
+
+**Decision.** Yes, with two guards. Canonical order keeps its name, other
+orders are named "… in the order 3-1-2-5". Collisions resolve by table
+order (the 5-3-2-1 descent precedes the widened 1235; a load-time check
+throws on any other duplicate). At equal length the canonical order
+matches before permuted ones, because the first build let a permuted
+window two notes earlier swallow a real 1-2-3-5 on St Thomas bar 104 —
+found by the read, fixed, pinned by a test. The minor 1235 stays
+canonical.
+
+**Evidence.** Blake byte-identical (0 permuted cells; 15 findings, u1
+unchanged); St Thomas byte-identical after the tie-break (one swapped
+finding before it). Corpus: 7,124 → 7,161 findings, 37 of 456 solos, +1
+to +5 each and five at −1 (a permuted cell absorbing a triad); units,
+phrases, ideas 0. Ten peers + Blake: 17 permuted-cell findings, read with
+their notes — e.g. "G F Eb Bb" 3-2-1-5 over Eb, "D A B G" 5-2-3-1 over G,
+"C Bb Ab F" 1345 as 5-4-3-1 over Fm — all four-note gestures inside one
+chord that a Bergonzi student would recognise. No flood: +0.5% findings.
+Golden re-pinned. Tests 521 → 527.
+
+**Who.** Owner asked; Claude built and read.
+
+**Would reverse it.** The page naming permuted cells that the owner does
+not hear as vocabulary on a real solo; or the stock exemption (a named
+≥ 4-degree cell exempts its notes) visibly lifting scale-run units — not
+seen on Blake or the peers, but the widened cell is the first entry
+whose orders can look like a run (1-2-3-5 is not, 5-3-2-1 has its own
+name, 2-3-5-1 might).
+

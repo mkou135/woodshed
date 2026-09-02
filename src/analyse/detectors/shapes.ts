@@ -40,6 +40,8 @@ interface Cell {
   orders?: string[]
   /** Name for a given ordering; omitted = the lemma itself. */
   name?: (ordering: string) => string
+  /** Every order is its own figure (a bare triad); none is a permutation of another. */
+  everyOrderCanonical?: true
   qualities: Quality[]
   language?: 'bebop'
 }
@@ -49,6 +51,8 @@ interface Entry {
   degrees: string
   name: string
   lemma: string
+  /** The cell's own order, not one of its permutations. */
+  canonical: boolean
   /** The chord qualities this cell is vocabulary over. */
   qualities: Quality[]
   language?: 'bebop'
@@ -60,12 +64,38 @@ const triad = (word: string, qualities: Quality[]): Cell => ({
   set: '135',
   orders: TRIAD_ORDERS,
   name: (o) => `${word} triad ${o}`,
+  everyOrderCanonical: true,
   qualities,
 })
 
 /** '35b72' → ['3', '5', 'b7', '2']; a degree is an optional accidental and a digit. */
 const tokens = (degrees: string): string[] => degrees.match(/[#b]?\d/g) ?? []
 const spell = (degrees: string[]): string => degrees.join('-')
+
+/** Every ordering of a degree set, canonical first (Bergonzi's 24). */
+function permutations(set: string): string[] {
+  const ds = tokens(set)
+  const out: string[] = []
+  const walk = (prefix: string[], rest: string[]): void => {
+    if (rest.length === 0) { out.push(prefix.join('')); return }
+    rest.forEach((d, i) => walk([...prefix, d], [...rest.slice(0, i), ...rest.slice(i + 1)]))
+  }
+  walk([], ds)
+  return out
+}
+
+/**
+ * A Bergonzi four-note cell: the set in every order. The canonical order
+ * keeps the bare lemma as its name, so existing identities survive; any
+ * other order says so ("digital pattern 1235 in the order 3-1-2-5").
+ */
+const bergonzi = (lemma: string, set: string, qualities: Quality[]): Cell => ({
+  lemma,
+  set,
+  orders: permutations(set),
+  name: (o) => (o === spell(tokens(set)) ? lemma : `${lemma} in the order ${o}`),
+  qualities,
+})
 
 const MAJOR: Quality[] = ['major', 'major-seventh']
 const DOMINANT: Quality[] = ['dominant', 'augmented-seventh']
@@ -82,9 +112,12 @@ const MINOR_FAMILY: Quality[] = [...MINOR, 'half-diminished', 'diminished', 'dim
  * keying by family alone once drilled C E G B through every dominant in a tune.
  */
 const CELLS: Cell[] = [
-  { lemma: 'digital pattern 1235', set: '1235', qualities: MAJOR_FAMILY },
-  { lemma: 'scalar cell 1234', set: '1234', qualities: MAJOR_FAMILY },
+  // The descent is listed before the widened 1235 on purpose: 5-3-2-1 is an
+  // ordering of that set, and `lookup` takes the first entry, so the descent
+  // keeps its own name (and its lick-table key).
   { lemma: '5-3-2-1 descent', set: '5321', qualities: MAJOR_FAMILY },
+  bergonzi('digital pattern 1235', '1235', MAJOR_FAMILY),
+  { lemma: 'scalar cell 1234', set: '1234', qualities: MAJOR_FAMILY },
   { lemma: '3-5-7-9 upper structure', set: '3572', qualities: MAJOR },
   { lemma: '3-5-b7-9 upper structure', set: '35b72', qualities: DOMINANT },
   { lemma: 'major-seventh arpeggio', set: '1357', qualities: MAJOR },
@@ -99,9 +132,11 @@ const CELLS: Cell[] = [
   { lemma: 'b9 diminished arpeggio descent', set: 'b9b753', qualities: DOMINANT, language: 'bebop' },
   { lemma: 'dominant arpeggio 3 to the b9', set: '35b7b9', qualities: DOMINANT, language: 'bebop' },
 
-  { lemma: 'minor cell 1345', set: '1345', qualities: MINOR_FAMILY },
-  { lemma: 'minor digital pattern 1235', set: '1235', qualities: MINOR_FAMILY },
+  // Bergonzi's minor set is 1345, so only that one widens; the minor 1235
+  // stays canonical. The descent again precedes the widened cell.
   { lemma: '5-3-2-1 descent', set: '5321', qualities: MINOR_FAMILY },
+  bergonzi('minor cell 1345', '1345', MINOR_FAMILY),
+  { lemma: 'minor digital pattern 1235', set: '1235', qualities: MINOR_FAMILY },
   { lemma: 'major-seventh arpeggio from the b3', set: '3572', qualities: MINOR },
   { lemma: 'minor seventh arpeggio', set: '1357', qualities: MINOR },
   { lemma: 'half-diminished arpeggio', set: '13b57', qualities: ['half-diminished'] },
@@ -123,10 +158,28 @@ const DICTIONARY: Entry[] = CELLS.flatMap((cell) =>
     degrees,
     name: cell.name ? cell.name(spell(tokens(degrees))) : cell.lemma,
     lemma: cell.lemma,
+    canonical: degrees === cell.set || cell.everyOrderCanonical === true,
     qualities: cell.qualities,
     language: cell.language,
   })),
 )
+
+// A degree string over a quality must resolve to one entry by table order, and
+// the only intended overlap is the descent inside the widened 1235. Anything
+// else is a table mistake, caught at load rather than as a silent shadowing.
+{
+  const seen = new Map<string, string>()
+  for (const e of DICTIONARY) {
+    for (const q of e.qualities) {
+      const key = `${e.degrees}@${q}`
+      const prior = seen.get(key)
+      if (prior && !(prior === '5-3-2-1 descent' && e.lemma === 'digital pattern 1235')) {
+        throw new Error(`shape dictionary: '${e.degrees}' over ${q} is both '${prior}' and '${e.name}'`)
+      }
+      seen.set(key, prior ?? e.name)
+    }
+  }
+}
 
 interface LickSegment {
   degrees: string[]
@@ -182,9 +235,9 @@ function shareFor(key: string | null): number | undefined {
 }
 
 /** The dictionary entry a degree string names over this quality, if any. */
-export function lookup(degrees: string[], quality: Quality): Entry | undefined {
+export function lookup(degrees: string[], quality: Quality, canonicalOnly = false): Entry | undefined {
   const key = degrees.join('')
-  return DICTIONARY.find((e) => e.degrees === key && e.qualities.includes(quality))
+  return DICTIONARY.find((e) => e.degrees === key && e.qualities.includes(quality) && (!canonicalOnly || e.canonical))
 }
 
 function sameChord(c: Chord | null, chord: Chord): boolean {
@@ -241,7 +294,11 @@ export function matchShapes(ctx: NoteContext[]): ShapeHit[] {
       }
     }
 
-    for (let i = 0; i + cellLength <= ctx.length; i++) {
+    // Two passes at each length: a cell in its own order first, then the
+    // permuted orders of a Bergonzi set. The canonical order is the more
+    // specific claim, and without this a permuted window that starts two
+    // notes earlier swallows the 1-2-3-5 it overlaps (St Thomas bar 104).
+    for (const canonicalOnly of [true, false]) for (let i = 0; i + cellLength <= ctx.length; i++) {
       const end = i + cellLength
       // A triad sharing notes with an already-matched longer cell is part of
       // that event (1357 contains 135; 3-5-1 across two 1235s is no triad).
@@ -258,7 +315,7 @@ export function matchShapes(ctx: NoteContext[]): ShapeHit[] {
       if (cell.some((c) => c.degree === null)) continue
 
       const degrees = cell.map((c) => c.degree as string)
-      const entry = lookup(degrees, chord.quality)
+      const entry = lookup(degrees, chord.quality, canonicalOnly)
       if (!entry) continue
 
       hits.push({
