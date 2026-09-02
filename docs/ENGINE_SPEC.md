@@ -370,8 +370,13 @@ name, degrees and kind.
   over the part's notes with notes inside a named cell of ≥ 4 degrees
   **exempt** (a bare triad's notes are not exempt).
   - `stockShare(notes)`: share of notes inside a run of ≥ `STOCK_RUN` 4
-    notes whose intervals are all steps (1–2 semitones) in one direction,
-    or all thirds/fourths (3–5) in one direction.
+    notes moving in **one direction**, whatever the interval sizes; a
+    repeated note breaks a run. (Until 2026-09-02 a run also had to keep
+    one interval *kind* — all steps, or all thirds/fourths — which read
+    1-2-3-5-7 as no run at all and ignored octave leaps. The direction-only
+    predicate separates the WJD annotators' lines from their licks better
+    in every length bin; see "Stock signals vs the WJD midlevel-unit
+    labels" and DECISIONS 2026-09-02 "stockShare runs by direction".)
   - `corpusShare(notes)` (`practice/corpus.ts`): each note takes the largest
     `CORPUS_FREQUENCY` share of any 4-note window covering it (0 if none is
     in the table); mean over notes. A bebop scale fragment ≈ 0.7, a bare
@@ -883,10 +888,14 @@ Measured 2026-09-02, 451 solos, 12,393 lick/line sections (4,598 line,
 | `chordToneDownbeatShare` | 0.522 | 0.527 | 0.503 | 0.501 | 0.489 |
 | length in notes | **0.842** | — | — | — | — |
 
-Reading: `stockShare` is a real, length-independent but modest line
-detector (≈0.71 in every bin; at ≥ 0.5 it flags 47.9% of lines at 61.7%
+Reading (the `stockShare` row is the **pre-swap** rule, kept as the
+record): the one-kind run was a real, length-independent but modest line
+detector (≈0.71 in every bin; at ≥ 0.5 it flagged 47.9% of lines at 61.7%
 precision against a 37% base rate). The direction-only run predicate
-beats it in every bin, most where it matters for the page (short units).
+beats it in every bin, most where it matters for the page (short units),
+and **is the rule in force since 2026-09-02** — re-running the eval now
+prints identical `stockShare` and `runShare` rows (0.837 / 0.798 / 0.724 /
+0.711), which is the check that the swap changed the right function.
 `chordToneDownbeatShare` is chance in every bin — Baker's metric rule does
 not separate vocabulary from running, because both put chord tones on
 beats. `languageShare` never reaches 0.5 (document shares top out ≈ 0.24),

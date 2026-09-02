@@ -170,9 +170,16 @@ describe('stockShare', () => {
     expect(stockShare(midis([60, 62, 64, 60, 62, 64, 65, 67]))).toBe(0.625)
   })
 
-  it('does not mix steps and thirds in one run', () => {
-    // 1-2-3-5-7: steps then thirds; neither run reaches four notes
-    expect(stockShare(midis([60, 62, 64, 67, 71]))).toBe(0)
+  it('counts a one-direction run whatever the interval sizes', () => {
+    // 1-2-3-5-7: steps then thirds, five notes climbing — a run by direction
+    // (2026-09-02: the WJD lick/line labels prefer direction alone in every
+    // length bin; ENGINE_SPEC "Stock signals vs the WJD midlevel-unit labels")
+    expect(stockShare(midis([60, 62, 64, 67, 71]))).toBe(1)
+  })
+
+  it('breaks a run at a repeated note', () => {
+    // C D E E F G: the repeat splits it into 3 + 3, neither a run
+    expect(stockShare(midis([60, 62, 64, 64, 65, 67]))).toBe(0)
   })
 })
 

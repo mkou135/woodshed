@@ -1161,3 +1161,41 @@ human labels, the first the stock penalty has had.
 for the better (then swap); or an owner star/outside annotation set that
 disagrees with the WJD labels on what "stock" means.
 
+## 2026-09-02 · `stockShare` runs by direction, not by interval kind
+
+**Question.** The eval above says a direction-only run predicate separates
+the WJD annotators' lines from their licks better than the one-kind rule
+in every length bin. Swap it into the rank?
+
+**Decision.** Yes. A run is now ≥ `STOCK_RUN` 4 notes moving one direction,
+any interval sizes, a repeated note breaking it. `corpusShare`,
+`languageShare`, `STOCK_PENALTY` and `STOCK_SHOWN` untouched. The one test
+that pinned the old rule (1-2-3-5-7 is not a run) now pins the new one, plus
+a repeated-note case.
+
+**Evidence.** Corpus: AUC by length bin 0.717/0.719/0.702/0.714 → 0.837/
+0.798/0.724/0.711 (ENGINE_SPEC table). Blake, read unit by unit: u1 (bars
+76–77, the maj7-from-the-b3 figure) unchanged at 7.96; u2 and u3 (115–117,
+103–105) trade places; the top-six *set* is unchanged; 34 units, 15
+findings, 10 printed exercises unchanged; the pipeline pins hold. The two
+Blake units that fall are bare triads — 119–120 "major triad 3-1-5" (u7 →
+u9; its C4 E4 C5 G5 is a four-note ascent by leaps of 4, 8 and 7 semitones
+the old rule could not see) and bar 99 "major triad 1-3-5" (u14 → u15,
+run 80% → 100%) — which ENGINE_SPEC already calls stock by definition. St
+Thomas: u1 (97–98, the b9 arpeggio unit) unchanged, unit-test pin holds;
+the real cost is 237–238 (Gb A E Eb D D C B G, "chromatic approach into
+the 1 from above; V–I 7-3 resolution"), u2 → u9 on run 0% → 89%: two
+falling four-note gestures either side of the repeated D. The same two
+devices stay in the top ten through 195–196 (u8), so the vocabulary is not
+lost, only that statement of it. Corpus golden: 456 unchanged — rank is
+not in it, so this is the guard that nothing leaked past the rank. Tests
+515 → 516.
+
+**Who.** Owner asked for the swap after the eval; Claude ran the reads.
+
+**Would reverse it.** The owner reading St Thomas 237–238 on the page and
+wanting it back at the top — the fix would then be a resolution-bearing
+exemption (the 7-3 finding has two degrees, below the ≥ 4 exemption), not
+a return to the kind rule; or a second annotated solo where the
+direction-only rule demotes the owner's stars.
+

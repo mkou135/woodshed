@@ -180,29 +180,31 @@ const STOCK_RUN = 4
 const STOCK_PENALTY = 2
 
 /**
- * A scale run (every interval a step, one direction) or a plain arpeggio
- * (every interval a third or fourth, one direction) is the language, not
- * the player: Frieler's Omnibook mine put exactly these at the top of the
- * frequency table. The share of a unit inside such runs discounts its
- * rank, so a signature idea outranks a bar of bebop scale.
+ * A run — notes climbing or falling in one direction for `STOCK_RUN` or
+ * more — is the language, not the player: Frieler's Omnibook mine put
+ * scale and arpeggio runs at the top of the frequency table. The share of
+ * a unit inside such runs discounts its rank, so a signature idea outranks
+ * a bar of bebop scale.
+ *
+ * Direction alone defines a run. The rule used to require one interval
+ * *kind* per run (all steps, or all thirds and fourths), which read 1-2-3-5-7
+ * as two short fragments and no run; against the Weimar lick/line labels the
+ * direction-only predicate separates better in every length bin (0.84 vs
+ * 0.72 on 3–5-note units; ENGINE_SPEC "Stock signals vs the WJD
+ * midlevel-unit labels", DECISIONS 2026-09-02). A repeated note breaks a run.
  */
 export function stockShare(notes: Note[], exempt: ReadonlySet<number> = new Set()): number {
   if (notes.length === 0) return 0
-  const kind = (iv: number): 'step' | 'third' | null => {
-    const a = Math.abs(iv)
-    return a >= 1 && a <= 2 ? 'step' : a >= 3 && a <= 5 ? 'third' : null
-  }
   const stock = new Array<boolean>(notes.length).fill(false)
   const ivs = notes.slice(1).map((n, i) => n.midi - notes[i].midi)
-  // A run is a maximal chain of intervals of one kind in one direction; it
+  // A run is a maximal chain of non-zero intervals in one direction; it
   // covers one more note than it has intervals.
   let runStart = 0
   for (let i = 1; i <= ivs.length; i++) {
-    const continues = i < ivs.length && kind(ivs[i]) !== null &&
-      kind(ivs[i]) === kind(ivs[i - 1]) && Math.sign(ivs[i]) === Math.sign(ivs[i - 1])
+    const continues = i < ivs.length && ivs[i] !== 0 && Math.sign(ivs[i]) === Math.sign(ivs[i - 1])
     if (continues) continue
     const noteCount = i - runStart + 1
-    if (kind(ivs[runStart]) !== null && noteCount >= STOCK_RUN) {
+    if (ivs[runStart] !== 0 && noteCount >= STOCK_RUN) {
       for (let k = runStart; k <= i; k++) if (!exempt.has(k)) stock[k] = true
     }
     runStart = i

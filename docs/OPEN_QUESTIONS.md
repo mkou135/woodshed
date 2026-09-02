@@ -35,10 +35,10 @@ moving its resolution into DECISIONS.md.
   from lick at AUC ≈ 0.71 in every length bin; a direction-only run
   predicate (`runShare`, `practice/stockFeatures.ts`) beats it in every
   bin (0.84 on 3–5-note sections, 0.80 on 6–9); chord-tone-on-downbeat is
-  chance. What is still open: (a) whether `stockShare` should drop its
-  one-interval-kind requirement and become `runShare` — a rank change, so
-  it needs the Blake unit order and the corpus golden read before and
-  after; (b) whether length should enter the rank at all, since the
+  chance. (a) `stockShare` **did** drop its one-interval-kind requirement
+  the same day (DECISIONS 2026-09-02 "stockShare runs by direction"; Blake
+  and St Thomas read before and after, corpus golden byte-identical). Still
+  open: (b) whether length should enter the rank at all, since the
   annotators' "line" is partly *defined* as a long run (research/
   phrases-and-ideas.md §3) and a length term would demote long ideas
   wholesale; (c) a fitted combination, which the eval does not attempt.

@@ -1189,3 +1189,17 @@ cannot cross the 0.5 display threshold by construction. Nothing changed
 in the rank; the swap is the next measurable item and needs Blake read
 either side.
 
+2026-09-02 · session 21 (cont.) · the runShare swap ships. `stockShare`
+(`practice/unit.ts`) runs by direction alone; one test rewritten, one
+added; spec parameter line + eval section, DECISIONS "stockShare runs by
+direction", OPEN_QUESTIONS (a) closed. **Read, not assumed**: full unit
+order dumped for Blake (34) and St Thomas (95) before and after with a
+throwaway script (deleted). Blake u1 and the top-six set unchanged;
+u2/u3 swap; the two units that fall are bare triads — and one of them
+looked like a bug until I noticed the CLI header prints pitch classes
+without octaves: "C E C G" is C4 E4 C5 G5, a real ascent. St Thomas u1
+unchanged; 237–238 falls u2 → u9, the one demotion I would show the
+owner. Corpus golden 456/456 unchanged (rank is not in it — the guard
+that nothing leaked). Tests 516, typecheck clean, eval:stock rows for
+stockShare and runShare now identical.
+
