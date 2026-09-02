@@ -1325,3 +1325,30 @@ count unchanged on Blake (34 / 47 / 174 / 16). Tests 527 → 535.
 the horn, or wanting the drill on the *tune's* chords rather than the
 cell's own — both are one-line changes to `permutationDrill`.
 
+## 2026-09-02 · Visualise sits after Through
+
+**Question.** Bergonzi's off-horn step — run the cell through the changes
+in your head — is the cheapest step the sources offer and answers the
+faculty finding that memorising beats notating. Where in the path?
+
+**Decision.** Its own step kind, `visualise`, third: loop, through,
+visualise, vary, write. After Through because visualising *is* Through
+done mentally, and the player should first know where else in the tune
+the line belongs; before Vary and Write because those pick the horn back
+up. No exercise: a prompt and four cues the engine already knows (changes,
+what to hear, where it comes back, one check against the record). Last in
+the path was rejected as the easiest step to skip; second was rejected as
+arriving before the player knows the tune's other places for it.
+
+**Evidence.** Placement is the owner's call on the pedagogy, not a
+measurement. Blake: every unit gains the step and nothing else moves —
+the CLI diff is the added lines only. Five switch sites touched (desk,
+report, CLI, agent verdict enum, unit assembly); recorded agent fixtures
+still parse because the enum only grew. Tests 540 → 542.
+
+**Who.** Owner chose the placement; Claude built it.
+
+**Would reverse it.** The owner skipping it every time on the desk — the
+done ticks will say — or finding the cues say nothing the head does not
+already say.
+

@@ -41,7 +41,7 @@ export const SessionPlan = z.object({
   units: z.array(
     z.object({
       unitId: z.string(),
-      steps: z.array(z.enum(['loop', 'through', 'vary', 'write'])),
+      steps: z.array(z.enum(['loop', 'through', 'visualise', 'vary', 'write'])),
       note: z.string().optional(),
     }).strict(),
   ),

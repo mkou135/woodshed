@@ -120,7 +120,7 @@ console.log(`practice units: ${result.units.length}`)
 for (const u of result.units.slice(0, 6)) {
   console.log(`  ${u.id}  rank ${u.rank.toFixed(2)}  stock ${Math.round(u.stock * 100)}%  ${u.header}`)
   for (const s of u.steps) {
-    const n = s.kind === 'loop' ? 1 : s.kind === 'write' ? 1 : s.exercises.length
+    const n = s.kind === 'loop' ? 1 : s.kind === 'write' ? 1 : s.kind === 'visualise' ? 0 : s.exercises.length
     console.log(`      ${s.kind.padEnd(9)} ${n} exercise(s)  ${s.prompt.slice(0, 90)}…`)
   }
 }

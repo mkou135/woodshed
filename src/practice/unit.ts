@@ -9,6 +9,7 @@ import type { Tune } from './tune.ts'
 import { loopStep } from './steps/loop.ts'
 import { throughStep } from './steps/through.ts'
 import { varyStep } from './steps/vary.ts'
+import { visualiseStep } from './steps/visualise.ts'
 import { writeTemplate } from './steps/write.ts'
 
 /**
@@ -20,6 +21,8 @@ import { writeTemplate } from './steps/write.ts'
 export type Step =
   | { kind: 'loop'; exercise: Exercise; prompt: string }
   | { kind: 'through'; tune: string; exercises: Exercise[]; prompt: string }
+  /** Off the horn: no exercise, a prompt and the cues to run in the head. */
+  | { kind: 'visualise'; cues: string[]; prompt: string }
   | { kind: 'vary'; exercises: Exercise[]; prompt: string }
   | { kind: 'write'; template: string; examples: Exercise[]; prompt: string }
 
@@ -301,6 +304,7 @@ export function buildUnits(analysis: Analysis, score: Score, options: BuildOptio
     unit.steps = [
       loopStep(unit, score),
       ...throughStep(unit, options.tune, score, options.tuneName ?? options.tune.title),
+      visualiseStep(unit, score),
       varyStep(unit, score),
       ...writeTemplate(unit, options.tune, score.instrument, options.tuneName ?? options.tune.title),
     ]

@@ -395,6 +395,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 .path li.done .n::after { content: ' ✓'; font-size: 0.8rem }
 .pane { min-width: 0 }
 .pane .prompt { margin: 0.5rem 0 1rem; max-width: 66ch; font-size: 1.08rem }
+/* The visualise step's cues: the only step body with no notation, so the list carries the pane. */
+.pane .cues { margin: 0 0 1.5rem; padding-left: 1.2rem; max-width: 66ch; font-size: 1.04rem; line-height: 1.6 }
+.pane .cues li { margin-bottom: 0.4rem }
 .ex { background: var(--paper); padding: 0.9rem 1.2rem 0.8rem; margin: 0 0 1rem; box-shadow: var(--shadow) }
 .ex .exh { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 0.4rem; flex-wrap: wrap }
 .ex .exh h3 { font: 600 1.15rem/1 var(--disp); letter-spacing: 0.03em }

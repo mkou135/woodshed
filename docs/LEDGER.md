@@ -1268,3 +1268,10 @@ units read "digital pattern 1235 … played in the order 3-2-1-5". Five
 tests. Tests 540, typecheck clean. Spec "Naming" section, OPEN_QUESTIONS
 (c) closed. No DECISIONS entry — prose, not a rule.
 
+2026-09-02 · session 21 (cont.) · visualise step ships. `steps/visualise.ts`
+(+2 tests), `Step` union, unit assembly third in the path, desk title /
+intent / cue list + a `.cues` style rule, report collector, CLI count,
+agent verdict enum. Blake CLI diff is the added lines only; tests 542,
+typecheck and build clean. Spec steps line + Visualise bullet, DECISIONS
+"Visualise sits after Through", OPEN_QUESTIONS steps entry reads two.
+

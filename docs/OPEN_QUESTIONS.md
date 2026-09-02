@@ -281,12 +281,10 @@ All of these are proposals; none is implemented.
   order 3-1-2-5" as an aside, via `Finding.permuted`; the audit view keeps
   the full name. Still open: (d) whether the minor 1235 should widen too,
   which Bergonzi does not do and no peer solo has asked for.
-- **Three practice steps the sources have and we do not**: visualise (away
-  from the horn — Bergonzi; answers the faculty consensus that memorising
-  beats notating), edit (omit notes for rhythmic variety), and
-  connect-by-step into the next chord. Permutation shipped 2026-09-02
-  inside Through. Resolve: owner tries them; visualise is nearly free since
-  it renders no exercise.
+- **Two practice steps the sources have and we do not**: edit (omit notes
+  for rhythmic variety) and connect-by-step into the next chord.
+  Permutation shipped 2026-09-02 inside Through; visualise shipped the
+  same day as its own step after Through. Resolve: owner tries them.
 - **A pentatonic run may escape the stock penalty.** `stockShare` matches
   a run of ≥ 4 notes moving one way by steps of 1–2 semitones *or* by
   3–5 semitones. A major (1-2-3-5-6) or minor (1-b3-4-5-b7) pentatonic run

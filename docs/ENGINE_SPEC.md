@@ -410,8 +410,19 @@ name, degrees and kind.
     `CORPUS_FREQUENCY` share of any 4-note window covering it (0 if none is
     in the table); mean over notes. A bebop scale fragment ≈ 0.7, a bare
     maj7 arpeggio contour ≈ 0.4, an unseen figure 0.
-- Steps: loop (always); write (only with a degree-cell); through when the
-  idea's progression or a degree-cell has somewhere to go; vary (always).
+- Steps, in path order: loop (always); through when the idea's
+  progression or a degree-cell has somewhere to go; **visualise** (always,
+  2026-09-02); vary (always); write (only with a degree-cell).
+- Visualise (`practice/steps/visualise.ts`, step kind `visualise`):
+  Bergonzi's off-horn step — no exercise, a prompt and `cues`: the changes
+  (`summary.chords`), what to hear (the named cells via `namedCells`,
+  with the landing degree; "the line as played" when nothing is named),
+  where it comes back (`summary.alsoAt`, omitted when empty), and one
+  check against the record at the unit's first printed bar. Sits after
+  Through so the player already knows the tune's other places for the
+  line (DECISIONS 2026-09-02 "Visualise sits after Through"). The desk
+  renders the cues as a list with the usual done button; the report and
+  CLI count it as zero exercises; the agent's construct schema accepts it.
 - Through (`practice/slots.ts`, `practice/steps/through.ts`): the idea's slot
   is its distinct chord classes + root intervals, followed by the first new
   chord after the final note ends when it arrives within one bar. The whole line

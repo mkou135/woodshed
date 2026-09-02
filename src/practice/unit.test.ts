@@ -46,10 +46,10 @@ describe.skipIf(!existsSync(BLAKE))('buildUnits on the Blake solo', () => {
     result = run(new Uint8Array(readFileSync(BLAKE)))
   })
 
-  it('makes the maj7-from-the-b3 line the first unit, with all four steps', () => {
+  it('makes the maj7-from-the-b3 line the first unit, with all five steps', () => {
     const top = result.units[0]
     expect(top.findings.map((f) => f.name)).toContain('major-seventh arpeggio from the b3')
-    expect(top.steps.map((s) => s.kind)).toEqual(['loop', 'through', 'vary', 'write'])
+    expect(top.steps.map((s) => s.kind)).toEqual(['loop', 'through', 'visualise', 'vary', 'write'])
   })
 
   it('keeps every unit within two bars', () => {
