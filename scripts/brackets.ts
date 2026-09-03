@@ -57,6 +57,8 @@ if (args[0] === '--print') {
 }
 
 const sets = JSON.parse(readFileSync(new URL('./brackets.json', import.meta.url), 'utf8')) as BracketSet[]
+const asJson = args.includes('--json')
+const summary: Record<string, { matched: number; owner: number; falseStarts: number; ok: boolean }> = {}
 let failed = false
 for (const set of sets) {
   const result = run(new Uint8Array(readFileSync(join(PEERS, set.file))))
@@ -76,9 +78,11 @@ for (const set of sets) {
   }
   const ok = newMisses.length === 0 && falseStarts.length === 0
   failed ||= !ok
+  summary[set.file.replace(/\.(mxl|musicxml)$/, '')] = { matched: matched.length, owner: owner.length, falseStarts: falseStarts.length, ok }
   console.log(`${ok ? 'ok  ' : 'FAIL'} ${set.file} printed ${set.range[0]}–${set.range[1]}: ` +
     `${matched.length}/${owner.length} matched, ${falseStarts.length} false`)
   if (missed.length) console.log(`     missed: ${missed.map(formatPosition).join(' ')}${newMisses.length ? '' : ' (known)'}`)
   if (falseStarts.length) console.log(`     false:  ${falseStarts.map(formatPosition).join(' ')}`)
 }
+if (asJson) console.log(JSON.stringify({ ok: !failed, sets: summary }))
 process.exit(failed ? 1 : 0)

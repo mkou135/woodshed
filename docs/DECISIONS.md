@@ -1352,3 +1352,32 @@ still parse because the enum only grew. Tests 540 → 542.
 done ticks will say — or finding the cues say nothing the head does not
 already say.
 
+## 2026-09-02 · A benchmark page, fed by a committed snapshot file
+
+**Question.** The owner wants to *see* how the engine is doing, in the
+deployed app, not only in test output. What may a public page carry?
+
+**Decision.** `goldens/benchmarks.json`, written only by `npm run bench` on
+the owner's machine, holds aggregate scores (corpus F1, bracket and owner
+agreement, stock AUCs), the Blake targets and stage timings — the same
+class of derived statistic the corpus golden already commits, and nothing
+from a corpus note. Each eval script prints one JSON line under `--json` so
+the bench never parses prose. Two hand-copied `spec` entries seed the
+history and are drawn hollow so a reader never mistakes them for
+measurements. The page is a fourth Vite input with hand-drawn SVG charts,
+no chart library, per the no-CDN rule.
+
+**Evidence.** First run 2026-09-02 at 705b23b: the numbers on the page
+equal the numbers the four scripts print and the spec records (79.7 /
+76.5; 12/13 and 8/8; 0.90 / 0.72; run-share AUC 0.837 / 0.798 / 0.724 /
+0.711; Blake 15 / 34 / 15). Timing: 96.9 ms median per solo in Node, 102.1 ms
+for Blake, and the browser's own run of St Thomas 203 ms — the engine is not
+where the page's time goes; notation rendering is, and that is not timed.
+
+**Who.** Owner asked for both quality and speed on one page; Claude built it.
+
+**Would reverse it.** A reviewer reading a snapshot value as corpus
+content (it is not, but the file must stay legible as aggregate); or the
+spec-sourced points misleading — then drop them and let the history start
+at the first measurement.
+

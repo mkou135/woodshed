@@ -36,6 +36,8 @@ const dbPath = process.env.WJD ?? `${process.env.HOME}/dev/woodshed-data/wjazzd.
 const limitArg = process.argv.indexOf('--limit')
 const limit = limitArg > -1 ? Number(process.argv[limitArg + 1]) : Infinity
 const verbose = process.argv.includes('--verbose')
+/** Print one JSON line at the end for `npm run bench`. */
+const asJson = process.argv.includes('--json')
 
 /** Sections shorter than this say nothing about running versus vocabulary. */
 const MIN_NOTES = 3
@@ -160,4 +162,12 @@ SIGNALS.forEach((s, i) => {
   const row = BINS.map(([lo, hi]) => auc(samples[i].filter((o) => o.n >= lo && o.n <= hi)).toFixed(3).padStart(26)).join('')
   console.log(`${s.name.padEnd(28)}${row}`)
 })
+if (asJson) {
+  const r3 = (x: number): number => Math.round(x * 1000) / 1000
+  const signals: Record<string, { auc: number; bins: number[] }> = {}
+  SIGNALS.forEach((s, i) => {
+    signals[s.name] = { auc: r3(auc(samples[i])), bins: BINS.map(([lo, hi]) => r3(auc(samples[i].filter((o) => o.n >= lo && o.n <= hi)))) }
+  })
+  console.log(JSON.stringify({ solos: solosUsed, sections: sectionsUsed, lines, bins: BINS.map((b) => b[2]), signals }))
+}
 console.log('\nAUC 0.5 = chance; > 0.5 = higher values mean "line". Lines are the annotators\' scale and arpeggio runs, licks their vocabulary.')

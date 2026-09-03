@@ -505,6 +505,10 @@ async function handleBytes(bytes: Uint8Array, name: string): Promise<void> {
     const result = key
       ? await runWithAgent(bytes, liveClient(key, { browser: true, model: agentModel() }), (stage) => progress?.stage(stage), agentPersona())
       : run(bytes)
+    // The bench page shows the last run in this browser beside the Node numbers.
+    if (result.timing) {
+      try { localStorage.setItem('woodshed.timing', JSON.stringify({ at: new Date().toISOString(), notes: result.score.notes.length, title: name, ...result.timing })) } catch { /* ignore */ }
+    }
     progress?.done()
     setStatus(null)
     await renderResult(result, readScoreXml(bytes), name)

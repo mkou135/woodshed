@@ -963,6 +963,31 @@ beats. `languageShare` never reaches 0.5 (document shares top out ≈ 0.24),
 so the P/R row for it reads 0 by construction. Nothing in the rank changed
 on this evidence; see DECISIONS 2026-09-02.
 
+## Benchmarks (`scripts/bench.ts`, `goldens/benchmarks.json`, `bench.html` + `app/bench.ts`)
+
+`npm run bench` writes one **snapshot** per day (a re-run replaces the
+day's measured entry): date, short commit, `source: 'measured'`, and the
+JSON line each eval script prints under `--json` — `eval:wjd` (P/R/F1
+exact, phrases and ideas), `brackets` (matched/owner/false per set),
+`eval:owner` (per-file P/R/F1 + `seeded`), `eval:stock` (pooled AUC and
+the four length-bin AUCs per signal) — plus the Blake targets read from
+`run()` (findings, units, phrases, top finding and its bars, exercises per
+step kind) and **timing**: `PipelineResult.timing` (ms per stage —
+ingest, prepare, analyse, practice — from `run()`'s own clock), the
+median over Blake + the peers after one warm-up run, and Blake alone. Two
+entries are `source: 'spec'`, copied by hand from ENGINE_SPEC / DECISIONS
+for 2026-08-27 and 2026-09-01 so the charts have a past; they draw hollow.
+The file holds aggregate numbers only (DECISIONS 2026-08-24 "Corpus
+licensing"; 2026-08-27 "What may live in a corpus golden"). The analyse
+page stores the last run's timings in `localStorage` `woodshed.timing`;
+the bench page shows them beside the Node numbers. Charts are inline SVG
+(no library): two-series line charts in `--phrase` / `--idea` (validated as
+a pair), the human ceiling **83** drawn on the corpus chart, a legend and
+direct end labels, crosshair tooltip, a table under every chart.
+First measured snapshot 2026-09-02 at 705b23b: Node median over 11 files
+of 671 notes — ingest 51.4 ms, prepare 0.4, analyse 13.2, practice 27.3,
+total 96.9; Blake 102.1 ms. (Wall clock on one laptop; expect ±10% between runs.)
+
 ## Agent layer (`src/agent/`, spec docs/superpowers/specs/2026-08-25-agent-layer-design.md)
 
 Judge yes, generate never: verdicts are strict zod schemas referencing engine

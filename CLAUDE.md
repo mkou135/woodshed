@@ -37,6 +37,7 @@ npm run brackets   # score phrase starts against the owner's brackets (scripts/b
 npm run eval:agent # score agent-adjudicated boundaries from recordings (never live)
 npm run eval:owner # score phrase/idea boundaries against the owner's own annotations (annotations/)
 npm run eval:stock # score the stock signals against the WJD lick/line labels (report, not a gate)
+npm run bench      # one dated snapshot of every score above + Blake + timings → goldens/benchmarks.json (bench.html draws it)
 npm run test:run   # NEVER bare `npm test` — watch mode, hangs tool calls
 npm run typecheck
 npm run build

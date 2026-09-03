@@ -13,6 +13,7 @@
     "solo": "node --experimental-strip-types --no-warnings scripts/run.ts",
     "eval:wjd": "node --experimental-strip-types --no-warnings scripts/eval-wjd.ts",
     "eval:stock": "node --experimental-strip-types --no-warnings scripts/eval-stock.ts",
+    "bench": "node --experimental-strip-types --no-warnings scripts/bench.ts",
     "corpus:freq": "node --experimental-strip-types --no-warnings scripts/corpus-freq.ts",
     "corpus:licks": "node --experimental-strip-types --no-warnings scripts/corpus-licks.ts",
     "corpus:wjd": "node --experimental-strip-types --no-warnings scripts/corpus-wjd.ts",

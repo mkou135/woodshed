@@ -30,6 +30,8 @@ const verbose = process.argv.includes('--verbose')
 const optsArg = process.argv.indexOf('--opts')
 const opts: Partial<SegmentOptions> = optsArg > -1 ? JSON.parse(process.argv[optsArg + 1]) : {}
 const noChorus = process.argv.includes('--no-chorus')
+/** Print one JSON line at the end for `npm run bench`. */
+const asJson = process.argv.includes('--json')
 
 const db = new DatabaseSync(dbPath)
 
@@ -75,10 +77,13 @@ function score(predicted: Set<number>, actual: Set<number>, slack: number, t: Ta
   t.fn += actual.size - matched.size
 }
 
-const prf = (t: Tally): string => {
+const prfNumbers = (t: Tally): { p: number; r: number; f1: number } => {
   const p = t.tp / Math.max(1, t.tp + t.fp)
   const r = t.tp / Math.max(1, t.tp + t.fn)
-  const f = (2 * p * r) / Math.max(1e-9, p + r)
+  return { p, r, f1: (2 * p * r) / Math.max(1e-9, p + r) }
+}
+const prf = (t: Tally): string => {
+  const { p, r, f1: f } = prfNumbers(t)
   return `P ${(p * 100).toFixed(1).padStart(5)}  R ${(r * 100).toFixed(1).padStart(5)}  F1 ${(f * 100).toFixed(1).padStart(5)}`
 }
 
@@ -156,3 +161,9 @@ console.log(`  ±1     ${prf(totals.phraseNear)}`)
 console.log(`ideas    predicted ${predictedIdeas}  annotated ${actualIdeas}`)
 console.log(`  exact  ${prf(totals.ideaExact)}`)
 console.log(`  ±1     ${prf(totals.ideaNear)}`)
+if (asJson) {
+  const pct = (x: number): number => Math.round(x * 1000) / 10
+  const ph = prfNumbers(totals.phraseExact)
+  const id = prfNumbers(totals.ideaExact)
+  console.log(JSON.stringify({ solos: count, phrases: { p: pct(ph.p), r: pct(ph.r), f1: pct(ph.f1), predicted: predictedPhrases, annotated: actualPhrases }, ideas: { p: pct(id.p), r: pct(id.r), f1: pct(id.f1), predicted: predictedIdeas, annotated: actualIdeas } }))
+}

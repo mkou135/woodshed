@@ -1275,3 +1275,12 @@ agent verdict enum. Blake CLI diff is the added lines only; tests 542,
 typecheck and build clean. Spec steps line + Visualise bullet, DECISIONS
 "Visualise sits after Through", OPEN_QUESTIONS steps entry reads two.
 
+2026-09-02 · session 21 (cont.) · benchmark page. `--json` on eval:wjd,
+brackets, eval:owner, eval:stock; `PipelineResult.timing` from `run()`'s
+clock and the page storing `woodshed.timing`; `scripts/bench.ts` writing
+`goldens/benchmarks.json` (two spec-sourced seeds + today's measurement);
+`bench.html` / `app/bench.ts` / `app/bench.css`, nav link on all pages,
+fourth Vite input. Colours `--phrase` / `--idea` validated as a categorical
+pair (dataviz validator: all checks pass). Typecheck and build clean. Spec
+section, DECISIONS "A benchmark page", CLAUDE.md command line.
+

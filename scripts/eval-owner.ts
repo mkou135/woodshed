@@ -32,6 +32,9 @@ const PEERS = process.env.PEERS_DIR ?? join(homedir(), 'dev', 'woodshed-data', '
 const TOLERANCE = 0.5
 
 const showMisses = process.argv.includes('--misses')
+/** Print one JSON line at the end for `npm run bench`. */
+const asJson = process.argv.includes('--json')
+const perFile: Record<string, { phrases: { p: number; r: number; f1: number }; ideas: { p: number; r: number; f1: number }; seeded: boolean }> = {}
 
 // Copied from scripts/brackets.ts:35-46 — scripts don't import each other.
 /** Printed bar and 1-based beat of every phrase start. */
@@ -269,6 +272,16 @@ for (const file of files) {
   // A seeded file was corrected from engine output, not marked blind — its
   // agreement is biased toward the engine, so it wears a tag.
   const seededTag = annotation.seeded ? ' (seeded)' : ''
+  {
+    const r2 = (x: number): number => Math.round(x * 100) / 100
+    const ph = prf(phraseTally.matched, phraseTally.missed, phraseTally.falseStarts)
+    const id = prf(ideaTally.matched, ideaTally.missed, ideaTally.falseStarts)
+    perFile[annotation.file.replace(/\.(mxl|musicxml)$/, '')] = {
+      phrases: { p: r2(ph.precision), r: r2(ph.recall), f1: r2(ph.f1) },
+      ideas: { p: r2(id.precision), r: r2(id.recall), f1: r2(id.f1) },
+      seeded: annotation.seeded === true,
+    }
+  }
   console.log(
     `${annotation.file.padEnd(20)}phrases ${fmtPrf(phraseTally)}   ideas ${fmtPrf(ideaTally)}${seededTag}`,
   )
@@ -324,4 +337,5 @@ for (const file of files) {
 }
 
 console.log(`${'pooled'.padEnd(20)}phrases ${fmtPrf(pooledPhrases)}   ideas ${fmtPrf(pooledIdeas)}`)
+if (asJson) console.log(JSON.stringify({ files: perFile }))
 process.exit(0)
