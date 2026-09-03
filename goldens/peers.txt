@@ -1,10 +1,18 @@
 26-2-john-coltrane-solo-transcription findings=28 units=75 phrases=42 ideas=48 form=rehearsal top="scalar cell 1234" bars=15,127
 all-the-things-you-are-charlie-parker-transcription findings=10 units=24 phrases=16 ideas=19 form=no-form top="major triad 5-3-1" bars=28
+au-privave-sonny-stitt-solo-transcription findings=13 units=35 phrases=15 ideas=20 form=rehearsal top="scalar cell 1234" bars=27,61
 autumn-leaves-solo-transcription findings=31 units=46 phrases=25 ideas=39 form=rehearsal top="major-seventh arpeggio" bars=37
 blues-in-all-keys-bob-mintzer findings=39 units=92 phrases=52 ideas=60 form=rehearsal top="dominant arpeggio 3 to the b9" bars=8,41,128
 clifford-brown-sandu-solo-transcription findings=7 units=18 phrases=10 ideas=13 form=none top="enclosure into the 3 from below" bars=10,22,24,25
+giant-steps-michael-brecker-transcription findings=30 units=77 phrases=31 ideas=32 form=rehearsal top="digital pattern 1235" bars=9,19,21,27,37,39,57,59,75,85,86,102,133,134,137
 hey-lock findings=15 units=34 phrases=15 ideas=24 form=rehearsal top="major-seventh arpeggio from the b3" bars=73,77
+lazy-bird-john-coltrane-solo-transcription findings=25 units=54 phrases=24 ideas=29 form=rehearsal top="digital pattern 1235" bars=15,47
+minority-cannonball-adderley-transcription findings=44 units=111 phrases=50 ideas=60 form=double-bar top="dominant arpeggio 3 to the b9" bars=72
 mintzer findings=28 units=85 phrases=52 ideas=58 form=none top="3-5-b7-9 upper structure" bars=3,119
 patrick-bartley-on-after-youve-gone-transcription findings=52 units=120 phrases=57 ideas=66 form=rehearsal top="digital pattern 1235 in the order 5-1-3-2" bars=1
+so-what-trumpet-transcription-in-c-instrument-miles-davis findings=9 units=38 phrases=35 ideas=37 form=rehearsal top="minor cell 1345 in the order 1-3-5-4" bars=5,6,47,63
+solo-transcription-all-the-things-you-are-paul-desmond findings=27 units=55 phrases=28 ideas=33 form=double-bar top="dominant seventh arpeggio" bars=11
 solo-transcription-tenor-madness-sonny-rollins-with-john-coltrane findings=31 units=55 phrases=41 ideas=47 form=double-bar top="digital pattern 1235 in the order 3-2-1-5" bars=4,13
 st-thomas-sonny-rollins-solo-transcription findings=35 units=95 phrases=55 ideas=63 form=double-bar top="3-5-b7-9 upper structure" bars=76,236
+transcription-blue-bossa-joe-henderson findings=13 units=30 phrases=20 ideas=25 form=double-bar top="major-seventh arpeggio" bars=11
+tune-up-transcription-miles-davis findings=18 units=52 phrases=35 ideas=40 form=pickup top="scalar cell 1234" bars=15,79

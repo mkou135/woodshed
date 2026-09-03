@@ -1376,3 +1376,24 @@ skipped / 0 fail; typecheck clean; `corpus:wjd` unchanged 456; Blake read
 from the peers copy matches the spec targets. Spec "Peers golden",
 DECISIONS 2026-09-03, CLAUDE.md commands + verifying. Redundant now: the
 Blake invariant tests in `analyse/index.test.ts` (later tidy).
+
+2026-09-03 · session 23 (cont.) · ten new peers from the owner. Seven run
+and read well; three crashed in `steps/loop.ts` `excerpt` (bar −1 →
+`ensure` undefined): two piano scores (two staves, voices 1 and 5) and
+Minority (sax, 16 bars with a second voice). Cause: ingest pools voices
+in file order after `<backup>`, so a unit's first note is not its
+earliest. Piano files moved to `~/dev/woodshed-data/piano/` — their
+analysis pooled both hands (Peterson 12.6 notes/bar, Hancock recurring
+cells with 18- and 23-semitone leaps) and no melody-line rule exists →
+OPEN_QUESTIONS. This branch: notes leave ingest in onset order.
+
+2026-09-03 · session 23 (cont.) · note order ships. `parseScore` sorts
+`notes` by onset (stable) before returning; test builds a second voice
+behind a `<backup>` inline from the minimal fixture. Minority runs: 44
+findings, 111 units, 50 phrases, top "dominant arpeggio 3 to the b9".
+Golden re-pinned: eight lines added, the ten original byte-identical
+(only Minority carries `<backup>`). Tests 688 pass, 0 skipped here;
+`PEERS_DIR=/nonexistent` 510 / 34 skipped / 0 fail; typecheck clean;
+`corpus:wjd` unchanged 456 (WJD ingest is its own path). Spec "Note
+order"; OPEN_QUESTIONS "Which notes are the solo in a piano score?".
+So What locks a 2-bar form — the vamp question on the owner's own file.

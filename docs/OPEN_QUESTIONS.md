@@ -105,6 +105,16 @@ moving its resolution into DECISIONS.md.
   undone deliberately so the documentation commit changed no engine code.
   Resolve: extract the helper next time either merge pass is edited, and
   check Blake and the corpus golden are byte-identical afterwards.
+- **Which notes are the solo in a piano score?** Ingest is monophonic and
+  pools every voice and staff into one onset-sorted list, so a piano
+  transcription arrives as both hands: Peterson's Billie's Bounce read
+  12.6 notes/bar and Hancock's Speak No Evil produced "recurring cells"
+  with 18- and 23-semitone leaps (2026-09-03). Both files sit in
+  `~/dev/woodshed-data/piano/`, out of `peers`, until there is a rule.
+  Candidates: top staff + voice 1 only; or the highest sounding note at
+  each onset; either way the comping should still feed the chord track.
+  Resolve: owner reads the two scores and says which hand the solo is;
+  then a `staff`/`voice` filter at ingest with the peers golden as guard.
 - **displace step and 3/4+ time**: placements assume 4/4 feel (beat 2,
   and-of-1). Check against a 3/4 solo when one arrives.
 

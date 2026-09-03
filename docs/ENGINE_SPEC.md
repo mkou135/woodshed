@@ -638,6 +638,16 @@ at least half its bars, else the last examined; a chordless intro counted
 as a chorus (St Thomas bars 1–16) is skipped. Bars without a symbol carry
 the previous chord.
 
+## Note order (`ingest/parseScore.ts`)
+
+`Score.notes` leaves ingest sorted by onset (stable, so simultaneous notes
+keep file order — voice 1 first). The model is monophonic: a second voice
+or staff is read after a `<backup>` and pooled into the same list, which
+until 2026-09-03 left it in file order and sent `excerpt` a later note
+that started earlier (bar −1, crash). Pooling is not a melody rule; a
+piano score's two hands still arrive as one line (OPEN_QUESTIONS "Which
+notes are the solo in a piano score?").
+
 ## Repeats (`ingest/parseScore.ts` `playedMeasures`)
 
 Written order → played order before either parser walks the measures. A

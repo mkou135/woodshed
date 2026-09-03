@@ -117,3 +117,26 @@ describe('title', () => {
     expect(parseScore(load('form-8bar-x3.musicxml')).title).toBeUndefined()
   })
 })
+
+describe('parseScore with a second voice', () => {
+  it('returns notes in onset order, not file order', () => {
+    // A `<backup>` rewinds the cursor so a second voice can follow the first
+    // in the file. The model is monophonic, but every consumer assumes the
+    // note list runs forward in time: `excerpt` lays bars out from the first
+    // note's onset, and a later note that starts earlier landed in bar −1
+    // (three peers crashed on it, 2026-09-03).
+    const base = load('minimal-tenor.musicxml')
+    const divisions = Number(/<divisions>(\d+)<\/divisions>/.exec(base)![1])
+    const firstMeasureEnd = base.indexOf('</measure>')
+    const second =
+      `<backup><duration>${divisions * 4}</duration></backup>` +
+      `<note><pitch><step>E</step><octave>3</octave></pitch><duration>${divisions}</duration><voice>2</voice><type>quarter</type></note>`
+    const xml = base.slice(0, firstMeasureEnd) + second + base.slice(firstMeasureEnd)
+    const s = parseScore(xml)
+    const onsets = s.notes.map((n) => n.onset)
+    expect(onsets).toEqual([...onsets].sort((a, b) => a - b))
+    // The added note sounds at the top of the bar; it may share that onset
+    // with voice 1's first note but must not trail the whole bar.
+    expect(s.notes.findIndex((n) => n.midi === 52)).toBeLessThanOrEqual(1)
+  })
+})
