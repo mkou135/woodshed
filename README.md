@@ -168,6 +168,12 @@ example: melid → engine output counts and nothing else, no titles, performers,
 tunes, notes or chord symbols. Test fixtures are hand-authored rather than
 quoted from a corpus. See DECISIONS 2026-08-24 "Corpus licensing".
 
+One thing *is* bundled, and it is a different kind of object: the 1,460-standard
+iReal forum chord book that tune identification searches. Chord symbols, titles
+and composers are facts about a tune, not a performance of it, and the forum
+playlists are posted for redistribution. DECISIONS 2026-09-03 "The iReal forum
+chord book is bundled" says why the corpus rule does not reach it.
+
 For anyone cloning this: the corpus is absent, so `eval:wjd`, `eval:owner`,
 `eval:agent`, `eval:stock`, `corpus:*`, `diag:wjd`, `brackets`, `bench:bopland` and
 `bench` will not run without it. Most take paths from the environment (`WJD`, `BOPLAND`,

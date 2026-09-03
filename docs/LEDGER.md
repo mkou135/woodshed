@@ -1343,3 +1343,10 @@ from main.
 tree at the owner's word: every item on it is done (PRs #3 and #5), and
 the list is a brief, not documentation. It stays in history at 483675f
 and earlier; the session-22 entries above cite it by name.
+
+2026-09-03 · session 22 (cont.) · the bundled iReal book, found while
+reading the repo as an employer would: DECISIONS 2026-08-23 "Tunes" said
+"no bundled collections", `app/data/jazz1460.irealb.txt` has shipped
+since 2026-08-25, and nothing recorded the change. Owner chose to keep it
+and write it down: DECISIONS 2026-09-03 supersedes the clause, and the
+README's corpora section names the book and the distinction.
