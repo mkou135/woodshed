@@ -1411,3 +1411,37 @@ forum playlist), and of what the corpus rule was written to protect
 asserting rights over forum playlists. Reversal is one file, the
 `book()` call in `app/tune.ts`, and the ENGINE_SPEC section; the pasted
 link path already carries the feature without it.
+
+## 2026-09-03 · The transcriptions live in `peers`, and every one runs through the suite
+
+**Question.** The owner's transcriptions sat in three places (Downloads,
+the MuseScore folder, `~/dev/woodshed-data/peers`), six test files carried
+the absolute MuseScore path to Blake, and only Blake and St Thomas ever
+ran under vitest — the other eight were exercised by `npm run bench`
+alone. Where is the canonical copy, and what should the suite do with
+the rest?
+
+**Decision.** `~/dev/woodshed-data/peers` is canonical (the Downloads
+copies are byte-identical duplicates and are left alone; the MuseScore
+file stays the editing original). `src/test/solos.ts` is the one place
+that knows the folder (`PEERS_DIR`), Blake (`hey-lock.mxl`,
+`WOODSHED_BLAKE` still overrides) and St Thomas. `src/peers.test.ts` runs
+every file there through the structural invariants and pins per-solo
+counts, form token and top finding in `goldens/peers.txt` (ENGINE_SPEC
+"Peers golden"). The Blake-only value pins stay where they are; the Blake
+invariant tests in `analyse/index.test.ts` are now redundant with the
+peers suite and can go in a later tidy.
+
+**What the first run found.** Two of the invariants as first written were
+wrong, and one finding is real. Units need not carry a finding — a unit
+is an idea, and 41 of St Thomas's 95 have no vocabulary — so that
+assertion went. "One finding per name" fails on St Thomas: the dictionary
+holds a major-family and a minor-family `5-3-2-1 descent`, pass 1 keys on
+degrees + family, so two findings print the same name. The invariant now
+states the spec's identity rule; the name collision is an OPEN_QUESTIONS
+entry, because DECISIONS 2026-08-29 says the name *is* an identity.
+
+Evidence class: measured, ten solos, 623 tests, `corpus:wjd` unchanged ·
+owner chose the folder and the test shape, Claude built it · would
+reverse: a golden that churns on every change (drop the top-finding
+field first, the counts last), or the transcriptions moving again.

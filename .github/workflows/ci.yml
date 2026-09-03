@@ -1,6 +1,6 @@
 # Typecheck and tests on every push and pull request to main. The suites that
 # read the owner's Blake transcription skip when the file is absent (see
-# src/test/blake.ts), so a fresh checkout is green on its own.
+# src/test/solos.ts), so a fresh checkout is green on its own.
 name: CI
 
 on:

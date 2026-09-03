@@ -39,6 +39,7 @@ npm run eval:owner # score phrase/idea boundaries against the owner's own annota
 npm run eval:stock # score the stock signals against the WJD lick/line labels (report, not a gate)
 npm run bench      # one dated snapshot of every score above + Blake + timings → goldens/benchmarks.json (bench.html draws it)
 npm run test:run   # NEVER bare `npm test` — watch mode, hangs tool calls
+npm run test:run -- -u   # re-pin goldens/peers.txt after an intended engine change
 npm run typecheck
 npm run build
 ```
@@ -71,10 +72,15 @@ Green tests are not evidence the output is good — the engine once passed 156
 tests while ranking its best finding 9th out of 81. Run the pipeline on a real
 solo and read what comes out:
 
-`~/Documents/MuseScore4/Scores/Hey Lock! - Seamus Blake Solo Transcription.mxl`
+`~/dev/woodshed-data/peers/hey-lock.mxl` (the transcriptions live in that
+folder, `PEERS_DIR` overrides; Blake there is byte-identical to the MuseScore
+original, which stays the file you edit — re-export means re-copy)
 should yield "major-seventh arpeggio from the b3" at bars 73 and 77 as the top
 finding, with all three detectors agreeing, 15 findings in all (the
 bar-92 "dominant arpeggio 3 to the b9" marked common language, and two 7-3
 resolutions at bars 85 and 116 near the bottom of the list), and a
 cycle exercise whose bars all ascend. `npm run solo` prints it;
 `pipeline.test.ts` pins it.
+`src/peers.test.ts` runs every file in the folder through the structural
+invariants and pins per-solo counts in `goldens/peers.txt`; without the folder
+those suites skip, never fail.

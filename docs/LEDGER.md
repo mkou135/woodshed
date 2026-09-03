@@ -1350,3 +1350,29 @@ reading the repo as an employer would: DECISIONS 2026-08-23 "Tunes" said
 since 2026-08-25, and nothing recorded the change. Owner chose to keep it
 and write it down: DECISIONS 2026-09-03 supersedes the clause, and the
 README's corpora section names the book and the distinction.
+
+2026-09-03 · session 23 · **open.** Local checkout was at d3d971a with a
+stale tracking ref; fast-forwarded to origin/main 0c0a655 after removing
+a 0-byte `.git/index.lock` left by a crashed process. Baseline on
+d3d971a: typecheck clean, 542 tests (0 skipped here), Blake read matches
+the spec targets, `corpus:wjd` unchanged 456/456, all 10 peers run.
+Task: the transcriptions' home is `~/dev/woodshed-data/peers` (Downloads
+copies are byte-identical duplicates, left alone at the owner's word);
+tests read Blake as `peers/hey-lock.mxl` through `src/test/solos.ts`
+(grown from session 22's `blake.ts`), every peer runs through the
+structural invariants in `src/peers.test.ts`, and `goldens/peers.txt`
+pins per-solo counts. Branch `peers-tests`.
+
+2026-09-03 · session 23 · peers suite ships. `src/test/solos.ts` (from
+`blake.ts`: `PEERS_DIR`, `BLAKE` = `peers/hey-lock.mxl`, `ST_THOMAS`,
+`peerFiles()`), seven imports repointed, `scripts/bench.ts` times the
+peers copy once instead of Blake twice. `src/peers.test.ts`: eight
+invariants per file plus the pin; `goldens/peers.txt` first pin matches
+the hand-run counts. First run corrected two invariants (a unit need not
+carry a finding; identity is degrees+family, not name) and found the
+St Thomas `5-3-2-1 descent` name collision → OPEN_QUESTIONS. Tests 623
+pass, 0 skipped here; `PEERS_DIR=/nonexistent` gives 509 pass / 34
+skipped / 0 fail; typecheck clean; `corpus:wjd` unchanged 456; Blake read
+from the peers copy matches the spec targets. Spec "Peers golden",
+DECISIONS 2026-09-03, CLAUDE.md commands + verifying. Redundant now: the
+Blake invariant tests in `analyse/index.test.ts` (later tidy).

@@ -19,8 +19,9 @@ import type { StageTiming } from '../src/pipeline.ts'
 
 const dry = process.argv.includes('--dry')
 const GOLDEN = new URL('../goldens/benchmarks.json', import.meta.url)
-const BLAKE = join(homedir(), 'Documents/MuseScore4/Scores/Hey Lock! - Seamus Blake Solo Transcription.mxl')
-const PEERS = join(homedir(), 'dev/woodshed-data/peers')
+const PEERS = process.env.PEERS_DIR ?? join(homedir(), 'dev/woodshed-data/peers')
+// Blake is one of the peers (byte-identical to the MuseScore original); see src/test/solos.ts.
+const BLAKE = join(PEERS, 'hey-lock.mxl')
 
 export interface Snapshot {
   date: string
@@ -72,10 +73,10 @@ console.log('eval:stock …')
 }
 
 console.log('timing …')
-const files = [BLAKE, ...readdirSync(PEERS).filter((f) => /\.(mxl|musicxml)$/.test(f)).map((f) => join(PEERS, f))].filter(existsSync)
+const files = existsSync(PEERS) ? readdirSync(PEERS).filter((f) => /\.(mxl|musicxml)$/.test(f)).map((f) => join(PEERS, f)) : []
 const timed = files.map(timeFile)
 const stage = (k: keyof StageTiming): number => r1(median(timed.map((t) => t.timing[k])))
-const blakeRun = existsSync(BLAKE) ? timed[0] : undefined
+const blakeRun = files.includes(BLAKE) ? timed[files.indexOf(BLAKE)] : undefined
 snapshot.timing = {
   files: timed.length,
   notes: Math.round(median(timed.map((t) => t.notes))),

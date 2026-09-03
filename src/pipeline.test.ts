@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { BLAKE, HAS_BLAKE } from './test/blake.ts'
+import { BLAKE, HAS_BLAKE } from './test/solos.ts'
 import { run, describeFinding } from './pipeline.ts'
 import type { Finding } from './analyse/index.ts'
 
