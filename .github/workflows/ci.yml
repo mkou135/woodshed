@@ -1,0 +1,26 @@
+# Typecheck and tests on every push and pull request to main. The suites that
+# read the owner's Blake transcription skip when the file is absent (see
+# src/test/blake.ts), so a fresh checkout is green on its own.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run test:run
