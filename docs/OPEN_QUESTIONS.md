@@ -437,6 +437,7 @@ All of these are proposals; none is implemented.
   `docs/research/audio-and-intent.md`, **local only** (gitignored: it
   describes a private repo) — ask the owner for a copy.
 
+
 ## Overlap merge consumes a multi-span device when one span converges
 
 Blake 2026-08-27: the new bar-92 b9-arpeggio shape hit absorbed the
