@@ -253,6 +253,13 @@ export function parseScore(xml: string): Score {
 
   if (!sawTranspose) instrument = instrumentFromTranspose(0, 0)
 
+  // A second voice or staff follows the first in the file after a `<backup>`,
+  // so the list is in file order. The model is monophonic and every consumer
+  // reads it as a line running forward in time — `excerpt` lays bars out from
+  // the first note's onset and put a later-but-earlier note in bar −1. Stable,
+  // so simultaneous notes keep file order (voice 1 first).
+  notes.sort((a, b) => a.onset - b.onset)
+
   return {
     title,
     notes,
