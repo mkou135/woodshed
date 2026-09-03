@@ -41,7 +41,22 @@ export function teacherNames(named?: { id: string; name: string }[] | null): Tea
 export function displayName(finding: Finding, names?: TeacherNames, terse = false): string | null {
   const teacher = names?.get(finding.id)
   if (teacher) return terse ? teacher.split(' — ')[0] : teacher
-  return finding.unnamed ? null : finding.name
+  if (finding.unnamed) return null
+  // A permuted cell's name carries its order ("… in the order 3-1-2-5") so
+  // that each order stays its own identity; a player is told the lemma and
+  // reads the order as an aside (`detail`). A triad's orders are each their
+  // own figure and keep their names.
+  return finding.permuted && finding.lemma ? finding.lemma : finding.name
+}
+
+/** The orders a unit's permuted cells were played in, each once, in finding order. */
+function permutedOrders(unit: Described): string[] {
+  const out: string[] = []
+  for (const f of unit.findings) {
+    if (!f.permuted || !f.ordering) continue
+    if (!out.includes(f.ordering)) out.push(f.ordering)
+  }
+  return out
 }
 
 /**
@@ -87,7 +102,9 @@ export function detail(unit: Described, names?: TeacherNames): string[] {
   const out: string[] = []
   const named = namedCells(unit, names)
   for (const name of named.slice(1)) out.push(name)
+  for (const order of permutedOrders(unit)) out.push(`played in the order ${order}`)
   if (unit.summary.landing) out.push(`lands on the ${unit.summary.landing}`)
+  if (unit.summary.resolves) out.push('its 7 falls to the 3 of the next chord')
   const variants = unit.findings.reduce(
     (n, f) => n + (f.variants?.reduce((m, v) => m + v.occurrences.length, 0) ?? 0), 0)
   if (variants > 0) out.push(`${variants} variant${variants > 1 ? 's' : ''} of the same shape`)

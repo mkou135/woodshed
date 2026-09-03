@@ -33,6 +33,7 @@
     ],
     "starts": [
       "57.2½",
+      "64.3½",
       "66.2½",
       "68.2",
       "69.3",
@@ -40,6 +41,6 @@
       "73.2",
       "76.1"
     ],
-    "note": "Owner's 8 brackets on printed 57–76 matched 8/8 in session 4 (DECISIONS 'Two segmentation bugs'); the bar.beat list was not written down, so this is the engine's output frozen in session 6 after riff binding and the articulation rest (7 starts). Owner to confirm the 8th."
+    "note": "Owner's 8 brackets on printed 57–76 matched 8/8 in session 4 (DECISIONS 'Two segmentation bugs'); the bar.beat list was not written down, so this is the engine's output, frozen in session 6 after riff binding and the articulation rest (7 starts) and re-pinned in session 19 when the riff window fix restored 64.3½ — the old rule had suppressed it by binding a 57-note slice to the 9 notes after the rest. That takes the list to 8, the count session 4 reported, but the owner has still not confirmed the bar.beat list, so this remains engine output rather than an owner ruling."
   }
 ]

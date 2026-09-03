@@ -9,6 +9,7 @@ import type { Tune } from './tune.ts'
 import { loopStep } from './steps/loop.ts'
 import { throughStep } from './steps/through.ts'
 import { varyStep } from './steps/vary.ts'
+import { visualiseStep } from './steps/visualise.ts'
 import { writeTemplate } from './steps/write.ts'
 
 /**
@@ -20,6 +21,8 @@ import { writeTemplate } from './steps/write.ts'
 export type Step =
   | { kind: 'loop'; exercise: Exercise; prompt: string }
   | { kind: 'through'; tune: string; exercises: Exercise[]; prompt: string }
+  /** Off the horn: no exercise, a prompt and the cues to run in the head. */
+  | { kind: 'visualise'; cues: string[]; prompt: string }
   | { kind: 'vary'; exercises: Exercise[]; prompt: string }
   | { kind: 'write'; template: string; examples: Exercise[]; prompt: string }
 
@@ -69,6 +72,8 @@ export interface UnitSummary {
    * "mostly common jazz language". Absent below the threshold.
    */
   stockKind?: 'scale-run' | 'common-language'
+  /** A finding in this unit ends on a 7 that falls to the 3 of the next chord. */
+  resolves: boolean
 }
 
 /** Stock share at or above this reads as "mostly a scale run" on the page. */
@@ -85,6 +90,8 @@ function summary(
   for (const f of unit.findings) {
     for (const s of f.spans) if (!inside.has(writtenBar(score, s.bar).bar)) also.add(barLabel(score, s.bar))
   }
+  const resolves = unit.findings.some((f) =>
+    f.spans.some((s) => s.resolves && s.startIndex >= unit.startIndex && s.endIndex <= unit.endIndex))
   return {
     bars: barRange(score, first.bar, last.bar, true),
     chords: unit.harmony.map(chordName),
@@ -92,6 +99,7 @@ function summary(
     alsoAt: [...also].sort((a, b) => parseInt(a) - parseInt(b)),
     stock: unit.stock >= STOCK_SHOWN,
     stockKind: stockKind(unit.stockParts),
+    resolves,
   }
 }
 
@@ -175,29 +183,31 @@ const STOCK_RUN = 4
 const STOCK_PENALTY = 2
 
 /**
- * A scale run (every interval a step, one direction) or a plain arpeggio
- * (every interval a third or fourth, one direction) is the language, not
- * the player: Frieler's Omnibook mine put exactly these at the top of the
- * frequency table. The share of a unit inside such runs discounts its
- * rank, so a signature idea outranks a bar of bebop scale.
+ * A run — notes climbing or falling in one direction for `STOCK_RUN` or
+ * more — is the language, not the player: Frieler's Omnibook mine put
+ * scale and arpeggio runs at the top of the frequency table. The share of
+ * a unit inside such runs discounts its rank, so a signature idea outranks
+ * a bar of bebop scale.
+ *
+ * Direction alone defines a run. The rule used to require one interval
+ * *kind* per run (all steps, or all thirds and fourths), which read 1-2-3-5-7
+ * as two short fragments and no run; against the Weimar lick/line labels the
+ * direction-only predicate separates better in every length bin (0.84 vs
+ * 0.72 on 3–5-note units; ENGINE_SPEC "Stock signals vs the WJD
+ * midlevel-unit labels", DECISIONS 2026-09-02). A repeated note breaks a run.
  */
 export function stockShare(notes: Note[], exempt: ReadonlySet<number> = new Set()): number {
   if (notes.length === 0) return 0
-  const kind = (iv: number): 'step' | 'third' | null => {
-    const a = Math.abs(iv)
-    return a >= 1 && a <= 2 ? 'step' : a >= 3 && a <= 5 ? 'third' : null
-  }
   const stock = new Array<boolean>(notes.length).fill(false)
   const ivs = notes.slice(1).map((n, i) => n.midi - notes[i].midi)
-  // A run is a maximal chain of intervals of one kind in one direction; it
+  // A run is a maximal chain of non-zero intervals in one direction; it
   // covers one more note than it has intervals.
   let runStart = 0
   for (let i = 1; i <= ivs.length; i++) {
-    const continues = i < ivs.length && kind(ivs[i]) !== null &&
-      kind(ivs[i]) === kind(ivs[i - 1]) && Math.sign(ivs[i]) === Math.sign(ivs[i - 1])
+    const continues = i < ivs.length && ivs[i] !== 0 && Math.sign(ivs[i]) === Math.sign(ivs[i - 1])
     if (continues) continue
     const noteCount = i - runStart + 1
-    if (kind(ivs[runStart]) !== null && noteCount >= STOCK_RUN) {
+    if (ivs[runStart] !== 0 && noteCount >= STOCK_RUN) {
       for (let k = runStart; k <= i; k++) if (!exempt.has(k)) stock[k] = true
     }
     runStart = i
@@ -294,6 +304,7 @@ export function buildUnits(analysis: Analysis, score: Score, options: BuildOptio
     unit.steps = [
       loopStep(unit, score),
       ...throughStep(unit, options.tune, score, options.tuneName ?? options.tune.title),
+      visualiseStep(unit, score),
       varyStep(unit, score),
       ...writeTemplate(unit, options.tune, score.instrument, options.tuneName ?? options.tune.title),
     ]

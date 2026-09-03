@@ -66,6 +66,7 @@ export function exercisesOf(step: Step): Exercise[] {
   switch (step.kind) {
     case 'loop': return [step.exercise]
     case 'through': return step.exercises
+    case 'visualise': return []
     case 'vary': return step.exercises
     case 'write': return step.examples
   }

@@ -94,8 +94,21 @@ describe.skipIf(!existsSync(BLAKE))('run: the Blake solo, read as a player would
   })
 
   it('offers a menu a player can read, not a dump', () => {
-    expect(result.analysis.findings.length).toBeLessThanOrEqual(15)
+    // 13 before the 7-3 resolution detector, 15 after: Blake holds two
+    // resolutions and they carry different names, so neither merges away.
+    // Two of slack over the measured value, as when the bound was 15.
+    expect(result.analysis.findings.length).toBeLessThanOrEqual(17)
     expect(result.analysis.findings.length).toBeGreaterThanOrEqual(6)
+  })
+
+  it('hears the b7 fall to the 3 across the bar line at 116', () => {
+    const resolutions = result.analysis.findings.filter((f) => f.detectedBy.includes('resolution'))
+    expect(resolutions.map((f) => f.name)).toEqual(['7-3 resolution', 'V–i 7-3 resolution'])
+    const vi = resolutions.find((f) => f.name === 'V–i 7-3 resolution')!
+    // F6, the b7 of G7, tied over the bar into Eb6, the 3 of Cm7.
+    expect(vi.spans.map((s) => s.bar)).toEqual([116])
+    expect(vi.degrees).toEqual(['b7', '3'])
+    expect(vi.kind).toBe('device')
   })
 
   it('does not tie six findings at the same confidence', () => {

@@ -1,0 +1,287 @@
+[
+  {
+    "date": "2026-08-27",
+    "commit": "spec",
+    "source": "spec",
+    "note": "From ENGINE_SPEC §Segmentation (wChorus 0.45 in force) and DECISIONS 2026-08-27; brackets from the session-6 St Thomas freeze (7 starts).",
+    "wjd": {
+      "solos": 456,
+      "phrases": {
+        "p": 78.1,
+        "r": 83.7,
+        "f1": 80.8
+      },
+      "ideas": {
+        "p": 0,
+        "r": 0,
+        "f1": 76.5
+      }
+    },
+    "brackets": {
+      "mintzer": {
+        "matched": 12,
+        "owner": 13,
+        "falseStarts": 0,
+        "ok": true
+      },
+      "st-thomas-sonny-rollins-solo-transcription": {
+        "matched": 7,
+        "owner": 7,
+        "falseStarts": 0,
+        "ok": true
+      }
+    },
+    "blake": {
+      "findings": 13,
+      "units": 34,
+      "phrases": 16,
+      "top": "major-seventh arpeggio from the b3",
+      "topBars": [
+        73,
+        77
+      ],
+      "exercises": {}
+    }
+  },
+  {
+    "date": "2026-09-01",
+    "commit": "3b0fe99",
+    "source": "spec",
+    "note": "From ENGINE_SPEC (riff-binding line: 78.3 / 81.2 / 79.7, ideas 76.5), LEDGER session 20 (Blake 15 findings, 271 exercises) and OPEN_QUESTIONS (St Thomas 8/8, hey-lock 0.90).",
+    "wjd": {
+      "solos": 456,
+      "phrases": {
+        "p": 78.3,
+        "r": 81.2,
+        "f1": 79.7
+      },
+      "ideas": {
+        "p": 80.7,
+        "r": 72.6,
+        "f1": 76.5
+      }
+    },
+    "brackets": {
+      "mintzer": {
+        "matched": 12,
+        "owner": 13,
+        "falseStarts": 0,
+        "ok": true
+      },
+      "st-thomas-sonny-rollins-solo-transcription": {
+        "matched": 8,
+        "owner": 8,
+        "falseStarts": 0,
+        "ok": true
+      }
+    },
+    "owner": {
+      "hey-lock": {
+        "phrases": {
+          "p": 0.93,
+          "r": 0.88,
+          "f1": 0.9
+        },
+        "ideas": {
+          "p": 0.71,
+          "r": 0.74,
+          "f1": 0.72
+        },
+        "seeded": false
+      }
+    },
+    "blake": {
+      "findings": 15,
+      "units": 34,
+      "phrases": 15,
+      "top": "major-seventh arpeggio from the b3",
+      "topBars": [
+        73,
+        77
+      ],
+      "exercises": {
+        "loop": 34,
+        "through": 47,
+        "vary": 174,
+        "write": 16
+      }
+    }
+  },
+  {
+    "date": "2026-09-02",
+    "commit": "705b23b",
+    "source": "measured",
+    "wjd": {
+      "solos": 456,
+      "phrases": {
+        "p": 78.3,
+        "r": 81.2,
+        "f1": 79.7,
+        "predicted": 11007,
+        "annotated": 10626
+      },
+      "ideas": {
+        "p": 80.7,
+        "r": 72.6,
+        "f1": 76.5,
+        "predicted": 13457,
+        "annotated": 14959
+      }
+    },
+    "brackets": {
+      "mintzer": {
+        "matched": 12,
+        "owner": 13,
+        "falseStarts": 0,
+        "ok": true
+      },
+      "st-thomas-sonny-rollins-solo-transcription": {
+        "matched": 8,
+        "owner": 8,
+        "falseStarts": 0,
+        "ok": true
+      }
+    },
+    "owner": {
+      "hey-lock": {
+        "phrases": {
+          "p": 0.93,
+          "r": 0.88,
+          "f1": 0.9
+        },
+        "ideas": {
+          "p": 0.71,
+          "r": 0.74,
+          "f1": 0.72
+        },
+        "seeded": false
+      }
+    },
+    "stock": {
+      "bins": [
+        "3–5",
+        "6–9",
+        "10–15",
+        "16+"
+      ],
+      "signals": {
+        "stockShare (run)": {
+          "auc": 0.753,
+          "bins": [
+            0.837,
+            0.798,
+            0.724,
+            0.711
+          ]
+        },
+        "corpusShare": {
+          "auc": 0.729,
+          "bins": [
+            0.721,
+            0.676,
+            0.672,
+            0.67
+          ]
+        },
+        "max(run, corpus) = stock": {
+          "auc": 0.744,
+          "bins": [
+            0.836,
+            0.791,
+            0.718,
+            0.709
+          ]
+        },
+        "languageShare": {
+          "auc": 0.698,
+          "bins": [
+            0.541,
+            0.609,
+            0.616,
+            0.639
+          ]
+        },
+        "stepShare": {
+          "auc": 0.63,
+          "bins": [
+            0.556,
+            0.641,
+            0.644,
+            0.634
+          ]
+        },
+        "runShare (direction only)": {
+          "auc": 0.753,
+          "bins": [
+            0.837,
+            0.798,
+            0.724,
+            0.711
+          ]
+        },
+        "intervalVariety": {
+          "auc": 0.163,
+          "bins": [
+            0.402,
+            0.346,
+            0.33,
+            0.293
+          ]
+        },
+        "chordToneDownbeatShare": {
+          "auc": 0.522,
+          "bins": [
+            0.527,
+            0.503,
+            0.501,
+            0.489
+          ]
+        },
+        "length (notes)": {
+          "auc": 0.842,
+          "bins": [
+            0.672,
+            0.591,
+            0.589,
+            0.708
+          ]
+        }
+      }
+    },
+    "timing": {
+      "files": 11,
+      "notes": 671,
+      "median": {
+        "ingest": 55.1,
+        "prepare": 0.3,
+        "analyse": 13.4,
+        "practice": 24.2,
+        "total": 93.9
+      },
+      "blake": {
+        "ingest": 67.1,
+        "prepare": 1.1,
+        "analyse": 10.5,
+        "practice": 24.2,
+        "total": 102.9
+      }
+    },
+    "blake": {
+      "findings": 15,
+      "units": 34,
+      "phrases": 15,
+      "top": "major-seventh arpeggio from the b3",
+      "topBars": [
+        73,
+        77
+      ],
+      "exercises": {
+        "loop": 34,
+        "through": 47,
+        "visualise": 0,
+        "vary": 174,
+        "write": 16
+      }
+    }
+  }
+]

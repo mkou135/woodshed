@@ -987,3 +987,312 @@ that is exactly the drift session 17 caught silently falling back. Also
 noted: Blake's MusicXML `<title>` is the literal string "Title", which
 `soloTitle` rejects, so the report is headed with the filename. Correct
 behaviour, but it means the handout carries whatever the file is called.
+
+2026-09-01 · session 19 · spike: does repetition suppress a boundary?
+OPEN_QUESTIONS "Repetition binds — boundaryCue has no similarity term":
+Hey Lock 116–120, owner hears one phrase built from a 4× varied sequence,
+engine splits it at 117.4½ / 118.4½ / 119.4½. Step 1 is a probe, not a
+term: find whether any single scalar separates the owner's *bind* case
+(group C) from their *split* case (group D, 85.3–86.3½ / 87.2½–88.3½,
+where the owner marks a phrase at 87.2½ and the engine already misses it).
+Both are repetition; the owner reads them opposite ways. If nothing
+separates them the spike is answered negatively and cheaply.
+Step 1 answered, and it reframes the item. Three facts, all from
+`hey-lock.mxl` (the only uncontaminated owner annotation — mintzer,
+blues-in-all-keys and bartley are seeded at P/R 1.00, and all-the-things
+scores 0.00/0.00 on the known bar-0 pickup bug):
+(a) The mechanism already exists and gets one of four calls right. Riff
+binding demotes 87.2½ — the one boundary the owner *marked* — and declines
+117.4½ and 118.4½, the two they did not. It demotes 119.4½ correctly at
+phrase level, but the owner marks no idea there either, so it survives as
+a false idea. Suppression, not demotion, is what group C wants.
+(b) Why it declines: `sameFigure` requires the same first pitch class and
+group C is a *transposed* sequence (-3 at 118.4½). At 117.4½ it does not
+even compare statements — the window runs between phrase-level edges, so
+it weighs 29 notes (113.1½–117.2½) against a 4-note statement. The rule's
+answer depends on where the previous boundary landed, not on the music at
+the gap.
+(c) gap/statement ratio is falsified as the discriminator: C is 0.50/0.60/
+0.60 and D is 0.50. What does separate them on this evidence is absolute
+gap (1440t vs 2400t), statement length (2.5–3.5 beats / 4 notes vs
+5.0–5.5 / 6) and repetition count (4x vs 2x) — but n=1 on the split side,
+and the gap separator collides with St Thomas, where riffMaxGap is 3 beats
+precisely to cover Rollins' 2.5-beat rests (`brackets` is the gate).
+Probes are throwaway, in the job dir, not committed.
+Then St Thomas, the only other solo the owner has ruled on for riff
+binding (DECISIONS 2026-08-24: 33–41 is one phrase, 49–56 stays three),
+which kills two of the three separators. 33–41 binds a gap of **2400t**
+at 34.2½ — exactly group D's gap — so narrowing `riffMaxGap` to 2 beats
+would unbind the span the owner asked to bind. Its bound statements run
+2–12 notes / 1.5–8.5 beats, straddling D's 6 notes / 5.0–5.5 beats, so
+statement length does not separate either. Only **repetition count**
+survives: bind at 4x (Hey Lock C) and 6x (St Thomas 33–41), split at 2x
+(group D) — still n=1 on the split side.
+Also checked the fear that transposition-tolerance would over-bind: on
+St Thomas 49–56, dropping `sameFigure`'s first-pitch-class gate leaves
+both owner splits split (51.1½ and 53.3½), so the tolerance is not
+obviously unsafe. Caveat: the probes rebuild the edge list from rest
+boundaries only, without the idea/chorus branches or `enforceMinimum`, so
+comparison windows are approximate — one 57–76 gap (64.3½) reads as
+newly bound under the probe and needs `segment()` itself to confirm.
+Nothing shipped: no engine change, spec unchanged. Owner's call whether
+step 2 (the WJD diagnostic) is worth it — see the report.
+Then the owner asked for the window flaw fixed. Riff binding now compares
+the n notes either side of the rest, n the shorter of the two segments,
+instead of the whole inter-boundary segments — see DECISIONS. Two tests
+first, both red: one for the decline at Hey Lock 117.4½, one for its
+mirror, a segment that opens with the riff and walks away from it, which
+the old code *bound*. WJD phrases 80.8 → 81.0, ideas flat; hey-lock
+phrases 0.81 → 0.84 with 117.4½ demoted to an idea exactly as predicted;
+118.4½ still a false phrase (it needs the transposition half, not built)
+and 87.2½ still wrongly bound. 485 tests, typecheck clean, golden re-pinned.
+`npm run brackets` went **red** at 6/7 on St Thomas 57–76, and the reflex
+was to call it a stale pin. It was not. Tracing the two moved gaps with a
+replication of `segment()`'s own boundary pass (fidelity-checked against
+its output, unlike the earlier approximate probes) showed one of each: at
+64.3½ the *old* code bound on a 57-note slice that shares a pitch class
+and three intervals with the 9 notes after it — a spurious bind, so
+unbinding it is the fix working — while at 69.3 the *new* code bound on a
+degenerate 2-against-2 window, a single semitone against a single
+semitone. Widening the check to the whole 33–41 chain the owner ruled on
+found a second regression the brackets gate does not cover: 37.3½, 8 notes
+against 5, where trimming loses the figure's first note.
+So trimming unconditionally is wrong, and the shipped commit was +2/−2 on
+the rulings rather than the clean win it claimed. Guarded it with
+`RIFF_WINDOW_RATIO` = 3: trim only when the segment before is grossly
+longer. Every 33–41 bind and 69.3 come back, 117.4½ stays fixed, hey-lock
+holds at 0.84, brackets is 7/7 matched with one false start at 64.3½ — the
+start the 57-note slice used to suppress. The two synthetic tests had to be
+rewritten as gross cases (10 and 9 notes of run) since the guard is exactly
+what they now exercise.
+And the corpus reversed its verdict: WJD went back to 80.8 from the
+unguarded 81.0. That gain came from splitting at gaps the owner says bind —
+the corpus rewarded the regression, which is what 78% annotator splitting
+predicts. `eval:wjd` cannot adjudicate this rule.
+Left red on purpose: brackets, one false start at 64.3½, because the pinned
+list is the engine's own frozen output from before this fix. Owner reads
+57–76 and decides.
+
+2026-09-01 · session 19b · the riff rules, on the owner's call.
+Owner: re-pin what needs re-pinning, delete the annotations ("none of it
+is particularly detailed"), and do the riffMaxGap. Two of the three went
+straight through; the third could not.
+`riffMaxGap` cannot split Hey Lock 87.2½: its gap is 2400 ticks, and so are
+St Thomas 34.2½ and 36.1½ inside the chain the owner rules is one phrase.
+No value separates them. Offered the repetition-count lever instead — the
+one separator that survived step 1 — and the owner took it.
+Annotations: kept `hey-lock.json`, deleted the other four. Three were
+engine-seeded and could only ever confirm the engine; `all-the-things`
+scored 0.00/0.00 on the bar-0 pickup bug. All recoverable from git.
+Brackets re-pinned: St Thomas 57–76 gains 64.3½, the start the old 57-note
+slice suppressed, taking the list to **8** — the count session 4 reported
+before the bar.beat list was lost. Still engine output, not an owner
+ruling, and the note says so.
+Then the rule change. Probed four variants against all 20 ruled gaps
+before writing any of it: window alone 18/20, transposition alone 19/20,
+chain alone 17/20, both **20/20**. The chain rule alone *undoes* 117.4½,
+which is why the two halves ship together — see DECISIONS. hey-lock
+phrases F1 0.84 → **0.90**, both bracket gates green, 487 tests, golden
+re-pinned (239 solos moved phrases, −376 net).
+Cost: WJD phrases 80.8 → 79.7, all recall, the annotators-split-riffs
+trade taken a second time. And one weakened assertion in `profile.test.ts`,
+written up rather than quietly changed.
+
+
+2026-09-01 · session 20 · a 7-3 resolution detector.
+Task: build the device Coker gives a chapter to — the b7 of a II-7 falling to
+the 3 of the V7 (also V7 → I). Brainstorming first: it is the first detector
+whose subject is a chord *change*, and two design questions come with it —
+whether it may cross an idea boundary (`samePhrase` forbids it everywhere
+today) and whether a resolution is a finding of its own or a property of the
+cell it ends (Ligon's outlines 2 and 3). Baseline Blake and the peers before
+any code; no eval score moves this, so the corpus is a regression guard, not
+evidence — last session's caution about tuning against it stands.
+
+2026-09-01 · session 20 · the 7-3 resolution ships, with the numbers.
+Five tasks: the detector (`analyse/detectors/resolutions.ts`), its wiring
+into `analyse/index.ts` as a fourth source, `FindingSpan.resolves` +
+`markResolvingSpans`, the `describe.ts` detail line, and this reading pass.
+**Read rather than assumed.** Blake before/after came from a worktree at
+474b563 running the same throwaway script as the current tree, not from the
+design's baseline paragraph — the design's own census table sums to 58 while
+claiming 57, and re-measured through the shipped rules the count is 55.
+Every printed resolution I quote I checked: Blake bars 85 and 116 and Bartley
+124→125 were read out of the raw MusicXML (harmony `<kind>` and note steps),
+not out of the engine's own summary. Bar 116 is the pretty one — F6, the b7
+of G7, tied over the bar line into Eb6, the 3 of Cm7.
+**What moved.** Blake 13 → 15 findings, top finding untouched, both new ones
+at 0.455; the 13 that were there are all still there, unchanged, in the same
+order. Units stay 34, exercises 275 → 271 counting a write step by its
+examples (268 → 266 the way `scripts/run.ts` prints it — the delta is the
+same two units either way), but two resolution-bearing units
+climb into the top six (bars 115–117, 85–86) — the +2 rank for a finding with
+degrees, working as ENGINE_SPEC says it does. Peers gain at most +2 each.
+Tests 487 → 506. `brackets` and `eval:wjd` unmoved (79.7 / 76.5), which is
+the whole point of running them: they are guards here, not evidence.
+Corpus golden re-pinned — 161 of 452 solos moved, findings only, +1/+2/+3
+with nothing larger; `units`, `phrases` and `ideas` moved on none, so nothing
+leaked into `segment()`.
+**Cost.** One deferred tidy (a shared `isResolutionFinding` helper) and one
+pre-existing bug written down instead of fixed: `absorb` in merge pass 2
+adopts `degrees`/`name`/`kind`, which its own comment says it does not. Both
+are in OPEN_QUESTIONS. Also corrected a stale spec line — the verification
+target still said 16 phrases for Blake, which had read 15 since session 19b.
+
+2026-09-02 · session 21 · assessment only: lemmatization, unsupervised ML,
+feature construction (three ideas from the owner's brother). No code, no
+spec change, nothing decided beyond "not now" — the owner asked for the
+reading, then chose to record it rather than build from it.
+**Feature construction** is what the engine already does under another
+name: every segmentation parameter, the target strength, the outside-span
+weight are hand-built features with hand-tuned weights, and the
+OPEN_QUESTIONS backlog reads as a list of unbuilt ones (metric position of
+phrase ends, form position at bars 7–8, chord-tone-on-downbeat share,
+next-chord fit, pentatonic membership). Two extensions named: fit the
+segmentation weights by logistic regression against the WJD marks with
+`wChorus` held fixed (DECISIONS 2026-08-27 — the corpus and the owner's
+ear disagree there and a corpus fit alone would undo that ruling), and use
+the WJD midlevel-unit labels as a supervised target for the stock penalty
+(new OPEN_QUESTIONS entry; the labels sit unread in `sections.value`).
+**Lemmatization** names the canonicalisation levels the engine has without
+saying so (pitch → interval → degree string → quality bucket → bend/
+inversion family) and the missing ones already open: retrograde, same idea
+at another length, Bergonzi set + permutation. Contour stays the display
+form (DECISIONS 2026-08-23 "Exercise contour"); a lemma would be a second
+field, never a replacement.
+**Unsupervised learning**, heavy form, rejected on evidence already in the
+log: five pitch-content inference detectors at or below chance (DECISIONS
+2026-08-25), similarity as an idea cue at 3% precision (2026-08-24), and
+"recurs often" being vacuous on one solo (research/what-is-a-pattern.md).
+456 solos, and the output has to be a name a player recognises. Two
+offline, human-reviewed uses survive: cluster the mined lick table to
+propose dictionary entries a person then writes by hand, and generalise
+`variantOf` to a distance threshold (label source: owner variation groups,
+of which only hey-lock.json remains). Neither moves idea recall off 68%;
+the lead there is still the form-position feature.
+
+2026-09-02 · session 21 (cont.) · `npm run eval:stock` ships. New:
+`scripts/eval-stock.ts`, `src/practice/stockFeatures.ts` (+ 9 tests:
+`stepShare`, `runShare`, `intervalVariety`, `chordToneDownbeatShare`,
+`mluBase`), the npm script, a CLAUDE.md line. Docs: ENGINE_SPEC section
+with the full table, DECISIONS 2026-09-02, the OPEN_QUESTIONS entry
+updated with numbers and three narrower questions. Engine untouched;
+tests 506 → 515; typecheck clean; corpus golden not re-run because
+nothing under `src/analyse` or the rank moved.
+**What it says.** Length is the annotators' biggest cue (AUC 0.84), so
+the pooled table lies — I added length bins before reading anything.
+Within bins `stockShare` is a steady ≈ 0.71; the direction-only run
+predicate is better in every bin and much better on short units (0.84 on
+3–5 notes). Chord-tone-on-downbeat is chance: Baker's rule is how a line
+is *built*, not what makes it a line rather than a lick. `languageShare`
+cannot cross the 0.5 display threshold by construction. Nothing changed
+in the rank; the swap is the next measurable item and needs Blake read
+either side.
+
+2026-09-02 · session 21 (cont.) · the runShare swap ships. `stockShare`
+(`practice/unit.ts`) runs by direction alone; one test rewritten, one
+added; spec parameter line + eval section, DECISIONS "stockShare runs by
+direction", OPEN_QUESTIONS (a) closed. **Read, not assumed**: full unit
+order dumped for Blake (34) and St Thomas (95) before and after with a
+throwaway script (deleted). Blake u1 and the top-six set unchanged;
+u2/u3 swap; the two units that fall are bare triads — and one of them
+looked like a bug until I noticed the CLI header prints pitch classes
+without octaves: "C E C G" is C4 E4 C5 G5, a real ascent. St Thomas u1
+unchanged; 237–238 falls u2 → u9, the one demotion I would show the
+owner. Corpus golden 456/456 unchanged (rank is not in it — the guard
+that nothing leaked). Tests 516, typecheck clean, eval:stock rows for
+stockShare and runShare now identical.
+
+
+2026-09-02 · session 21 (cont.) · `engine.html` ("How it works") caught up:
+four detectors (a Resolutions card), the stock paragraph states the
+direction-only run rule and the WJD lick/line evidence behind it,
+`eval:stock` listed under the corpora, the Blake target reads fifteen
+findings. `app/engine.css` widens the detector card minimum so four cards
+lay out 2 × 2 instead of 3 + 1 (checked in the browser at 952px).
+
+2026-09-02 · session 21 (cont.) · spike: fitted segmentation weights.
+Throwaway `scripts/_fit-seg.ts` (deleted) fit a logistic regression over
+every WJD gap; `segment.ts` DEFAULTS edited for the brackets/owner reads
+and reverted with `git checkout` — tree clean, nothing but docs changed.
+**Answer: no.** Fit wants 0.55 / 0.15 / 0.15 (length and leap at a third
+of hand-tuned); gap-level +0.7 F1, end to end +0.2 phrases / −0.5 ideas,
+and the owner's Mintzer brackets fall 12/13 → 9/13. The two candidate
+features (strong-beat, section-start) add nothing for phrases; strong-beat
+carries a negative sign, which is Galper's "& 1" — recorded as a
+side-finding. Not measured: the same features as *idea* cues, which is
+where the recall ceiling is. DECISIONS "Fitted segmentation weights
+rejected"; OPEN_QUESTIONS metric/formal-position entry narrowed.
+
+2026-09-02 · session 21 (cont.) · lemma layer, descriptive pass.
+`shapes.ts`: `CELLS` → compiled `DICTIONARY`; the twelve triad entries are
+two cells with six orders; hits carry `lemma` + `ordering`. `analyse/
+index.ts`: `Finding.lemma?` / `ordering?`, copied from hits and through
+`absorb`. Five tests. **Byte-identical, read three ways**: Blake CLI
+diffed against this morning's post-swap run, St Thomas against a worktree
+at HEAD, corpus golden 456/456. Tests 521, typecheck clean. Spec dictionary
+section rewritten; DECISIONS "The dictionary is stated as cells";
+OPEN_QUESTIONS set-plus-permutation entry narrowed to the widening, the
+permutation step and the describe line.
+
+2026-09-02 · session 21 (cont.) · Bergonzi widening ships. `bergonzi()`
+gives 1235 / 1345 all 24 orders; descent listed first; duplicate check
+at load; canonical-before-permuted pass in `matchShapes`. Seven tests.
+**Read, not assumed**: the first build changed one St Thomas finding —
+a permuted 3-5-1-2 at bar 104 swallowed the canonical 1-2-3-5 two notes
+later — which is what the tie-break exists for; after it Blake and St
+Thomas are byte-identical to the pre-widening runs. Corpus 37 solos
++37 findings, nothing else moved; golden re-pinned. A throwaway sampler
+(deleted) printed all 17 permuted-cell findings across Blake + peers with
+their notes; they read as vocabulary. Tests 527, typecheck clean.
+
+2026-09-02 · session 21 (cont.) · permutation drill ships inside Through.
+`shapes.ts` `orderingsOf`; `validity.ts` `barHasLemma`; `transform.ts`
+`permutationDrill` + `'permutation'` kind; `through.ts` inserts it after
+the cell drill. Eight tests. A throwaway (deleted) summed step exercises
+and printed the bars across Blake + peers: 27 drills, Blake 0, every
+other count unchanged. Caught and fixed: five bars for a non-rotation
+played order — now one order per starting degree. Tests 535, typecheck
+clean. Spec Through bullet, DECISIONS, OPEN_QUESTIONS (b) closed and the
+"four steps" entry reads three.
+
+2026-09-02 · session 21 (cont.) · the describe line for permuted orders.
+`displayName` shows the lemma for a permuted cell; `detail` adds "played
+in the order …" once per distinct order. First cut inferred "permuted"
+from lemma ≠ name and so caught every triad — Blake's headers changed to
+"major triad" + "played in the order 1-3-5", which is wrong twice over.
+Now the dictionary sets `permuted` on the hit (non-canonical entry only),
+it rides through `Finding` and `absorb`, and describe reads the flag.
+Blake and St Thomas top-six headers byte-identical; the peers' permuted
+units read "digital pattern 1235 … played in the order 3-2-1-5". Five
+tests. Tests 540, typecheck clean. Spec "Naming" section, OPEN_QUESTIONS
+(c) closed. No DECISIONS entry — prose, not a rule.
+
+2026-09-02 · session 21 (cont.) · visualise step ships. `steps/visualise.ts`
+(+2 tests), `Step` union, unit assembly third in the path, desk title /
+intent / cue list + a `.cues` style rule, report collector, CLI count,
+agent verdict enum. Blake CLI diff is the added lines only; tests 542,
+typecheck and build clean. Spec steps line + Visualise bullet, DECISIONS
+"Visualise sits after Through", OPEN_QUESTIONS steps entry reads two.
+
+2026-09-02 · session 21 (cont.) · benchmark page. `--json` on eval:wjd,
+brackets, eval:owner, eval:stock; `PipelineResult.timing` from `run()`'s
+clock and the page storing `woodshed.timing`; `scripts/bench.ts` writing
+`goldens/benchmarks.json` (two spec-sourced seeds + today's measurement);
+`bench.html` / `app/bench.ts` / `app/bench.css`, nav link on all pages,
+fourth Vite input. Colours `--phrase` / `--idea` validated as a categorical
+pair (dataviz validator: all checks pass). Typecheck and build clean. Spec
+section, DECISIONS "A benchmark page", CLAUDE.md command line.
+
+
+2026-09-02 · session 21 · **close.** Eleven commits on `resolution-7-3`
+from 2cd4b6c to 69b5183 (see the day's entries above). Branch has not
+been merged; check `main..HEAD` both ways before building on it. Where
+to pick up: (1) merge the branch; (2) `npm run bench` after any engine
+change and commit the JSON, so the page keeps its history; (3) the two
+practice steps still missing — edit and connect-by-step (OPEN_QUESTIONS);
+(4) the resolution-bearing exemption for St Thomas 237–238 if the owner
+wants it back at the top (DECISIONS "stockShare runs by direction");
+(5) strong-beat and section-start as *idea* cues, unmeasured (the
+phrase fit said nothing about them). Blake verification target
+unchanged all day: 15 findings, 34 units, u1 = bars 76–77.

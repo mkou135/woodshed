@@ -6,7 +6,7 @@ the code. Each section names the file that implements it — if this file and
 the code disagree, that is a bug to fix immediately, in whichever direction
 the DECISIONS log supports.
 
-Last updated: 2026-08-29 (session 17).
+Last updated: 2026-09-02 (session 21).
 
 ## Units
 
@@ -38,7 +38,8 @@ Boundary strength per gap = min(1, wRest·rest + wLength·length + wLeap·leap):
 | rhythmWindow | 4 | notes each side for the rhythm-change cue |
 | ideaThreshold | 0.45 | idea profile (wIdeaRest·rest + wLength·length + wLeap·leap + wRhythm·rhythm) ≥ this opens an idea |
 | pickupHeld | 3 × median | pickup gesture: note held ≥ this, then a lone note in the bar's last half-beat landing on the next downbeat → **idea** opens at the pickup (owner's ear on Blake 69→70, 70→71; costs 0.3 WJD idea F1) |
-| riffMaxGap | 3 beats | riff binding: a rest ≤ this between two statements of the same figure (`sameFigure`: ≥ 2 notes each, same first pitch class, same contour over the first 3 intervals with at least one move, opening durations within 2×) ends an **idea**, not a phrase (owner: St Thomas printed 33–41 is one phrase; costs 1.4 WJD phrase F1) |
+| riffMinStatements | 3 | riff binding needs a **chain**: k adjacent bindable gaps join k+1 statements, and a gap that does not bind — or a chorus boundary, which never does — ends the chain. Two statements are a repeat the ear breathes between (Hey Lock 87.2½, the owner's phrase mark); three are a riff. This is what keeps transposition tolerance from folding every pair of similar gestures into one phrase |
+| riffMaxGap | 3 beats | riff binding: a rest ≤ this between two statements of the same figure (`sameFigure`: ≥ 2 notes each, same contour over the first 3 intervals with at least one move, opening durations within 2× — **not** the same starting pitch, since a player who moves the figure is still repeating it; 2026-09-01) ends an **idea**, not a phrase (owner: St Thomas printed 33–41 is one phrase). The two statements are the segments between neighbouring phrase-level boundaries, **except** that when the one before is more than `RIFF_WINDOW_RATIO` = 3 times longer than the one after, it is trimmed to its last n notes, n the length of the one after — a segment that much longer is plainly not one statement, and comparing from its first note made the answer depend on where the previous boundary landed (2026-09-01; WJD unmoved at 80.8, hey-lock phrases 0.81 → 0.84). Trimming *unconditionally* is wrong — where the two are comparable the segment's first note is the figure's first note — see DECISIONS. The 1.4 F1 the rule costs against no riff binding at all predates this and has not been re-run |
 | peakMin / peakRatio / peakWindow | 0.35 / 2.5 / 4 | local peak: a gap ≥ peakMin that is the strongest within ±peakWindow gaps and ≥ peakRatio × their mean opens an **idea** (never a phrase) |
 | wChorus | 0.45 | chorus-start prior: at a gap into a chorus downbeat the rest gate is lifted and the test is min(1, total + wChorus) ≥ threshold. At 0.45 (= threshold) it always fires, which is the hard wall it replaced; the boundary's confidence is that boosted total, not a constant |
 
@@ -69,6 +70,17 @@ measured with the chorus rule unwired and are not comparable:
 | 0.30 | 81.1 / 83.6 / **82.4** | 77.5 | 10955 |
 | 0.35 | 80.9 / 83.6 / **82.2** | 77.4 | 10982 |
 | **0.45 (in force)** | 78.1 / 83.7 / **80.8** | 76.5 | 11387 |
+
+The 2026-09-01 riff-binding work moves this table's value in force to
+78.3 / 81.2 / **79.7**, ideas 76.5, 11007 predicted phrases against 11387.
+The window fix alone was neutral (80.8, 11394); the −1.1 is the cost of
+transposition tolerance plus the chain rule, and it is **all recall** — the
+engine binds more, the annotators split. That is the same trade as the
+original riff-binding decision (2026-08-24, which cost 1.4 F1 on the same
+grounds: annotators split riffs 78% of the time), taken again on the same
+evidence class. Against the owner's own marks it runs the other way:
+hey-lock phrases F1 0.81 → 0.90. Riff binding as a whole now costs roughly
+2.5 phrase F1 against no riff binding at all.
 
 Human ceiling on phrases is .83. The corpus prefers the prior off: the
 wall costs **1.7 phrase F1** across 456 solos, all of it precision. That
@@ -156,7 +168,11 @@ returning. `npm run solo` prints every adjustment under the header.
   diminished-seventh}.
 - Chords compared by rootPc + quality, never object identity.
 - Detectors never match a window that crosses an idea boundary
-  (`samePhrase`, which checks `NoteContext.idea`).
+  (`samePhrase`, which checks `NoteContext.idea`). **One named exception:**
+  the 7-3 resolution detector may cross an idea or phrase boundary when the
+  two notes are separated by less than `MIN_REST` (240 ticks) — see below. It
+  does not call `samePhrase`; it applies its own gate, so `samePhrase` keeps
+  its meaning for every other detector.
 
 ## Chord scales (`analyse/chordScale.ts`)
 
@@ -195,6 +211,35 @@ Blake: 113 spans, **15 declared by the chart** (≈0.12 marks/bar against the
 first 24.
 
 ## Shape dictionary (`analyse/detectors/shapes.ts`)
+
+Stated as **cells** (since 2026-09-02): a `lemma` ("major triad"), a
+canonical degree `set` ('135'), the `orders` it permits (omitted = the
+canonical order only; a bare triad permits all six), a `name` per ordering
+(omitted = the lemma) and the qualities. `CELLS` compiles at load to the
+flat `DICTIONARY` the matcher searches — one entry per permitted ordering,
+in table order, so `lookup` finds exactly what it found before. Every hit
+and every cell finding carries `lemma` and `ordering` ("5-3-1", the degrees
+as played); `Finding.name` remains the identity (§ "Naming what a player
+sees") and nothing reads the two fields yet.
+
+**Bergonzi cells** (2026-09-02, later the same day): the major-family
+`1235` and the minor-family `1345` accept **all 24 orderings**
+(`bergonzi()`); the minor `1235` stays canonical, since Bergonzi's minor
+set is 1345. The canonical order keeps the bare lemma as its name; any
+other order is named "digital pattern 1235 in the order 3-1-2-5". Two
+rules keep this honest: (1) **table order resolves collisions** — the
+5-3-2-1 descent is listed before the widened 1235, of which it is an
+ordering, so `lookup` returns the descent and its lick-table key still
+applies; a load-time check throws on any other duplicate degree string
+within a quality. (2) **Canonical before permuted at equal length**:
+`matchShapes` runs each cell length twice, `lookup(…, canonicalOnly)`
+first, so a permuted window that starts earlier cannot swallow a
+canonical 1-2-3-5 it overlaps (St Thomas bar 104: Gb A D E Gb A). A bare
+triad's six orders are all canonical (`everyOrderCanonical`). Measured:
+Blake and St Thomas byte-identical; corpus +37 findings over 7,124, 37
+solos moved (+1 to +5, five solos −1 where a permuted cell absorbed a
+triad); units, phrases, ideas unmoved; 17 permuted-cell findings across
+Blake + the ten peers, none on Blake.
 
 Cell lengths 8 down to 3, longest first; a shorter hit sharing any note
 with a longer one is dropped (1357 contains 135; 3-5-1 across two 1235s is
@@ -262,6 +307,56 @@ stock split; rank/narrate prompts may weigh and name them (judging only).
   min(0.2, chromatics·0.1) − (window−2)·0.03. **Score is used**: it is the
   detector's weight in confidence.
 
+## 7-3 resolution (`analyse/detectors/resolutions.ts`)
+
+Coker's device: the b7 of a chord falls to the 3 of the chord a fourth above
+it. The only detector whose subject is a chord *change* rather than notes
+against a chord. Design: `docs/superpowers/specs/2026-09-01-7-3-resolution-design.md`.
+
+For each **adjacent** pair of contexts `i`, `i+1`, all five must hold:
+
+1. both notes carry a chord;
+2. `a.degree` is `'b7'` or `'7'` (the minor family labels the b7 as `'7'`)
+   and `b.degree` is `'3'`;
+3. `b.chord.rootPc === (a.chord.rootPc + ROOT_MOVE) % 12`, `ROOT_MOVE` = **5**
+   — the house convention for "resolves down a fifth". Because +5 ≠ 0, this
+   also rejects the same chord;
+4. the fall `a.midi − b.midi` is **1 or 2** semitones, read off the MIDI
+   numbers and never inferred from the degree pair: V7 → Imaj is `b7`|`3` and
+   a half step, V7 → i minor is `b7`|`3` and a whole step;
+5. the pair sits in one idea, **or** crosses an idea/phrase boundary with a
+   gap below `MIN_REST` = `TICKS_PER_QUARTER / 4` = **240 ticks** — the same
+   threshold `segment.ts` uses to call a gap articulation rather than a rest.
+   Stated as a musical condition, not a detector privilege: a resolution is
+   legato or it is not one.
+
+Named from the quality pair, because the pair says what the device is *for*.
+Dominant family = {dominant, augmented-seventh}; major = {major,
+major-seventh}; minor family as in "Note context".
+
+| first chord | second chord | name |
+|---|---|---|
+| minor | dominant | `ii–V 7-3 resolution` |
+| dominant | dominant | `V-of-V 7-3 resolution` |
+| dominant | major | `V–I 7-3 resolution` |
+| dominant | minor | `V–i 7-3 resolution` |
+| anything else at +5 | | `7-3 resolution` |
+
+Findings: `kind: 'device'`, `detectedBy: ['resolution']`, weight **1**,
+`degrees: [a.degree, '3']`, `quality` from the first chord, `intervals` the
+played step. Two degrees, so `SHORT_CELL_FACTOR` applies and confidence lands
+**0.455** for a single span, **0.553** with the repeat bonus — moderate, and
+structurally unable to outrank a full figure at 1.00.
+
+`FindingSpan.resolves?: true` — `markResolvingSpans` runs after the merge and
+marks any span of a **cell** finding that ends on a resolving 7 or on the note
+immediately before one (Ligon's outlines 2 and 3). Per span, not per finding.
+`describe.ts:detail()` prints *its 7 falls to the 3 of the next chord*.
+
+Deliberately out: anticipated resolutions (the 3 must onset under the new
+chord), non-adjacent resolutions, and any scale-walk exclusion — a descending
+line still resolves (design D6).
+
 ## Recurring (`analyse/detectors/recurring.ts`)
 
 Interval n-grams length 3–6, ≥2 occurrences; trivia (all steps, one
@@ -282,11 +377,16 @@ min(1, min(0.6, Σ 0.3·weight_detector) + 0.25 if degrees + 0.15 if >1 span
 finding is a degree cell of fewer than 4 notes (a bare triad is stock by
 definition and never scores as a full figure; without this a 17-note
 mostly-scalar unit at Blake 74–75 outranked the maj7 figure). Weight is 1
-for shape/recurring, the hit score for target. Findings below **0.4** are dropped. Labels
+for shape/recurring/resolution, the hit score for target. Findings below **0.4** are dropped. Labels
 (`pipeline.ts`): strong ≥ 0.7, moderate ≥ 0.45.
 
 Merge: pass 1 by identity (degrees+family, else name, else interval
 vector); pass 2 by overlap adds detectedBy/weights only, never spans.
+**A resolution finding merges only with another resolution finding**, in
+both passes: a two-note resolution and a two-note target device share an
+interval vector, and without the guard the interval-vector branch of
+`sameIdentity` matched them and the absorbing finding overwrote the other's
+name, degrees and kind.
 
 ## Practice units (`practice/unit.ts`)
 
@@ -299,14 +399,30 @@ vector); pass 2 by overlap adds detectedBy/weights only, never spans.
   over the part's notes with notes inside a named cell of ≥ 4 degrees
   **exempt** (a bare triad's notes are not exempt).
   - `stockShare(notes)`: share of notes inside a run of ≥ `STOCK_RUN` 4
-    notes whose intervals are all steps (1–2 semitones) in one direction,
-    or all thirds/fourths (3–5) in one direction.
+    notes moving in **one direction**, whatever the interval sizes; a
+    repeated note breaks a run. (Until 2026-09-02 a run also had to keep
+    one interval *kind* — all steps, or all thirds/fourths — which read
+    1-2-3-5-7 as no run at all and ignored octave leaps. The direction-only
+    predicate separates the WJD annotators' lines from their licks better
+    in every length bin; see "Stock signals vs the WJD midlevel-unit
+    labels" and DECISIONS 2026-09-02 "stockShare runs by direction".)
   - `corpusShare(notes)` (`practice/corpus.ts`): each note takes the largest
     `CORPUS_FREQUENCY` share of any 4-note window covering it (0 if none is
     in the table); mean over notes. A bebop scale fragment ≈ 0.7, a bare
     maj7 arpeggio contour ≈ 0.4, an unseen figure 0.
-- Steps: loop (always); write (only with a degree-cell); through when the
-  idea's progression or a degree-cell has somewhere to go; vary (always).
+- Steps, in path order: loop (always); through when the idea's
+  progression or a degree-cell has somewhere to go; **visualise** (always,
+  2026-09-02); vary (always); write (only with a degree-cell).
+- Visualise (`practice/steps/visualise.ts`, step kind `visualise`):
+  Bergonzi's off-horn step — no exercise, a prompt and `cues`: the changes
+  (`summary.chords`), what to hear (the named cells via `namedCells`,
+  with the landing degree; "the line as played" when nothing is named),
+  where it comes back (`summary.alsoAt`, omitted when empty), and one
+  check against the record at the unit's first printed bar. Sits after
+  Through so the player already knows the tune's other places for the
+  line (DECISIONS 2026-09-02 "Visualise sits after Through"). The desk
+  renders the cues as a list with the usual done button; the report and
+  CLI count it as zero exercises; the agent's construct schema accepts it.
 - Through (`practice/slots.ts`, `practice/steps/through.ts`): the idea's slot
   is its distinct chord classes + root intervals, followed by the first new
   chord after the final note ends when it arrives within one bar. The whole line
@@ -315,6 +431,21 @@ vector); pass 2 by overlap adds detectedBy/weights only, never spans.
   written range is used; a rest bar prints a cross-bar resolution. A named
   cell on each compatible chord remains as a separate Bergonzi drill,
   followed by the twelve-key cycle.
+  - **Play it in another order** (`generate/transform.ts` `permutationDrill`,
+    2026-09-02): for each finding whose lemma the dictionary permutes
+    (`shapes.ts` `orderingsOf` — today 1235 major-family, 1345 minor-family;
+    triads and single-order cells get nothing), one exercise of **four
+    bars** on the cell's own chord, inserted between the Bergonzi cell drill
+    and the cycle: the order as played, then the rotations of the canonical
+    set that start on each *other* degree (one per starting degree — his
+    "one from each column"). Bars are the same four pitches in one octave of
+    the root, reordered (raw degree differences, so 5 → 1 falls a fifth),
+    then octave-clamped. Gate: every bar must re-detect as a hit with the
+    same lemma (`validity.ts` `barHasLemma`), fail-closed like `isValid`.
+    Transformation kind `permutation`. Measured on Blake + the ten peers: 27
+    drills (Blake 0 — no Bergonzi cell in it; St Thomas 1; Mintzer blues 8;
+    Bartley 6; Tenor Madness 6; 26-2 4; Autumn Leaves 2); findings, units,
+    order and every other step count unchanged.
   - Matches are **grouped by transposition**, in tune order, capped at 8
     *keys*: one entry per key listing every bar that shares it, written onto
     the first occurrence's chords. The same progression in the same key at
@@ -370,7 +501,11 @@ taken). This module is the only place that turns findings into prose, so the
 CLI, the idea head and the all-ideas table cannot drift apart.
 
 - `displayName(finding, names?, terse?)` — the agent's name for that id,
-  else the engine's, else **null** when `unnamed`. An agent name arrives as
+  else the engine's, else **null** when `unnamed`. A **permuted** cell
+  (`Finding.permuted`, set by the dictionary for a non-canonical order of
+  a Bergonzi set — never for a triad, whose six orders are each their own
+  figure) shows its **lemma** ("digital pattern 1235"); the order lives in
+  `name` as identity and reaches the player through `detail` (2026-09-02). An agent name arrives as
   "what it is — why it matters"; `terse` keeps the half before the dash,
   since a table row wants a name and not a sentence.
 - `headline(unit, names?, terse?)` — one clause: the strongest **named**
@@ -380,7 +515,9 @@ CLI, the idea head and the all-ideas table cannot drift apart.
   the player's idea". `terse` picks the table-row wording of the same four
   ("a figure the player returns to", "mostly a scale run", …).
 - `detail(unit, names?)` — the asides, one line each, in the order a player
-  asks: further named cells, `lands on the <degree>`, `N variants of the
+  asks: further named cells, `played in the order 3-1-2-5` (once per
+  distinct permuted order in the unit; nothing for the canonical order),
+  `lands on the <degree>`, `N variants of the
   same shape`, `also at bars <spans>`, and finally a count of the shapes no
   name could stand for (`2 shapes the engine cannot name`; `N more …` when
   the headline was itself the unnamed fallback). A nameless shape still
@@ -414,9 +551,12 @@ print keeps vector-sharp and a rasterising library would not.
   the desk's order with its headline, detail, the agent's keep/reason and
   its look-for, then the annotated score, tables and legend. Drills are
   engraved for the first **`REPORT_DRILLED_IDEAS` = 8** ideas only; the
-  rest are listed without notation. Blake is 34 units holding 275
-  exercises (loop 34, through 47, vary 178, write 16), which prints to
-  about a hundred pages; the top eight is 85 exercises and 26 pages.
+  rest are listed without notation. Blake is 34 units holding 271
+  exercises (loop 34, through 47, vary 174, write 16), which prints to
+  about a hundred pages; the top eight is 69 exercises. (275 / vary 178 /
+  top eight 85 before the 7-3 resolution detector, 2026-09-01; a write step
+  counts here by the examples it generates, which is not how
+  `scripts/run.ts:123` prints it — that rule reads 268 → 266.)
 
 Prose in the report composes through `practice/describe.ts`, never from
 `Finding.name` (§ "A finding's name is an identity"). A keyless run drops
@@ -779,6 +919,75 @@ Owner ground truth on the score, dev-only.
   outside spans and stars").
   `ANNOTATIONS_DIR`/`PEERS_DIR` override the default paths; exits 0 always.
 
+## Stock signals vs the WJD midlevel-unit labels (`scripts/eval-stock.ts`, `npm run eval:stock`)
+
+A report, not a gate (like `eval:owner`). The Weimar `sections` rows of type
+`IDEA` carry Frieler's midlevel-unit labels in `value`; `mluBase`
+(`practice/stockFeatures.ts`) reduces `~#-lick` / `line_w_alds` /
+`void->melody` to a base class. Unit of measurement is the **annotated
+section** (never an engine unit, so segmentation error stays out), notes
+rebuilt by `scoreFromWjd`, contextualised against the solo's chords,
+sections of < `MIN_NOTES` **3** dropped. Target: base `line` (the
+annotators' scale and arpeggio runs) vs `lick` (vocabulary); every other
+class is counted and excluded. Per signal: AUC for "line" (0.5 chance,
+threshold-free), P/R for "line" at `STOCK_SHOWN` **0.5**, and AUC within
+four length bins (3–5, 6–9, 10–15, 16+ notes), because length alone
+separates the classes and every share-type signal grows with it.
+
+Measured 2026-09-02, 451 solos, 12,393 lick/line sections (4,598 line,
+7,795 lick; 5.1% line among 3–5-note sections, 76.9% among 16+):
+
+| signal | pooled AUC | 3–5 | 6–9 | 10–15 | 16+ |
+|---|---|---|---|---|---|
+| `stockShare` (run, one interval kind) | 0.754 | 0.717 | 0.719 | 0.702 | 0.714 |
+| `corpusShare` | 0.729 | 0.721 | 0.676 | 0.672 | 0.670 |
+| max(run, corpus) = `stock` | 0.729 | 0.778 | 0.722 | 0.686 | 0.679 |
+| `languageShare` | 0.698 | 0.541 | 0.609 | 0.616 | 0.639 |
+| `stepShare` | 0.630 | 0.556 | 0.641 | 0.644 | 0.634 |
+| `runShare` (direction only) | **0.753** | **0.837** | **0.798** | **0.724** | 0.711 |
+| `intervalVariety` (inverted: high = lick) | 0.163 | 0.402 | 0.346 | 0.330 | 0.293 |
+| `chordToneDownbeatShare` | 0.522 | 0.527 | 0.503 | 0.501 | 0.489 |
+| length in notes | **0.842** | — | — | — | — |
+
+Reading (the `stockShare` row is the **pre-swap** rule, kept as the
+record): the one-kind run was a real, length-independent but modest line
+detector (≈0.71 in every bin; at ≥ 0.5 it flagged 47.9% of lines at 61.7%
+precision against a 37% base rate). The direction-only run predicate
+beats it in every bin, most where it matters for the page (short units),
+and **is the rule in force since 2026-09-02** — re-running the eval now
+prints identical `stockShare` and `runShare` rows (0.837 / 0.798 / 0.724 /
+0.711), which is the check that the swap changed the right function.
+`chordToneDownbeatShare` is chance in every bin — Baker's metric rule does
+not separate vocabulary from running, because both put chord tones on
+beats. `languageShare` never reaches 0.5 (document shares top out ≈ 0.24),
+so the P/R row for it reads 0 by construction. Nothing in the rank changed
+on this evidence; see DECISIONS 2026-09-02.
+
+## Benchmarks (`scripts/bench.ts`, `goldens/benchmarks.json`, `bench.html` + `app/bench.ts`)
+
+`npm run bench` writes one **snapshot** per day (a re-run replaces the
+day's measured entry): date, short commit, `source: 'measured'`, and the
+JSON line each eval script prints under `--json` — `eval:wjd` (P/R/F1
+exact, phrases and ideas), `brackets` (matched/owner/false per set),
+`eval:owner` (per-file P/R/F1 + `seeded`), `eval:stock` (pooled AUC and
+the four length-bin AUCs per signal) — plus the Blake targets read from
+`run()` (findings, units, phrases, top finding and its bars, exercises per
+step kind) and **timing**: `PipelineResult.timing` (ms per stage —
+ingest, prepare, analyse, practice — from `run()`'s own clock), the
+median over Blake + the peers after one warm-up run, and Blake alone. Two
+entries are `source: 'spec'`, copied by hand from ENGINE_SPEC / DECISIONS
+for 2026-08-27 and 2026-09-01 so the charts have a past; they draw hollow.
+The file holds aggregate numbers only (DECISIONS 2026-08-24 "Corpus
+licensing"; 2026-08-27 "What may live in a corpus golden"). The analyse
+page stores the last run's timings in `localStorage` `woodshed.timing`;
+the bench page shows them beside the Node numbers. Charts are inline SVG
+(no library): two-series line charts in `--phrase` / `--idea` (validated as
+a pair), the human ceiling **83** drawn on the corpus chart, a legend and
+direct end labels, crosshair tooltip, a table under every chart.
+First measured snapshot 2026-09-02 at 705b23b: Node median over 11 files
+of 671 notes — ingest 51.4 ms, prepare 0.4, analyse 13.2, practice 27.3,
+total 96.9; Blake 102.1 ms. (Wall clock on one laptop; expect ±10% between runs.)
+
 ## Agent layer (`src/agent/`, spec docs/superpowers/specs/2026-08-25-agent-layer-design.md)
 
 Judge yes, generate never: verdicts are strict zod schemas referencing engine
@@ -816,9 +1025,13 @@ browser-direct); keyless runs are byte-identical to the engine alone.
 Blake (`npm run solo`): form 56 bars, chorus starts **9 and 65** (8-bar
 intro, head, solo from a pickup at 63); profile regions 63–64, 65–122.
 Top finding "major-seventh arpeggio from the b3", bars 73+77, all three
-detectors; **13 findings** including "dominant arpeggio 3 to the b9" at
-bar 92 marked common language; 16 phrases, 34 practice units, u1 = bars
-76–77 with that cell; cycle exercise bars all ascend. (The 18/21/32
+detectors; **15 findings** including "dominant arpeggio 3 to the b9" at
+bar 92 marked common language and two 7-3 resolutions at 0.455 (bar 85
+`7-3 resolution`, bar 116 `V–i 7-3 resolution`); 15 phrases, 34 practice
+units, u1 = bars 76–77 with that cell; cycle exercise bars all ascend.
+(13 findings before the resolution detector, 2026-09-01. The "16 phrases"
+recorded here reads **15**, measured on both sides of this change, so the
+drift predates it; it was not traced further.) (The 18/21/32
 counts recorded in session 10 had already drifted by session 13 — the
 2026-08-27 baseline check measured 16 phrases / 13 findings / 34 units
 *before* the common-language change. The change itself swapped one

@@ -13,6 +13,7 @@
         <li><a href="./index.html">Analyse</a></li>
         <li><a href="./annotate.html">Annotate</a></li>
         <li><a href="./engine.html" aria-current="page">How it works</a></li>
+        <li><a href="./bench.html">Benchmarks</a></li>
       </ul>
     </nav>
 
@@ -231,8 +232,8 @@
         <p>Every note is given a degree relative to the chord sounding under it, using a major-family or minor-family table. “Chromatic” means altered <em>and</em> not a chord tone, so the b7 of a dominant is not chromatic. Separately, each chord is assigned the scale it is played on — <strong>never inferred from the notes played</strong>. The chart wins where it declares tensions; otherwise the choice follows the chord's <em>function</em>, not its quality.</p>
         <p>That “never inferred” is load-bearing. Four different ways of inferring departure from pitch content were measured against null models on the corpus, and all four fired at or below chance. The engine reports what the chart says and lets you hear the rest.</p>
 
-        <h3>The three detectors</h3>
-        <p>They run independently and are allowed to disagree. None of them may match across an idea boundary — a figure that straddles a gesture break is two gestures, not one piece of vocabulary.</p>
+        <h3>The four detectors</h3>
+        <p>They run independently and are allowed to disagree. None of them may match across an idea boundary — a figure that straddles a gesture break is two gestures, not one piece of vocabulary. The one exception is the resolution detector, whose two notes may cross a boundary when the gap between them is shorter than a rest: a resolution is legato or it is not one.</p>
 
         <div class="detectors">
           <div class="det det-cell">
@@ -249,6 +250,11 @@
             <h3>Recurring</h3>
             <p>Finds interval shapes the player returns to, names them by their intervals when the dictionary can't, and groups bent or inverted forms into variant families.</p>
             <span class="k">detectors/recurring.ts</span>
+          </div>
+          <div class="det det-device">
+            <h3>Resolutions</h3>
+            <p>Coker's 7-3 resolution: the b7 of one chord falling a half or whole step to the 3 of the chord a fourth above. The only detector whose subject is a chord change rather than notes against a chord; named from the pair of qualities (ii–V, V–I, V–i, V-of-V).</p>
+            <span class="k">detectors/resolutions.ts</span>
           </div>
         </div>
 
@@ -276,7 +282,9 @@
           rank = 4&middot;best + &Sigma;confidence + 0.25&middot;&Sigma;occurrences + <span class="c">(chord-tone arrival)</span> + <span class="c">(nameable)</span> &minus; <span class="c">stockPenalty</span>&middot;stock
         </div>
 
-        <p>“Stock” is the engine's way of not wasting your time on everyone's vocabulary. It measures three things — how much of the unit is a plain scale run or arpeggio, how common its shape is across the Weimar corpus, and how much of it matches the mined lick table — and demotes accordingly. This penalty exists because of a real failure: the engine once passed 156 tests while ranking its best finding ninth out of eighty-one.</p>
+        <p>“Stock” is the engine's way of not wasting your time on everyone's vocabulary. It measures three things — how much of the unit sits inside a <em>run</em>, how common its shape is across the Weimar corpus, and how much of it matches the mined lick table — and demotes by the larger of the first two. A run is four or more notes moving in one direction, whatever the interval sizes; a repeated note breaks it. Notes inside a named four-note cell are exempt, because that is the vocabulary; a bare triad is not exempt, because a triad is stock by definition. This penalty exists because of a real failure: the engine once passed 156 tests while ranking its best finding ninth out of eighty-one.</p>
+
+        <p>The run rule is the first part of the rank to have been checked against human labels. The Weimar annotators marked every idea in the corpus as a <em>lick</em> (vocabulary) or a <em>line</em> (a scale or arpeggio run), some fifteen thousand judgements the engine had never read. Scored against them, the old rule — which also required a run to keep one interval kind, all steps or all thirds — separated line from lick at about 0.71 in every length bin; direction alone reaches 0.84 on the shortest units, which is where the page's “mostly a scale run” label matters most. Length is the annotators' strongest cue of all, but a line is partly <em>defined</em> as a long run, so length stays out of the rank. Baker's rule for the bebop scale — chord tones on the downbeats — turned out to be no help at all: it is how a line is built, not what makes it a line rather than a lick. <code>npm run eval:stock</code> prints the table; it is a report, not a gate.</p>
 
         <h3>The four steps</h3>
         <p>Every unit carries the same four, drawn from the practice literature:</p>
@@ -319,7 +327,7 @@
         <p>Three external bodies of music inform the engine, and <strong>none of them is in this repository</strong>. They live in <code>~/dev/woodshed-data/</code>, are run locally, and only derived aggregate statistics are ever committed — with an attribution note. The licensing rule is the project's sharpest constraint.</p>
 
         <ul>
-          <li><strong>Weimar Jazz Database</strong> (456 solos, ODbL) — the ground truth for phrase and idea boundaries, and the source of the corpus-frequency table behind the stock penalty. <code>npm run eval:wjd</code> scores segmentation against it; <code>npm run corpus:wjd</code> sweeps the whole pipeline and diffs against a committed golden of per-solo counts.</li>
+          <li><strong>Weimar Jazz Database</strong> (456 solos, ODbL) — the ground truth for phrase and idea boundaries, and the source of the corpus-frequency table behind the stock penalty. <code>npm run eval:wjd</code> scores segmentation against it; <code>npm run eval:stock</code> scores the stock signals against its lick/line labels; <code>npm run corpus:wjd</code> sweeps the whole pipeline and diffs against a committed golden of per-solo counts.</li>
           <li><strong>Bopland licks</strong> — a dictionary-coverage benchmark and second frequency source, mined into the common-language table.</li>
           <li><strong>Your own annotations</strong> in <code>annotations/</code> — the only human-labelled evidence that reflects your ear rather than someone else's. Where these and the corpus disagree, recorded decisions say which won and what it cost.</li>
         </ul>
@@ -368,7 +376,7 @@
           <li><code>docs/OPEN_QUESTIONS.md</code> — everything unresolved, with what would resolve it.</li>
           <li><code>docs/LEDGER.md</code> — the running task log, including decisions taken on your behalf.</li>
         </ul>
-        <p>The verification target is worth knowing by heart: run <code>npm run solo</code> on the Seamus Blake transcription and the top finding should be the major-seventh arpeggio from the b3 at bars 73 and 77, with all three detectors agreeing, in a list of about thirteen.</p>
+        <p>The verification target is worth knowing by heart: run <code>npm run solo</code> on the Seamus Blake transcription and the top finding should be the major-seventh arpeggio from the b3 at bars 73 and 77, with all three vocabulary detectors agreeing, in a list of fifteen — the two 7-3 resolutions near the bottom.</p>
       </section>
 
       <p class="foot">Written from the code at <code>sprint/chorus-prior-and-design</code>. Where this page and <code>ENGINE_SPEC.md</code> disagree, the spec is right and this page is stale.</p>

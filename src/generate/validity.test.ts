@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { isValid } from './validity.ts'
+import { isValid, barHasLemma } from './validity.ts'
 import { throughCycleOfFourths } from './transform.ts'
 import { instrumentFromTranspose } from '../core/instrument.ts'
 import type { Finding } from '../analyse/index.ts'
@@ -54,5 +54,15 @@ describe('isValid: quality, not just family', () => {
     const exercise = throughCycleOfFourths(f, tenor)!
     exercise.bars[0].quality = 'dominant'
     expect(isValid(exercise, f)).toBe(false)
+  })
+})
+
+describe('barHasLemma', () => {
+  it('accepts a rotation of the cell over a fitting chord', () => {
+    // D E G C over Cmaj7: 2-3-5-1, a permuted 1235
+    expect(barHasLemma({ rootPc: 0, quality: 'major-seventh', midis: [62, 64, 67, 72] }, 'digital pattern 1235')).toBe(true)
+  })
+  it('rejects the same notes over a chord the cell is not vocabulary for', () => {
+    expect(barHasLemma({ rootPc: 0, quality: 'minor-seventh', midis: [62, 64, 67, 72] }, 'digital pattern 1235')).toBe(false)
   })
 })

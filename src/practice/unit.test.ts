@@ -46,10 +46,10 @@ describe.skipIf(!existsSync(BLAKE))('buildUnits on the Blake solo', () => {
     result = run(new Uint8Array(readFileSync(BLAKE)))
   })
 
-  it('makes the maj7-from-the-b3 line the first unit, with all four steps', () => {
+  it('makes the maj7-from-the-b3 line the first unit, with all five steps', () => {
     const top = result.units[0]
     expect(top.findings.map((f) => f.name)).toContain('major-seventh arpeggio from the b3')
-    expect(top.steps.map((s) => s.kind)).toEqual(['loop', 'through', 'vary', 'write'])
+    expect(top.steps.map((s) => s.kind)).toEqual(['loop', 'through', 'visualise', 'vary', 'write'])
   })
 
   it('keeps every unit within two bars', () => {
@@ -170,9 +170,16 @@ describe('stockShare', () => {
     expect(stockShare(midis([60, 62, 64, 60, 62, 64, 65, 67]))).toBe(0.625)
   })
 
-  it('does not mix steps and thirds in one run', () => {
-    // 1-2-3-5-7: steps then thirds; neither run reaches four notes
-    expect(stockShare(midis([60, 62, 64, 67, 71]))).toBe(0)
+  it('counts a one-direction run whatever the interval sizes', () => {
+    // 1-2-3-5-7: steps then thirds, five notes climbing — a run by direction
+    // (2026-09-02: the WJD lick/line labels prefer direction alone in every
+    // length bin; ENGINE_SPEC "Stock signals vs the WJD midlevel-unit labels")
+    expect(stockShare(midis([60, 62, 64, 67, 71]))).toBe(1)
+  })
+
+  it('breaks a run at a repeated note', () => {
+    // C D E E F G: the repeat splits it into 3 + 3, neither a run
+    expect(stockShare(midis([60, 62, 64, 64, 65, 67]))).toBe(0)
   })
 })
 
@@ -200,5 +207,17 @@ describe.skipIf(!existsSync(ST_THOMAS))('common-language framing on St Thomas', 
     const plain = result.units.find((u) => !u.findings.some((f) => f.language))
     const plainLoop = plain?.steps.find((s) => s.kind === 'loop')
     expect(plainLoop?.kind === 'loop' && plainLoop.exercise.rationale).not.toContain(cliche)
+  })
+
+  it('reports a resolution only on the unit that holds it', () => {
+    const marked = result.units.filter((u) => u.summary.resolves)
+    expect(marked.length).toBeGreaterThan(0)
+    // A cell recurring in three bars resolves in one of them; `alsoAt` says
+    // where else it is, and this line must not follow it there.
+    for (const u of marked) {
+      const inside = u.findings.some((f) =>
+        f.spans.some((s) => s.resolves && s.startIndex >= u.startIndex && s.endIndex <= u.endIndex))
+      expect(inside, `unit ${u.id} claims a resolution it does not contain`).toBe(true)
+    }
   })
 })

@@ -23,6 +23,28 @@ moving its resolution into DECISIONS.md.
   the repo (licence, 50 MB with the WJD copy). Resolve: an
   `npm run eval:omnibook` that points at the folder and pins counts, like
   `eval:wjd`; decide whether the licence allows a few as fixtures.
+- **The WJD midlevel-unit labels are unused.** `scripts/eval-wjd.ts:104`
+  reads only `start` from `sections where type='IDEA'`; the `value` column
+  of those same rows carries ~15,400 human labels (2026-09-02 count on the
+  local `wjazzd.db`: lick ≈7,400 across its variants, line ≈3,300, melody
+  ≈950, plus expressive / rhythm / fragment / void). That is a supervised
+  target for the lick-vs-line distinction the stock penalty (`STOCK_PENALTY`,
+  `stockShare` / `corpusShare`, `practice/unit.ts`) draws with a constant
+  today. **Measured 2026-09-02** (`npm run eval:stock`, ENGINE_SPEC "Stock
+  signals vs the WJD midlevel-unit labels"): `stockShare` separates line
+  from lick at AUC ≈ 0.71 in every length bin; a direction-only run
+  predicate (`runShare`, `practice/stockFeatures.ts`) beats it in every
+  bin (0.84 on 3–5-note sections, 0.80 on 6–9); chord-tone-on-downbeat is
+  chance. (a) `stockShare` **did** drop its one-interval-kind requirement
+  the same day (DECISIONS 2026-09-02 "stockShare runs by direction"; Blake
+  and St Thomas read before and after, corpus golden byte-identical). Still
+  open: (b) whether length should enter the rank at all, since the
+  annotators' "line" is partly *defined* as a long run (research/
+  phrases-and-ideas.md §3) and a length term would demote long ideas
+  wholesale; (c) a fitted combination, which the eval does not attempt.
+  The `#`/`~` modifiers are stripped by `mluBase` without being
+  interpreted; the labels also carry `melody`, `theme`, `quote` and
+  `expressive` classes nothing here uses yet.
 - **Correct tune, weak vote** — Barbados 33%, Perhaps 41%, Cheryl 24%
   (period detected as 24 not 12), Blue Bird, Relaxing With Lee (title →
   Donna Lee). Resolve: try the vote over period × phase offsets, not just
@@ -61,12 +83,28 @@ moving its resolution into DECISIONS.md.
   blocks and mix keys (feels worse, retains better). Resolve: design a
   "today's session" view over units once units themselves are validated.
 - **Dictionary is 13 entries.** Grow quality-aware (Coker's elements:
-  7-3 resolution, CESH, bebop-scale runs). Resolve: add with tests per
+  CESH, bebop-scale runs — the 7-3 resolution shipped 2026-09-01 as its own
+  detector rather than a dictionary entry, because a 1+1 lick is
+  unreachable through `CELL_LENGTHS`). Resolve: add with tests per
   entry, watch the Blake goldens.
 - **WBA atom parser as substrate** — probe said its output reads as
   nothing on its own. Keep deferred unless something needs it.
 - **Analyse the head (bars 9–64)** to catch the soloist quoting the tune.
   Form phase is fixed, so this is now cheap.
+- **`absorb` in merge pass 2 adopts more than evidence.** Its own comment
+  and ENGINE_SPEC both say pass 2 adds `detectedBy`/`weights` only, never
+  spans — but it also adopts `degrees`, `name` and `kind` from the absorbed
+  finding. Pre-existing; found while building the 7-3 detector, which was
+  bitten by it (a two-note target device overwrote a resolution's name) and
+  now routes around it with a resolution-only merge guard. Resolve: decide
+  whether pass 2 should adopt those three fields at all, and if not, remove
+  them and re-read Blake and the corpus golden.
+- **The two merge guards in `analyse/index.ts` are near-duplicate
+  comments.** A shared `isResolutionFinding(f)` helper in `sameIdentity`
+  and `mergeByOverlap` would stop them drifting apart. Two-line tidy, left
+  undone deliberately so the documentation commit changed no engine code.
+  Resolve: extract the helper next time either merge pass is edited, and
+  check Blake and the corpus golden are byte-identical afterwards.
 - **displace step and 3/4+ time**: placements assume 4/4 feel (beat 2,
   and-of-1). Check against a 3/4 solo when one arrives.
 
@@ -77,19 +115,28 @@ moving its resolution into DECISIONS.md.
   job has no held-out signal to check against — the app's drill stars
   are "I'd practice this"). Resolve: get a real solo annotated (more than
   the e2e smoke marks) and re-open both with the new labels as the target.
+  **Narrowed 2026-09-01**: the owner deleted four of the five annotation
+  files as not detailed enough to keep — three were engine-seeded and could
+  only confirm the engine, and `all-the-things` scored 0.00/0.00 on the
+  bar-0 pickup bug. `hey-lock.json` is the only ground truth in the repo,
+  and every segmentation ruling now in force traces to it.
 - **What formally scores outside spans and stars?** `eval:owner` only
   prints overlapping `analysis.findings`, no precision/recall — spans
   don't line up with findings or phrase starts the way boundary marks do.
   Resolve: decide a matching rule (span overlap? contained finding?) once
   there are enough owner spans to design against.
 
-- **Owner brackets: the St Thomas 8th.** `npm run brackets` (session 6)
-  scores scripts/brackets.json against the peers files. Mintzer 3–34 is the
-  owner's list (12/13, 22.1 known). St Thomas 57–76 is the engine's output
-  frozen after riff binding + articulation rest — 7 starts where session 4
-  matched 8 brackets; the bar.beat list was never written down. Resolve:
-  owner re-reads 57–76 on the page and corrects the JSON. Also still open:
-  the unmarked-pickup warn on Mintzer shifts beat positions.
+- **Owner brackets: the St Thomas 8th — probably found, not confirmed.**
+  `npm run brackets` (session 6) scores scripts/brackets.json against the
+  peers files. Mintzer 3–34 is the owner's list (12/13, 22.1 known). St
+  Thomas 57–76 was the engine's output frozen at 7 starts where session 4
+  reported 8, and the bar.beat list was never written down. Session 19's
+  window fix restored a start at **64.3½** — the old rule had suppressed it
+  by binding a 57-note slice to the 9 notes after the rest — taking the list
+  to 8. That is suggestive, not settled: it is still engine output re-pinned
+  against itself. Resolve: owner reads 57–76 on the page and confirms 64.3½
+  (and the other seven). Also still open: the unmarked-pickup warn on
+  Mintzer shifts beat positions.
 
 ## Segmentation cues (2026-08-24, from a ChatGPT comparison)
 
@@ -158,13 +205,17 @@ Full write-up and citations in `docs/research/jazz-pedagogy-literature.md`
 books; ask the owner for a copy.
 All of these are proposals; none is implemented.
 
-- **7-3 resolution is undetected** (b7 of II-7 → 3 of V7; also V7 → I).
-  Coker gives it a whole chapter; Ligon and Owens arrive at it
-  independently. It is the only device on Coker's list that looks *across*
-  a chord change, which no detector of ours does. Resolve: build it from
-  the chord track and `NoteContext` degrees, and decide deliberately
-  whether it may cross an idea boundary (`samePhrase` currently forbids
-  that for every detector).
+- **Only the *adjacent* 7-3 resolution is detected.** The device itself
+  shipped 2026-09-01 (`analyse/detectors/resolutions.ts`; ENGINE_SPEC
+  "7-3 resolution"; DECISIONS 2026-09-01), and the entry that asked for it
+  is retired there. Two neighbours stay open and were declared out of scope
+  deliberately: **anticipated** resolutions, where the 3 is played before the
+  chord arrives (the same bar-line shift as "A note that fits the next chord
+  is still called chromatic"), and **non-adjacent** ones, with notes between
+  the 7 and the 3 — the census found 36 of those with a single note between,
+  and they read as a b7 that happens to precede a change rather than as the
+  device. Resolve: print a sample of each against the record and decide
+  whether either is heard as a resolution.
 - **Phrase boundaries carry a metric and formal position we ignore.**
   Baker: phrases mostly end on the upbeat of beat 1 or 3. Owens: Parker's
   phrase endings cluster in bars 7–8 of each 8-bar section. Bergonzi and
@@ -173,7 +224,18 @@ All of these are proposals; none is implemented.
   form-position bonus at bars 7–8 of each section, scored against
   `eval:wjd` and `npm run brackets`. This is the most promising lead on
   "Idea recall is 68%", since a form prior helps precisely the boundaries
-  that have no surface cue.
+  that have no surface cue. **Measured 2026-09-02 for phrases** (DECISIONS
+  "Fitted segmentation weights rejected"): as gap-level logistic features,
+  next-note-on-beat-1-or-3 carries a *negative* weight (starts avoid the
+  strong beats) and section-start adds AUC +0.0005; neither earns an
+  engine term. Not measured: the same two as **idea** cues, which is
+  where the recall ceiling actually is — the phrase fit says nothing
+  about that.
+- **Phrase starts avoid beats 1 and 3.** A side-finding of the 2026-09-02
+  fit: on the WJD, a gap whose next note lands on a strong beat is *less*
+  likely to be a phrase start (logistic weight −0.94 alongside rest 6.6).
+  This is Galper's "& 1" measured, and the pickup rule already leans on it.
+  Resolve: nothing to build; the profile item below could report it.
 - **We never report where the player's phrases start and end.** `Phrase.onset`
   exists; the profile says nothing about it. Resolve: add a metric-position
   summary to `SoloProfile` ("phrases mostly begin on the and-of-4").
@@ -182,7 +244,12 @@ All of these are proposals; none is implemented.
   that chord tones land on downbeats. `stockShare` penalises any run of ≥ 4
   same-direction steps regardless of placement. Resolve: measure the
   chord-tone-on-downbeat share of a run, and decide whether it earns a
-  detector of its own or a term that lifts the stock penalty.
+  detector of its own or a term that lifts the stock penalty. **Partly
+  measured 2026-09-02**: `chordToneDownbeatShare` is at chance (AUC
+  0.49–0.53 in every length bin) for lick-vs-line on the WJD labels, so
+  it does not tell vocabulary from running. That is a different question
+  from bebop-scale-vs-random-run, which has no label set; the term is
+  built (`practice/stockFeatures.ts`) and unused.
 - **A note that fits the next chord is still called chromatic.**
   `analyse/context.ts` judges each note against the current chord only.
   Coker's rule is to look at the chords before *and* after before drawing a
@@ -202,14 +269,22 @@ All of these are proposals; none is implemented.
   interesting because it explains the *absence* of change running.
 - **The shape dictionary hand-lists orderings.** Bergonzi's system is one
   four-note set (1-2-3-5 major/dominant, 1-3-4-5 minor — both already ours)
-  times its 24 permutations. Resolve: consider restating entries as
-  set + permutation, which would collapse the six triad entries into one
-  and generate a "play it in another order" practice step.
-- **Four practice steps the sources have and we do not**: visualise (away
-  from the horn — Bergonzi; answers the faculty consensus that memorising
-  beats notating), edit (omit notes for rhythmic variety), permutation, and
-  connect-by-step into the next chord. Resolve: owner tries them; visualise
-  is nearly free since it renders no exercise.
+  times its 24 permutations. **Restated 2026-09-02** (DECISIONS "The
+  dictionary is stated as cells"): entries are set + permitted orderings,
+  the twelve triad entries are two cells, every cell hit carries `lemma`
+  and `ordering`, output byte-identical. (a) **Widened 2026-09-02**
+  (DECISIONS "Bergonzi cells accept every ordering"): 1235 and 1345 in all
+  24 orders, canonical-first tie-break, +37 corpus findings, Blake
+  unmoved. (b) **Shipped 2026-09-02** as a `permutation` exercise inside
+  Through (ENGINE_SPEC "Play it in another order"). (c) **Shipped
+  2026-09-02**: `describe.ts` shows the lemma and adds "played in the
+  order 3-1-2-5" as an aside, via `Finding.permuted`; the audit view keeps
+  the full name. Still open: (d) whether the minor 1235 should widen too,
+  which Bergonzi does not do and no peer solo has asked for.
+- **Two practice steps the sources have and we do not**: edit (omit notes
+  for rhythmic variety) and connect-by-step into the next chord.
+  Permutation shipped 2026-09-02 inside Through; visualise shipped the
+  same day as its own step after Through. Resolve: owner tries them.
 - **A pentatonic run may escape the stock penalty.** `stockShare` matches
   a run of ≥ 4 notes moving one way by steps of 1–2 semitones *or* by
   3–5 semitones. A major (1-2-3-5-6) or minor (1-b3-4-5-b7) pentatonic run
@@ -217,13 +292,16 @@ All of these are proposals; none is implemented.
   stock material the penalty exists to demote. Resolve: check whether such
   runs occur in the corpus and currently score as non-stock; if so, add a
   "stays inside one pentatonic collection" predicate.
-- **Ligon's three melodic outlines are two-thirds already in the
-  dictionary, without their resolutions.** Outline 2 opens with our `1357`
-  and outline 3 with our `5321`; both are defined by the 7th that follows
-  falling to the 3rd of the next chord. Resolve: with the 7-3 detector
-  (above), decide whether an outline is a finding in its own right or a
-  property attached to an existing cell finding — the latter would let a
-  finding say what it is *for*, which is what the summariser needs.
+- **Ligon's three melodic outlines: half-answered.** Outline 2 opens with
+  our `1357` and outline 3 with our `5321`; both are defined by the 7th that
+  follows falling to the 3rd of the next chord. Since 2026-09-01 the
+  resolution itself is a finding, and the *coincidence* is marked per span:
+  `FindingSpan.resolves` flags a cell occurrence that ends on a resolving 7
+  or the note before one, and `describe.ts` prints "its 7 falls to the 3 of
+  the next chord". What remains open is only whether an outline is a finding
+  in its own right. The marker is rare — 6 spans across the ten peers, none
+  on Blake — so there is not yet much to name. Resolve: read the six against
+  the record and decide whether they read as one gesture.
 - **We have no concept of a break** — the 2, 4 or 8 unaccompanied bars that
   often open a solo (Levine's glossary). It sits exactly where our pickup
   and intro handling already gets delicate. Resolve: check whether any
@@ -246,15 +324,17 @@ All of these are proposals; none is implemented.
   Mixolydian #9, and b9/#9/n9/b5 sit inside default scales elsewhere in the
   form. The full-coverage layer will mislabel blues unless it knows the form is
   a blues. Resolve: detect a blues from the changes and swap the I7 default.
-- **Repetition binds — boundaryCue has no similarity term.** Hey Lock
-  owner annotation, bars 116–120: the owner hears one phrase built from a
-  4× varied sequence (variation group C); the engine splits it into
-  phrases at 117.4½ / 118.4½ / 119.4½ because each repeat sits behind an
-  8th rest + leap (totals 0.72–0.79, threshold 0.45). The rest cue is
-  strongest exactly where repetition says "same breath". Resolve: prototype
-  a parallelism term (interval-shape similarity of the material either
-  side of a candidate gap) that suppresses boundary strength, score it
-  against eval:owner + eval:wjd + brackets.
+- **The riff rules rest on 20 gaps and two fitted constants.** Resolved
+  2026-09-01 (DECISIONS "A riff is a chain, and it may be transposed" and
+  "Riff binding compares the statements"): all four Hey Lock rulings and all
+  sixteen St Thomas ones now come out right. What is *not* settled is how
+  much of that is fitting. `RIFF_WINDOW_RATIO` = 3 separates two
+  observations (29-against-4 is gross, 5-against-2 is not) and
+  `riffMinStatements` = 3 separates one split case from two bind cases. Both
+  are dials with almost no evidence under them, and the corpus argues the
+  other way: WJD phrases fell 80.8 → 79.7, all recall. Resolve: a second
+  blind-annotated solo with riff chains in it — sweep both constants against
+  it before trusting either.
 - **Long-range variation tracking.** Owner group B links 97.1/99.1 to a
   return at 110.4½–112.3; the engine's recurring detectors caught 97↔99
   (major triad 1-3-5) but nothing 11 bars later. The variations field in

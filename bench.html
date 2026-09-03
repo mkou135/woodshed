@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>woodshed · benchmarks</title>
+    <link rel="stylesheet" href="./app/style.css" />
+    <link rel="stylesheet" href="./app/bench.css" />
+  </head>
+  <body>
+    <nav class="sitenav" aria-label="Pages">
+      <ul>
+        <li><a href="./index.html">Analyse</a></li>
+        <li><a href="./annotate.html">Annotate</a></li>
+        <li><a href="./engine.html">How it works</a></li>
+        <li><a href="./bench.html" aria-current="page">Benchmarks</a></li>
+      </ul>
+    </nav>
+    <main class="bench">
+      <header class="masthead">
+        <h1>How the engine is doing</h1>
+        <p class="standfirst">Every number here is an aggregate written by <code>npm run bench</code> and committed with the code. The corpora themselves never leave the owner's machine.</p>
+      </header>
+      <div id="bench-root"><p class="faint">Loading…</p></div>
+    </main>
+    <script type="module" src="./app/bench.ts"></script>
+  </body>
+</html>

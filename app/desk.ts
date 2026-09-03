@@ -23,6 +23,7 @@ export interface Desk {
 export const STEP_TITLES: Record<Step['kind'], string> = {
   loop: 'Loop it as played',
   through: 'Through the tune',
+  visualise: 'Visualise it',
   vary: 'Vary it',
   write: 'Write your own',
 }
@@ -31,6 +32,7 @@ function intent(step: Step, unit: PracticeUnit, result: PipelineResult): string 
   switch (step.kind) {
     case 'loop': return `Sing it, then play along with the record from bar ${barLabel(result.score, unit.notes[0].bar)}.`
     case 'through': return `The whole line over every matching progression in ${step.tune}; cell and cycle drills follow.`
+    case 'visualise': return 'Away from the horn: run it through the changes in your head, then check one thing against the record.'
     case 'vary': return 'New ways into the same arrival; the landing never moves.'
     case 'write': return 'Three lines into the targets; drop the file back to check.'
   }
@@ -186,7 +188,12 @@ export function practiceDesk(
       const body = el('div')
       const build = (): void => {
         body.appendChild(el('p', 'prompt', s.prompt))
-        const exercises = s.kind === 'loop' ? [s.exercise] : s.kind === 'write' ? s.examples : s.exercises
+        const exercises = s.kind === 'loop' ? [s.exercise] : s.kind === 'write' ? s.examples : s.kind === 'visualise' ? [] : s.exercises
+        if (s.kind === 'visualise') {
+          const ul = el('ul', 'cues')
+          for (const cue of s.cues) ul.appendChild(el('li', '', cue))
+          body.appendChild(ul)
+        }
         pending = []
         for (const ex of exercises) {
           // The loop step's one exercise says what the head already said.

@@ -12,7 +12,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     // Vite's default is the single `index.html`, which shipped the analyser
-    // alone and left the other two pages dev-only. Naming all three here is
+    // alone and left the other two pages dev-only. Naming all four here is
     // what puts them in `dist/`; the nav links between them are relative for
     // the same reason `base` is.
     rollupOptions: {
@@ -20,6 +20,7 @@ export default defineConfig({
         index: page('index.html'),
         annotate: page('annotate.html'),
         engine: page('engine.html'),
+        bench: page('bench.html'),
       },
     },
   },

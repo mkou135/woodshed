@@ -31,7 +31,18 @@ export interface FindingView {
   lickShare?: number
 }
 
+/** Milliseconds per stage of one `run()`, wall clock; `npm run bench` and the page both read it. */
+export interface StageTiming {
+  ingest: number
+  prepare: number
+  analyse: number
+  practice: number
+  total: number
+}
+
 export interface PipelineResult {
+  /** Present on every run; the agent path carries the deterministic run's numbers. */
+  timing?: StageTiming
   score: Score
   report: CleanupReport
   analysis: Analysis
@@ -76,12 +87,18 @@ export function describeFinding(finding: Finding, score: Pick<Score, 'repeats'> 
 
 /** Ingest, clean up, analyse and generate, in one call. */
 export function run(bytes: Uint8Array): PipelineResult {
+  const clock = typeof performance !== 'undefined' ? () => performance.now() : () => Date.now()
+  const t0 = clock()
   const score = ingest(bytes)
+  const t1 = clock()
   const report = prepare(score)
+  const t2 = clock()
   const analysis = analyse(score, report)
+  const t3 = clock()
   const exercises = generateExercises(analysis, score)
   const tune = tuneFromScore(score, report.form?.chorusStarts ?? [])
   const units = buildUnits(analysis, score, { tune })
+  const t4 = clock()
 
   return {
     score,
@@ -91,6 +108,7 @@ export function run(bytes: Uint8Array): PipelineResult {
     findingViews: analysis.findings.map((f) => describeFinding(f, score)),
     tune,
     units,
+    timing: { ingest: t1 - t0, prepare: t2 - t1, analyse: t3 - t2, practice: t4 - t3, total: t4 - t0 },
   }
 }
 

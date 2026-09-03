@@ -1,7 +1,7 @@
 import { TICKS_PER_QUARTER } from '../../core/types.ts'
 import type { Chord, Note, Score } from '../../core/types.ts'
-import { overChanges, throughCycleOfFourths } from '../../generate/transform.ts'
-import { isValid } from '../../generate/validity.ts'
+import { overChanges, permutationDrill, throughCycleOfFourths } from '../../generate/transform.ts'
+import { barHasLemma, isValid } from '../../generate/validity.ts'
 import type { Exercise, ExerciseBar } from '../../generate/index.ts'
 import type { PracticeUnit, Step } from '../unit.ts'
 import type { Tune } from '../tune.ts'
@@ -113,6 +113,16 @@ export function throughStep(
         .filter((c) => qualityFamily(c.quality) === family)
         .map((c) => c.bar)
       lines.push(`${finding.name}: every ${family} chord in ${tuneName} (bars ${[...new Set(bars)].join(', ')}).`)
+    }
+    // Play it in another order: Bergonzi's permutations, on the cell's own
+    // chord, between the cell drill and the cycle — his sequence.
+    const home = finding.spans.find((s) => s.startIndex >= unit.startIndex && s.endIndex <= unit.endIndex)
+    const ownChord = home ? [...unit.harmony].reverse().find((c) => c.onset <= unit.notes[home.startIndex - unit.startIndex]?.onset) : undefined
+    const perm = permutationDrill(finding, ownChord ?? unit.harmony[0], instrument)
+    const lemma = finding.lemma ?? finding.name
+    if (perm && perm.bars.every((b) => barHasLemma(b, lemma))) {
+      perm.id = `${unit.id}-${finding.id}-perm`
+      exercises.push(perm)
     }
     const cycle = throughCycleOfFourths(finding, instrument)
     if (cycle && isValid(cycle, finding)) {

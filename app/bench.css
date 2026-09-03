@@ -1,0 +1,49 @@
+/* The benchmark page. Rides on app/style.css for tokens and type; charts are
+   inline SVG drawn by bench.ts, thin marks on a recessive grid, and every
+   chart has a table under a disclosure so nothing is colour-alone. */
+
+.bench { max-width: 62rem; padding: 2.75rem 1.25rem 7rem; line-height: 1.6 }
+.bench .masthead { margin-bottom: 2rem }
+.bench h1 { font: 700 clamp(2.4rem, 6vw, 3.6rem)/0.95 var(--disp); text-transform: uppercase; letter-spacing: -0.01em; margin: 0 0 0.6rem }
+.bench .standfirst { color: var(--pencil); max-width: 52ch; margin: 0; font-size: 1.1rem }
+.bench h2 { font: 700 1.5rem/1.1 var(--disp); text-transform: uppercase; letter-spacing: 0.01em; margin: 0 0 0.25rem }
+.bench section { margin-top: 3rem }
+.bench .lede { color: var(--pencil); max-width: 66ch; margin: 0 0 1rem; font-size: 0.97rem }
+.bench code { font-family: var(--mono); font-size: 0.86em; color: var(--pencil) }
+.bench .faint { color: var(--pencil) }
+
+.bench figure { margin: 0 0 1rem; background: var(--paper); border: 1px solid var(--rule); border-radius: 3px; padding: 1rem 1rem 0.5rem; position: relative }
+.bench figure svg { display: block; width: 100%; height: auto; overflow: visible }
+.bench .grid line { stroke: var(--rule); stroke-width: 1 }
+.bench .axis text { fill: var(--pencil); font: 0.72rem var(--mono) }
+.bench .series { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round }
+.bench .marker { stroke: var(--paper); stroke-width: 2 }
+.bench .marker.spec { fill: var(--paper); stroke-width: 2 }
+.bench .ceiling { stroke: var(--pencil); stroke-dasharray: 4 4; stroke-width: 1 }
+.bench .label { fill: var(--ink); font: 600 0.78rem var(--disp); letter-spacing: 0.03em }
+.bench .label.faint { fill: var(--pencil); font-weight: 400 }
+.bench .crosshair { stroke: var(--pencil); stroke-width: 1; opacity: 0 }
+.bench .hit { fill: transparent }
+
+.bench .legend { display: flex; gap: 1.2rem; flex-wrap: wrap; margin: 0.4rem 0 0.2rem; font-size: 0.85rem; color: var(--pencil) }
+.bench .legend .sw { display: inline-block; width: 14px; height: 3px; vertical-align: middle; margin-right: 0.4rem; border-radius: 2px }
+.bench .legend .sw.hollow { height: 8px; width: 8px; border: 2px solid var(--pencil); background: var(--paper); border-radius: 50% }
+
+.bench .tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--paper); font: 0.78rem var(--mono); padding: 0.35rem 0.5rem; border-radius: 3px; white-space: nowrap; transform: translate(-50%, -120%); opacity: 0; transition: opacity 80ms }
+.bench .tip.on { opacity: 1 }
+
+.bench table { border-collapse: collapse; font-size: 0.9rem; font-variant-numeric: tabular-nums; margin: 0.5rem 0 1rem }
+.bench th, .bench td { text-align: left; padding: 0.3rem 0.8rem 0.3rem 0; border-bottom: 1px solid var(--rule); vertical-align: top }
+.bench th { font: 600 0.72rem var(--disp); text-transform: uppercase; letter-spacing: 0.06em; color: var(--pencil) }
+.bench td.n { text-align: right; font-family: var(--mono); font-size: 0.85rem }
+.bench td.bar { min-width: 10rem }
+.bench .inbar { display: inline-block; height: 8px; border-radius: 4px; vertical-align: middle; margin-right: 0.5rem; background: var(--idea) }
+.bench .ok { color: var(--ok); font-weight: 600 }
+.bench .bad { color: var(--alarm); font-weight: 600 }
+.bench details { margin: 0.25rem 0 0.5rem }
+.bench summary { cursor: pointer; color: var(--pencil); font-size: 0.85rem }
+.bench .stack { display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: 1rem }
+.bench .stage { display: flex; height: 14px; border-radius: 4px; overflow: hidden; gap: 2px; background: transparent }
+.bench .stage span { display: block; height: 100% }
+.bench .stage-key { display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.8rem; color: var(--pencil); margin-top: 0.4rem }
+.bench .stage-key i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: middle; margin-right: 0.35rem }
