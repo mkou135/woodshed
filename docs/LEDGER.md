@@ -1333,3 +1333,8 @@ fewer commits than the "252 in 11 days" the handoff describes (the
 history was re-rooted on 2026-08-25), so the how-built section states no
 count. `dist/` is ignored and uncommitted; no LICENSE file exists (owner
 to choose); topics and description are GitHub-UI settings for the owner.
+
+2026-09-03 · session 22 (cont.) · MIT LICENSE added at the owner's word,
+plus a Licence line in the README pointing at the goldens' attribution
+note. PR #3 merged as b05ee9e; this is a follow-up on a branch restarted
+from main.

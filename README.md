@@ -231,6 +231,12 @@ annotations/    the owner's own boundary annotations, used by eval:owner
 
 Tests sit beside the code they test, as `*.test.ts`.
 
+## Licence
+
+MIT, see [`LICENSE`](LICENSE). The derived corpus statistics in `goldens/`
+carry their own attribution note; the corpora themselves are not in the repo
+(see **The corpora**).
+
 ## Deployment
 
 `.github/workflows/pages.yml` builds and publishes to GitHub Pages on every
