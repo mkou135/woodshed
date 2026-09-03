@@ -1296,3 +1296,40 @@ wants it back at the top (DECISIONS "stockShare runs by direction");
 (5) strong-beat and section-start as *idea* cues, unmeasured (the
 phrase fit said nothing about them). Blake verification target
 unchanged all day: 15 findings, 34 units, u1 = bars 76–77.
+
+2026-09-03 · session 22 · portfolio prep: a fresh clone must read well.
+Owner's handoff (`PORTFOLIO_HANDOFF.md`): the repo is to be the first
+thing a hiring manager opens, so first impressions for someone without
+the owner's machine or ear. Presentation only — nothing in `fixtures/` or
+the engine moved.
+1. Fresh clone green: it already was (the six Blake suites were guarded
+   with `describe.skipIf(existsSync)`; the README's claim that they fail
+   was stale). Centralised the path in `src/test/blake.ts`, which reads
+   `WOODSHED_BLAKE` before falling back to the owner's MuseScore folder and
+   prints one line per file when it skips. Verified with
+   `WOODSHED_BLAKE=/nonexistent`: 453 passed, 30 skipped, 0 failed,
+   typecheck clean (pre-merge counts; re-run after the rebase below). Not
+   verified with the file present — this session has no copy — so the
+   golden checks are unchanged by construction, not by a run.
+2. `.github/workflows/ci.yml`: `npm ci`, typecheck, `test:run` on push and
+   PR to main, Node 22. Badge at the top of the README. First run on the
+   PR: green in 26 s.
+3. README screenshot and GIF under `docs/img/`. The Blake bars 73/77 frame
+   was not possible here (no transcription), so the still is an original
+   eight-bar ii–V–I étude written for the purpose, kept in the session's
+   scratch space, never committed: the engine puts "major-seventh arpeggio
+   from the b3" top with all three detectors agreeing, the same headline
+   as Blake. Owner can swap the Blake frame in by re-shooting.
+4–7. README: plain-English first sentence; "Evaluation" under How it
+   works; "If you read three files"; "How this was built".
+Sequence note: the session began against main at 2bc777a, where neither
+the 2026-09-02 "Fitted segmentation weights rejected" entry nor
+`detectors/resolutions.ts` existed, so the first draft used the wChorus
+decision as its worked example and `detectors/targets.ts` as the
+detector. The owner then merged `resolution-7-3` (PR #4); the branch was
+rebased onto it and the README re-pointed at the fitted-weights entry and
+the 7-3 detector, every number read from the entry. origin/main holds far
+fewer commits than the "252 in 11 days" the handoff describes (the
+history was re-rooted on 2026-08-25), so the how-built section states no
+count. `dist/` is ignored and uncommitted; no LICENSE file exists (owner
+to choose); topics and description are GitHub-UI settings for the owner.

@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import { existsSync, readFileSync } from 'node:fs'
+import { BLAKE, HAS_BLAKE } from '../test/blake.ts'
 import { run } from '../pipeline.ts'
 import { partition, stockShare, chordName } from './unit.ts'
 import { TICKS_PER_QUARTER as Q } from '../core/types.ts'
@@ -7,7 +8,6 @@ import type { Note } from '../core/types.ts'
 
 // Both transcriptions are third-party work kept outside the repo (DECISIONS
 // 2026-08-24 "Corpus licensing"), so a fresh clone has neither.
-const BLAKE = '/Users/michaelkourkov/Documents/MuseScore4/Scores/Hey Lock! - Seamus Blake Solo Transcription.mxl'
 const ST_THOMAS = '/Users/michaelkourkov/dev/woodshed-data/peers/st-thomas-sonny-rollins-solo-transcription.mxl'
 
 const eighths = (bar: number, count: number): Note[] =>
@@ -36,7 +36,7 @@ describe('partition', () => {
   })
 })
 
-describe.skipIf(!existsSync(BLAKE))('buildUnits on the Blake solo', () => {
+describe.skipIf(!HAS_BLAKE)('buildUnits on the Blake solo', () => {
   // Called in `beforeAll`, not in the describe body: vitest runs a suite's
   // factory even when `skipIf` will skip the suite, so a read out here throws
   // during collection — an error that names no test — on a machine without the

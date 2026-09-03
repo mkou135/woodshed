@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { existsSync, readFileSync } from 'node:fs'
+import { BLAKE, HAS_BLAKE } from '../test/blake.ts'
 import { ingest, prepare } from '../index.ts'
 import { analyse, markResolvingSpans } from './index.ts'
 import type { Finding, FindingSpan } from './index.ts'
@@ -15,7 +16,6 @@ const analysed = (path: string) => {
 // fixture so a fresh clone still runs them; only what needs a long real solo
 // — merge regressions, detector convergence — is guarded on the path.
 const FIXTURE = 'fixtures/words-chords-alto.musicxml'
-const BLAKE = '/Users/michaelkourkov/Documents/MuseScore4/Scores/Hey Lock! - Seamus Blake Solo Transcription.mxl'
 
 describe('analyse', () => {
   it('segments, contextualises and finds nothing alarming on a fixture', () => {
@@ -96,7 +96,7 @@ describe('markResolvingSpans', () => {
 
 // Needs a score where some findings converge and others do not; no fixture is
 // long enough to hold both, so this one stays on the real solo.
-describe.skipIf(!existsSync(BLAKE))('detector convergence', () => {
+describe.skipIf(!HAS_BLAKE)('detector convergence', () => {
   it('scores a finding seen by two detectors above one seen by a single detector', () => {
     const a = analysed(BLAKE)
     const converged = a.findings.filter((f) => f.detectedBy.length > 1)
@@ -110,7 +110,7 @@ describe.skipIf(!existsSync(BLAKE))('detector convergence', () => {
 
 // These assert magnitudes only a long real solo exhibits — a fixture with one
 // or two findings cannot regress any of them.
-describe.skipIf(!existsSync(BLAKE))('finding merge rules', () => {
+describe.skipIf(!HAS_BLAKE)('finding merge rules', () => {
   it('merges the same cell occurring in different bars into one finding', () => {
     // Regression: the first merge rule required identity AND overlapping spans,
     // so the same vocabulary in two bars stayed separate and produced two
