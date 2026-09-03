@@ -1338,3 +1338,8 @@ to choose); topics and description are GitHub-UI settings for the owner.
 plus a Licence line in the README pointing at the goldens' attribution
 note. PR #3 merged as b05ee9e; this is a follow-up on a branch restarted
 from main.
+
+2026-09-03 · session 22 (cont.) · `PORTFOLIO_HANDOFF.md` removed from the
+tree at the owner's word: every item on it is done (PRs #3 and #5), and
+the list is a brief, not documentation. It stays in history at 483675f
+and earlier; the session-22 entries above cite it by name.
