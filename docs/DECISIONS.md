@@ -1381,3 +1381,33 @@ content (it is not, but the file must stay legible as aggregate); or the
 spec-sourced points misleading — then drop them and let the history start
 at the first measurement.
 
+
+## 2026-09-03 · The iReal forum chord book is bundled; chord charts are not note data
+
+**Question.** The 2026-08-23 "Tunes" entry says iReal charts are pasted by
+the player, "no bundled collections". Since 2026-08-25 the app has shipped
+the 1,460-standard forum playlist at `app/data/jazz1460.irealb.txt` for
+tune identification (ENGINE_SPEC "Tune identification"), and no entry
+recorded the change. Does the corpus rule ("external corpora never enter
+the repo or the app bundle") cover it?
+
+**Decision.** No. The book stays, and this entry supersedes the "no
+bundled collections" clause of 2026-08-23. The corpus rule protects
+*note data* — transcriptions and licks, which are someone's creative work
+and, for the WJD and Bopland, carry licences that forbid it. A chord chart
+is a list of chord symbols, titles and composer names: facts about a tune,
+not a performance of it. The forum playlists are posted for public
+redistribution and are mirrored widely. The paste-your-own path stays as
+the fallback for anything not in the book.
+
+**Evidence.** Reading of what the file contains (chord symbols, form
+markers, metadata; no melody), of where it came from (a public iReal Pro
+forum playlist), and of what the corpus rule was written to protect
+(DECISIONS 2026-08-24 "Corpus licensing"). Not a legal opinion.
+
+**Who.** Owner, asked directly on 2026-09-03; Claude drafted.
+
+**Would reverse it.** The playlist's author objecting, or iReal Pro
+asserting rights over forum playlists. Reversal is one file, the
+`book()` call in `app/tune.ts`, and the ENGINE_SPEC section; the pasted
+link path already carries the feature without it.
