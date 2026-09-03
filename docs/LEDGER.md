@@ -1284,3 +1284,15 @@ fourth Vite input. Colours `--phrase` / `--idea` validated as a categorical
 pair (dataviz validator: all checks pass). Typecheck and build clean. Spec
 section, DECISIONS "A benchmark page", CLAUDE.md command line.
 
+
+2026-09-02 · session 21 · **close.** Eleven commits on `resolution-7-3`
+from 2cd4b6c to 69b5183 (see the day's entries above). Branch has not
+been merged; check `main..HEAD` both ways before building on it. Where
+to pick up: (1) merge the branch; (2) `npm run bench` after any engine
+change and commit the JSON, so the page keeps its history; (3) the two
+practice steps still missing — edit and connect-by-step (OPEN_QUESTIONS);
+(4) the resolution-bearing exemption for St Thomas 237–238 if the owner
+wants it back at the top (DECISIONS "stockShare runs by direction");
+(5) strong-beat and section-start as *idea* cues, unmeasured (the
+phrase fit said nothing about them). Blake verification target
+unchanged all day: 15 findings, 34 units, u1 = bars 76–77.
