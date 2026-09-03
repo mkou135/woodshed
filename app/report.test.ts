@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs'
-import { BLAKE, HAS_BLAKE } from '../src/test/blake.ts'
+import { BLAKE, HAS_BLAKE } from '../src/test/solos.ts'
 import { describe, expect, it } from 'vitest'
 import { ideaViews, sessionReportHtml } from './report.ts'
 import type { IdeaView, ReportInput } from './report.ts'

@@ -1042,3 +1042,23 @@ median 36, 4 meter rejections, **0 crashes** (DECISIONS 2026-08-27
 "`excerpt` lays bars out by flooring" — the three solos that threw now
 run). Bopland bench, first 300 licks: named coverage 72.7%
 → **74.7%** with the lick entries.
+
+## Peers golden (`goldens/peers.txt`, `src/peers.test.ts`, `src/test/solos.ts`)
+
+The owner's transcriptions live in `~/dev/woodshed-data/peers` (override
+`PEERS_DIR`; Blake is `hey-lock.mxl` there, byte-identical to the MuseScore
+original, which remains the file that is edited — a re-export means
+re-copying it). Every file in the folder runs through the invariants any
+solo must satisfy: a view per finding, confidence in [0, 1], one finding
+per identity (degrees within a quality family, else name — the pass-1
+rule above), no interval vector grafted onto a degree cell, no finding
+claiming a third of the solo's bars, every 7-3 resolution a two-note
+device landing on the 3, phrases that hold notes, units of ≤ 2 bars
+opening with the loop step. Then one line per solo is pinned:
+`findings`, `units`, `phrases`, `ideas`, the form-phase token (the same
+closed vocabulary as the WJD golden) and the top finding's dictionary
+name and bars — nothing richer, per DECISIONS 2026-08-27 "What may live
+in a corpus golden". Without the folder the suites skip; they never fail.
+Re-pin after an intended engine change with `npm run test:run -- -u` and
+read the diff as a list of solos that moved. First pin 2026-09-03, ten
+solos, 623 tests.

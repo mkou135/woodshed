@@ -399,6 +399,19 @@ All of these are proposals; none is implemented.
   shipped out of. Resolve: decide what a cheap pin looks like — a hash of
   each solo's exercise MusicXML in the corpus golden would catch movement
   without asserting on musical judgement, at the cost of a noisier diff.
+  Since 2026-09-03 `goldens/peers.txt` pins per-solo counts for the ten
+  owner transcriptions and is the natural home for such a hash.
+- **Two findings print the same name on St Thomas.** `5-3-2-1 descent`
+  exists as a major-family and a minor-family dictionary entry; pass 1
+  merges by degrees + quality family, so the solo carries two findings
+  named identically (f9 minor, bars 115/211/263; f13 major, bar 228 —
+  2026-09-03). DECISIONS 2026-08-29 says the name is an identity, and
+  `steps/write.ts` and `generate/validity.ts` look findings up by it. The
+  peers-suite invariant asserts the degrees+family rule, not the name.
+  Resolve: either the minor entry's lemma names its family, or a player
+  should not see the two as different vocabulary and pass 1 should merge
+  across families for this cell. Owner's call; check whether any other
+  lemma appears in both families.
 - **A `through-tune` line concatenates several excerpts into one exercise**
   (`through.ts:76`), and every excerpt's bar 0 is now blanked when it has
   no chord — so a blank at a *join* would read as "still under the previous

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { BLAKE, HAS_BLAKE } from '../../test/blake.ts'
+import { BLAKE, HAS_BLAKE } from '../../test/solos.ts'
 import { writeTemplate, checkWriting } from './write.ts'
 import { instrumentFromTranspose } from '../../core/instrument.ts'
 import { TICKS_PER_QUARTER as Q } from '../../core/types.ts'

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { existsSync, readFileSync } from 'node:fs'
-import { BLAKE, HAS_BLAKE } from '../test/blake.ts'
+import { BLAKE, HAS_BLAKE, ST_THOMAS } from '../test/solos.ts'
 import { ingest, prepare } from '../index.ts'
 import { analyse, markResolvingSpans } from './index.ts'
 import type { Finding, FindingSpan } from './index.ts'
@@ -167,8 +167,6 @@ describe.skipIf(!HAS_BLAKE)('finding merge rules', () => {
     }
   })
 })
-
-const ST_THOMAS = '/Users/michaelkourkov/dev/woodshed-data/peers/st-thomas-sonny-rollins-solo-transcription.mxl'
 
 describe.skipIf(!existsSync(ST_THOMAS))('language marker', () => {
   it('carries language through the merge to the finding', () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { BLAKE, HAS_BLAKE } from '../test/blake.ts'
+import { BLAKE, HAS_BLAKE } from '../test/solos.ts'
 import { profile } from './profile.ts'
 import { contextualise } from './context.ts'
 import { segment } from './segment.ts'
