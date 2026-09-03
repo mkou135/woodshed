@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { existsSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
+import { BLAKE, HAS_BLAKE } from '../../test/blake.ts'
 import { writeTemplate, checkWriting } from './write.ts'
 import { instrumentFromTranspose } from '../../core/instrument.ts'
 import { TICKS_PER_QUARTER as Q } from '../../core/types.ts'
@@ -12,7 +13,6 @@ import type { Tune } from '../tune.ts'
 // is only worth testing against a score that actually contains the device —
 // asserting "missing" on a fixture would pass even if the matcher never
 // matched anything — so this suite skips where the solo is absent.
-const BLAKE = '/Users/michaelkourkov/Documents/MuseScore4/Scores/Hey Lock! - Seamus Blake Solo Transcription.mxl'
 const tenor = instrumentFromTranspose(-2, -1)
 
 const cell: Finding = {
@@ -46,7 +46,7 @@ describe('writeTemplate', () => {
   })
 })
 
-describe.skipIf(!existsSync(BLAKE))('checkWriting', () => {
+describe.skipIf(!HAS_BLAKE)('checkWriting', () => {
   it('finds the device in a file that contains it', () => {
     const result = checkWriting(new Uint8Array(readFileSync(BLAKE)), { findings: [cell] })
     expect(result.found).toEqual(['major-seventh arpeggio from the b3'])

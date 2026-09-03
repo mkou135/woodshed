@@ -1,4 +1,5 @@
-import { existsSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
+import { BLAKE, HAS_BLAKE } from '../src/test/blake.ts'
 import { describe, expect, it } from 'vitest'
 import { ideaViews, sessionReportHtml } from './report.ts'
 import type { IdeaView, ReportInput } from './report.ts'
@@ -312,9 +313,8 @@ describe('sessionReportHtml, printing', () => {
 // step with the ids `buildUnits` mints, so every verdict silently renders
 // nothing. That is not hypothetical — session 17 found a recorded
 // `findingNames` id had drifted and fallen back unnoticed.
-const BLAKE = '/Users/michaelkourkov/Documents/MuseScore4/Scores/Hey Lock! - Seamus Blake Solo Transcription.mxl'
 
-describe.skipIf(!existsSync(BLAKE))('the agent path, through the replay fixtures', () => {
+describe.skipIf(!HAS_BLAKE)('the agent path, through the replay fixtures', () => {
   it('lands the agent’s reasons and look-fors on real units', async () => {
     const { runWithAgent } = await import('../src/pipeline.ts')
     const { replayClient } = await import('../src/agent/client.ts')
