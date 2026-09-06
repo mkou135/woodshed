@@ -32,7 +32,9 @@ root.replaceChildren()
 /** Human agreement on phrase boundaries (ENGINE_SPEC §Segmentation). */
 const HUMAN_CEILING = 83
 /** Colours the analyser already uses for the two boundary levels; validated as a pair. */
-const SERIES = { phrases: 'var(--phrase)', ideas: 'var(--idea)' }
+// Charts sit on a console panel, so every series takes the lit ramp — the
+// plain tokens are mixed for the white score sheet and vanish here.
+const SERIES = { phrases: 'var(--phrase-lit)', ideas: 'var(--idea-lit)' }
 
 const svgEl = <K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string, string | number> = {}, text?: string): SVGElementTagNameMap[K] => {
   const node = document.createElementNS('http://www.w3.org/2000/svg', tag)
@@ -209,7 +211,7 @@ if (latest.blake) {
 // ---- 5. Timing ----
 {
   const STAGES: (keyof Stage)[] = ['ingest', 'prepare', 'analyse', 'practice']
-  const COLOURS: Record<string, string> = { ingest: 'var(--ov-stock)', prepare: 'var(--ov-language)', analyse: 'var(--idea)', practice: 'var(--phrase)' }
+  const COLOURS: Record<string, string> = { ingest: 'var(--ov-stock-lit)', prepare: 'var(--ov-language-lit)', analyse: 'var(--idea-lit)', practice: 'var(--phrase-lit)' }
   const stack = (t: Stage, title: string, sub: string): HTMLElement => {
     const box = el('div')
     box.append(el('strong', '', title), el('div', 'faint', sub))

@@ -469,3 +469,33 @@ longer surface as a finding. By design today; worth deciding whether a
 device whose *other* spans do not overlap should instead be split rather
 than absorbed. Would resolve: an owner read of whether 75/84 deserve
 their own menu entry.
+
+- **Do the engine's marks read on the lit sheet in a real room?**
+  (2026-09-06, session 24.) The paper half of the mark palette was verified
+  numerically — every value clears 4.5:1 against `--paper` — but never seen
+  in place: phrase/idea ticks, the highlight wash and the overlay badges do
+  not draw under headless Chrome, where OSMD lays out at zero width
+  ("SkyBottomLineCalculator: width not > 0 in measure 1"). This reproduces
+  on `main`, so it is the harness and not the retheme. Resolve: open
+  `npm run dev`, drop `hey-lock.mxl`, turn every overlay on and look at
+  bars 76–77 — a mark that reads as grey, or a wash that swallows a
+  notehead, means the paper ramp needs darkening. Separately worth knowing
+  whether the ticks failing to draw headlessly is only a harness artefact or
+  a real fragility in `score.ts`'s anchor lookup.
+
+- **Is the `minority` peers golden pinning a polyphonic pool?**
+  (2026-09-06, session 24, from review of PR #10.) The multi-voice deferral
+  in DECISIONS 2026-09-03 is scoped to *piano* scores, and its mitigation was
+  moving both piano files out of `peers/` into `piano/`. Minority is a horn
+  transcription and stayed — but it is the one peer carrying `<voice>2</voice>`
+  behind `<backup>`, and the note-order fix pools those voices rather than
+  filtering them. Measured: 1203 notes, **96 at a duplicate onset, 23 onsets
+  carrying an exact unison** (hey-lock 0, au-privave 1). Those reach
+  segmentation as zero-length gaps and the n-gram search as zero-semitone
+  steps, so `findings=44 units=111` is now pinned as correct output for a
+  line that includes ~56 harmony notes. Resolve: decide whether ingest should
+  pick a melody line (highest voice? voice 1?) rather than pool, or whether
+  Minority belongs in `piano/` alongside the two-stave files. Either answer
+  re-pins that golden line, so a future correct fix will read as a regression
+  against it until then. Related: "Which notes are the solo in a piano
+  score?".

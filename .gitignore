@@ -6,3 +6,6 @@ docs/research/jazz-pedagogy-literature.md
 docs/research/audio-and-intent.md
 .superpowers/
 .claude/settings.local.json
+
+# Claude Design working files for the visual layer (artboards + seeded canvas)
+design/
