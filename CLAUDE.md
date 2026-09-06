@@ -5,11 +5,16 @@ vocabulary it contains.
 
 ## Session protocol — do this before anything else
 
-Four continuously maintained files carry state between sessions:
+Five continuously maintained files carry state between sessions:
 
 - `docs/ENGINE_SPEC.md` — every rule, parameter and formula in force.
   **Never quote a parameter from memory; re-read it.** Update it in the
   same commit as any accepted change.
+- `docs/DESIGN_SYSTEM.md` — every colour, token and type rule the browser
+  layer is built on. Same rule: **never quote a colour from memory**, and
+  update it in the same commit as any `app/` change that alters
+  presentation. Dated design specs under `docs/superpowers/specs/` are
+  point-in-time records and drift; this one does not.
 - `docs/DECISIONS.md` — append-only: date, question, decision, evidence
   class, who decided, what would reverse it.
 - `docs/OPEN_QUESTIONS.md` — everything unresolved, with what would
@@ -18,7 +23,8 @@ Four continuously maintained files carry state between sessions:
   next task, not in a batch at the end.
 
 At session start: read `ENGINE_SPEC.md` and the last ~20 lines of
-`LEDGER.md` before doing anything else. If you catch yourself reasoning
+`LEDGER.md` before doing anything else; add `DESIGN_SYSTEM.md` if the task
+touches `app/`. If you catch yourself reasoning
 about something that should be in the spec but is not, stop and write it
 down. `docs/HANDOFF.md` is narrative history — useful background, no
 longer authoritative.
@@ -46,7 +52,11 @@ npm run build
 
 ## Non-negotiables
 
-- `src/` is DOM-free. Only `app/` may touch the DOM.
+- `src/` is DOM-free. Only `app/` may touch the DOM. The browser layer's
+  colours live in one token block in `app/style.css`; `engine.css` and
+  `bench.css` restate none of them. A mark drawn on the score takes the
+  paper token, its toggle on the console takes the `-lit` twin —
+  DESIGN_SYSTEM.md "Two ramps".
 - Chord quality comes from MusicXML `<kind>`, never the `text` attribute.
 - `Score` is immutable; `prepare/` emits `Adjustment[]` and never edits.
 - The agent layer judges, never generates: it may weigh engine-computed

@@ -1,5 +1,5 @@
 /* The explainer page. Everything here is scoped under `.engine` and rides on
-   app/style.css: the fonts, the paper-on-desk palette and the shared `.label`
+   app/style.css: the fonts, the studio-console palette and the shared `.label`
    and `.mono` rules all come from there, and nothing in this file restates a
    token that sheet already defines. The page is one long column of reading,
    so it sets a narrower measure than the analyser's `main` and takes the
@@ -9,9 +9,9 @@
   /* The two diagrams mark each detector in the colour the score draws it
      with. Aliasing the overlay tokens — rather than copying their hex — is
      what keeps the diagram honest when a mark's colour changes. */
-  --cell: var(--ov-cell);
-  --device: var(--ov-device);
-  --recurring: var(--ov-recurring);
+  --cell: var(--ov-cell-lit);
+  --device: var(--ov-device-lit);
+  --recurring: var(--ov-recurring-lit);
 
   max-width: 62rem;
   padding: 2.75rem 1.25rem 7rem;
@@ -64,11 +64,12 @@
 
 /* ---- the warning slip ----
    The one project rule this page must carry: it is a copy, and the spec is
-   the source of truth. It wears the highlighter, so it reads as something
-   scrawled on the sheet rather than as body text. */
+   the source of truth. It wears the marker, so it reads as something
+   scrawled on the page rather than as body text. */
 .engine .slip {
-  background: var(--marker);
-  color: var(--marker-ink);
+  background: color-mix(in srgb, var(--marker-lit) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--marker-lit) 35%, transparent);
+  color: var(--ink);
   padding: 1rem 1.25rem;
   border-radius: 2px;
   margin: 2rem 0 3rem;
@@ -84,7 +85,7 @@
   display: flex;
   align-items: baseline;
   gap: 0.9rem;
-  border-bottom: 2px solid var(--ink);
+  border-bottom: 1px solid var(--rule);
   padding-bottom: 0.5rem;
   margin-bottom: 1.5rem;
 }
@@ -113,14 +114,14 @@
   overflow: hidden;
   margin: 1.5rem 0;
 }
-.engine .io > div { background: var(--paper); padding: 0.9rem 1.1rem }
+.engine .io > div { background: var(--panel); padding: 0.9rem 1.1rem }
 .engine .io .label { display: block; margin-bottom: 0.3rem }
 .engine .io .v { font-family: var(--mono); font-size: 0.82rem; line-height: 1.5 }
 
 .engine figure { margin: 2rem 0 }
 .engine .figwrap {
   overflow-x: auto;
-  background: var(--paper);
+  background: var(--panel);
   border: 1px solid var(--rule);
   border-radius: 3px;
   padding: 1.5rem 1rem;
@@ -149,7 +150,7 @@
   margin: 1.5rem 0;
 }
 .engine .det {
-  background: var(--paper);
+  background: var(--panel);
   border: 1px solid var(--rule);
   border-left: 4px solid var(--mark, var(--pencil));
   border-radius: 3px;
@@ -171,7 +172,7 @@
   border-radius: 3px;
   overflow: hidden;
 }
-.engine .rules > div { background: var(--paper); padding: 1rem 1.2rem }
+.engine .rules > div { background: var(--panel); padding: 1rem 1.2rem }
 .engine .rules .r { font: 600 1.02rem/1.35 var(--body); margin: 0 0 0.25rem; max-width: none }
 .engine .rules .why { font-size: 0.93rem; color: var(--pencil); margin: 0; max-width: none }
 
@@ -179,7 +180,7 @@
   font-family: var(--mono);
   font-size: 0.84rem;
   line-height: 1.7;
-  background: var(--paper);
+  background: var(--panel);
   border: 1px solid var(--rule);
   border-radius: 3px;
   padding: 1rem 1.2rem;

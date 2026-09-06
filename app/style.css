@@ -1,33 +1,76 @@
-@font-face { font-family: 'Barlow Condensed'; font-style: normal; font-weight: 500; font-display: swap; src: url(./fonts/BarlowCondensed-500.woff2) format('woff2') }
-@font-face { font-family: 'Barlow Condensed'; font-style: normal; font-weight: 600; font-display: swap; src: url(./fonts/BarlowCondensed-600.woff2) format('woff2') }
-@font-face { font-family: 'Barlow Condensed'; font-style: normal; font-weight: 700; font-display: swap; src: url(./fonts/BarlowCondensed-700.woff2) format('woff2') }
-@font-face { font-family: 'JetBrains Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url(./fonts/JetBrainsMono-400.woff2) format('woff2') }
-@font-face { font-family: 'JetBrains Mono'; font-style: normal; font-weight: 500; font-display: swap; src: url(./fonts/JetBrainsMono-500.woff2) format('woff2') }
-@font-face { font-family: 'Source Serif 4'; font-style: italic; font-weight: 400; font-display: swap; src: url(./fonts/SourceSerif4-400-italic.woff2) format('woff2') }
-@font-face { font-family: 'Source Serif 4'; font-style: normal; font-weight: 400; font-display: swap; src: url(./fonts/SourceSerif4-400.woff2) format('woff2') }
-@font-face { font-family: 'Source Serif 4'; font-style: normal; font-weight: 600; font-display: swap; src: url(./fonts/SourceSerif4-600.woff2) format('woff2') }
+@font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 400; font-display: swap; src: url(./fonts/SpaceGrotesk-400.woff2) format('woff2') }
+@font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 500; font-display: swap; src: url(./fonts/SpaceGrotesk-500.woff2) format('woff2') }
+@font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 700; font-display: swap; src: url(./fonts/SpaceGrotesk-700.woff2) format('woff2') }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url(./fonts/IBMPlexMono-400.woff2) format('woff2') }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 500; font-display: swap; src: url(./fonts/IBMPlexMono-500.woff2) format('woff2') }
 
-/* The practice desk: white sheets on a grey desk, one highlighter. */
+/* The studio console: a dark room, and one lit sheet of paper.
+
+   The whole page is chrome except the score, which OSMD renders as black
+   ink on white and which we cannot recolour. So rather than fight it, the
+   sheet is the point: it is the only light surface on the page, and
+   everything else recedes to a console around it.
+
+   That splits every colour in two. A mark the engine draws lands on the
+   *sheet* and must hold up on white; the same mark's toggle in the control
+   row sits on the *console* and must hold up on near-black. One value
+   cannot do both, so each hue is defined twice — `--x` for the sheet,
+   `--x-lit` for the console. Getting this backwards is the mistake this
+   file is arranged to prevent. See docs/DESIGN_SYSTEM.md. */
 :root {
-  --ground: #e4e6e8;
-  --paper: #ffffff;
-  --ink: #1a1c20;
-  --pencil: #5a5f68;
-  --rule: #cfd3d8;
-  --marker: #f5e27a;
-  --marker-ink: #6b5a00;
-  --phrase: #c4641d;
-  --idea: #2b6cb0;
-  --warn: #b8471c;
-  --warn-bg: #fdeee6;
-  --ok: #2f6b4f;
-  --alarm: #8a2a1f;
+  /* The console */
+  --ground: #0d0f14;
+  --panel: #161a22;
+  --panel-2: #1c212b;
+  --rule: #2a303c;
+  --ink: #e7eaf0;
+  --pencil: #8b93a4;
+  --faint: #7b8496;
+
+  /* The sheet. `--paper` is the score's own surface and stays paper —
+     never reuse it for a panel; that is what --panel is for. */
+  --paper: #f7f8fa;
+  --paper-ink: #14161c;
+  --paper-pencil: #5a5f68;
+  --paper-rule: #d7dae0;
+
+  /* Marks on the sheet: dark enough to read on white. */
+  --marker: #9fe8f0;
+  --marker-ink: #0a5560;
+  --phrase: #b3187a;
+  --idea: #0d7c8a;
+  --ov-cell: #0d7c8a;
+  --ov-device: #9a6206;
+  --ov-recurring: #2e7d4f;
+  --ov-language: #7a3bb8;
+  --ov-stock: #6b7280;
   --outside: #b0306e;
-  --variation: #2f8f5b;
-  --disp: 'Barlow Condensed', 'Arial Narrow', 'Helvetica Neue', sans-serif;
-  --body: 'Source Serif 4', Georgia, 'Times New Roman', serif;
-  --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
-  --shadow: 0 1px 0 rgba(0, 0, 0, 0.12), 0 6px 20px -12px rgba(0, 0, 0, 0.35);
+  --variation: #2f7d52;
+  --star: #8a6a15;
+
+  /* The same hues on the console: bright enough to read on near-black. */
+  --marker-lit: #35d6e6;
+  --phrase-lit: #ff6bc4;
+  --idea-lit: #35d6e6;
+  --ov-cell-lit: #35d6e6;
+  --ov-device-lit: #ffb454;
+  --ov-recurring-lit: #a9e34b;
+  --ov-language-lit: #c69bff;
+  --ov-stock-lit: #8b93a4;
+
+  /* Verdicts read on the console; --ok-paper on the sheet. */
+  --ok: #a9e34b;
+  --ok-paper: #2e7d4f;
+  --warn: #ffb454;
+  --warn-bg: #2a2113;
+  --alarm: #ff8a80;
+
+  --disp: 'Space Grotesk', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --body: 'Space Grotesk', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  --shadow: 0 1px 0 rgba(0, 0, 0, 0.5), 0 18px 44px -20px rgba(0, 0, 0, 0.9);
+  /* The sheet is lit: it carries a faint cyan bloom nothing else has. */
+  --lit: 0 0 0 1px #303747, 0 26px 60px -22px rgba(0, 0, 0, 0.9), 0 0 90px -34px rgba(53, 214, 230, 0.35);
 }
 
 * { box-sizing: border-box }
@@ -39,14 +82,14 @@ body {
   margin: 0;
   background: var(--ground);
   color: var(--ink);
-  font: 17px/1.5 var(--body);
+  font: 16px/1.55 var(--body);
 }
 
 main { max-width: 92rem; margin: 0 auto; padding: 0 1.25rem 6rem }
 
 h1, h2, h3 { margin: 0; font-family: var(--disp) }
 button { font: inherit; cursor: pointer }
-button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--idea); outline-offset: 2px }
+button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--idea-lit); outline-offset: 2px }
 /* Fields sit on paper, so the focused one also darkens its own box. */
 .field select:focus-visible, .field input:focus-visible { border-color: var(--ink) }
 .mono { font-family: var(--mono); font-variant-numeric: tabular-nums }
@@ -62,17 +105,19 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 0.55rem 0.9rem;
-  border: 1.5px solid var(--ink);
-  background: transparent;
+  border: 1px solid var(--rule);
+  background: var(--panel);
   color: var(--ink);
-  border-radius: 3px;
+  border-radius: 6px;
 }
-.btn:hover { background: var(--paper) }
-.btn.solid { background: var(--ink); color: var(--ground) }
-.btn.solid:hover { background: #000 }
-.btn.quiet { border-color: var(--rule); color: var(--pencil) }
-.btn.quiet:hover { border-color: var(--ink); color: var(--ink) }
-.btn:disabled { opacity: 0.35; cursor: default; background: transparent }
+.btn:hover { border-color: var(--idea-lit) }
+/* The one primary action is the lit one — the only cyan fill on the page
+   that is not a mark on the score. */
+.btn.solid { background: var(--marker-lit); border-color: var(--marker-lit); color: #06222a; font-weight: 700 }
+.btn.solid:hover { background: #5fe1ee; border-color: #5fe1ee }
+.btn.quiet { background: transparent; color: var(--pencil) }
+.btn.quiet:hover { border-color: var(--pencil); color: var(--ink) }
+.btn:disabled { opacity: 0.3; cursor: default; background: transparent; border-color: var(--rule) }
 .linkish {
   font: 600 0.8rem/1 var(--disp);
   letter-spacing: 0.1em;
@@ -97,7 +142,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
    screen reader, and it is the only link drawn in ink and underscored with
    the highlighter — the same mark the practice path uses for "you are here",
    so the state survives without colour. */
-.sitenav { border-bottom: 1px solid var(--rule); background: color-mix(in srgb, var(--paper) 35%, var(--ground)) }
+.sitenav { border-bottom: 1px solid var(--rule); background: #0a0c10 }
 .sitenav ul { max-width: 92rem; margin: 0 auto; padding: 0 1.25rem; list-style: none; display: flex; gap: 0.15rem }
 .sitenav a {
   display: inline-block;
@@ -110,8 +155,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 }
 .sitenav a:hover { color: var(--ink) }
 /* Inset, so the ring is not clipped by the strip's own bottom rule. */
-.sitenav a:focus-visible { outline: 2px solid var(--idea); outline-offset: -2px }
-.sitenav a[aria-current='page'] { color: var(--ink); font-weight: 700; box-shadow: inset 0 -0.32rem 0 var(--marker) }
+.sitenav a:focus-visible { outline: 2px solid var(--idea-lit); outline-offset: -2px }
+.sitenav a[aria-current='page'] { color: var(--ink); font-weight: 700; box-shadow: inset 0 -2px 0 var(--marker-lit) }
 
 /* ---- landing ----
    Two columns under one masthead: what you hand the page on the left, what
@@ -131,14 +176,15 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 @media (max-width: 58rem) { .land { grid-template-columns: 1fr } }
 
 .drop {
-  border: 2px dashed var(--ink);
+  border: 2px dashed var(--rule);
   padding: 3rem 1.5rem 2.4rem;
   text-align: center;
   font: 600 1.5rem/1.2 var(--disp);
   letter-spacing: 0.03em;
-  background: color-mix(in srgb, var(--paper) 40%, var(--ground));
+  background: var(--panel);
+  border-radius: 10px;
 }
-.drop.over { background: color-mix(in srgb, var(--marker) 40%, var(--paper)) }
+.drop.over { border-color: var(--marker-lit); background: color-mix(in srgb, var(--marker-lit) 12%, var(--panel)) }
 .drop small { display: block; margin-top: 0.5rem; font: 400 0.95rem/1.4 var(--body); color: var(--pencil) }
 .drop input { display: block; margin: 1.1rem auto 0; font: 400 0.9rem var(--body); color: var(--pencil); width: fit-content }
 /* The file picker is the one control on the page you cannot avoid clicking;
@@ -149,13 +195,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   text-transform: uppercase;
   padding: 0.55rem 0.9rem;
   margin-right: 0.7rem;
-  border: 1.5px solid var(--ink);
-  border-radius: 3px;
-  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--panel-2);
   color: var(--ink);
   cursor: pointer;
 }
-.drop input::file-selector-button:hover { background: var(--ink); color: var(--ground) }
+.drop input::file-selector-button:hover { border-color: var(--marker-lit) }
 
 .land-then h2 { margin: 0 0 0.2rem }
 .then { list-style: none; margin: 0; padding: 0 }
@@ -167,7 +213,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   padding: 0.7rem 0;
   border-bottom: 1px solid var(--rule);
 }
-.then li:first-child { border-top: 2px solid var(--ink) }
+.then li:first-child { border-top: 2px solid var(--rule) }
 .then .n { font: 700 1.5rem/1 var(--disp); color: var(--pencil) }
 .then .t { font: 600 1.25rem/1.1 var(--disp); letter-spacing: 0.03em }
 .then p { grid-column: 2; margin: 0.15rem 0 0; font-size: 0.95rem; color: var(--pencil) }
@@ -193,9 +239,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   align-items: center;
   gap: 0.5rem;
   padding: 0.35rem 0.75rem 0.35rem 0.9rem;
-  border: 1.5px solid var(--ink);
-  border-radius: 3px;
-  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 22px;
+  background: var(--panel);
   color: var(--ink);
   font: 500 1rem/1 var(--disp);
   letter-spacing: 0.03em;
@@ -212,18 +258,20 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   right: 0;
   z-index: 5;
   width: min(34rem, 92vw);
-  background: var(--paper);
-  border: 1.5px solid var(--ink);
+  background: var(--panel-2);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
   padding: 0.9rem 1rem;
-  box-shadow: 0 10px 30px -14px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.9);
 }
 .pop h3 { margin: 0 0 0.5rem }
 .pop input[type='search'] {
   width: 100%;
   font: 600 1.3rem/1 var(--disp);
   padding: 0.5rem 0.6rem;
-  border: 1.5px solid var(--ink);
-  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--panel);
   color: var(--ink);
 }
 .pop ul { list-style: none; margin: 0.5rem 0 0; padding: 0 }
@@ -239,44 +287,47 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   text-align: left;
   color: var(--ink);
 }
-.pop li button:hover { background: color-mix(in srgb, var(--marker) 35%, transparent) }
+.pop li button:hover { background: var(--panel) }
 .pop li .t { font: 600 1.05rem/1 var(--disp) }
 .pop li .k { color: var(--pencil); font-size: 0.85rem }
 .pop li .v { margin-left: auto; font-family: var(--mono); font-size: 0.8rem; color: var(--ok); white-space: nowrap }
 .pop li .v.bad { color: var(--warn) }
 .pop li.own .t { color: var(--pencil) }
 .pop .paste { margin: 0.6rem 0 0; font-size: 0.85rem; color: var(--pencil) }
-.pop .paste input { width: 100%; margin-top: 0.3rem; font: 0.85rem var(--mono); padding: 0.3rem 0.4rem; border: 1px solid var(--rule) }
+.pop .paste input { width: 100%; margin-top: 0.3rem; font: 0.85rem var(--mono); padding: 0.3rem 0.4rem; border: 1px solid var(--rule); border-radius: 4px; background: var(--panel); color: var(--ink) }
 .pop .msg { margin: 0.4rem 0 0; font-size: 0.85rem; color: var(--warn) }
 
 /* ---- start here ---- */
 .start {
   margin: 0.6rem 0 1rem;
   padding: 0.9rem 1.1rem;
-  border-left: 6px solid var(--marker);
-  background: color-mix(in srgb, var(--marker) 22%, var(--paper));
+  border: 1px solid color-mix(in srgb, var(--marker-lit) 35%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--marker-lit) 7%, transparent);
   display: flex;
   gap: 1.2rem;
   align-items: baseline;
   flex-wrap: wrap;
 }
-.start .k { font: 700 0.8rem/1 var(--disp); letter-spacing: 0.16em; text-transform: uppercase; color: var(--marker-ink) }
+.start .k { font: 700 0.8rem/1 var(--disp); letter-spacing: 0.16em; text-transform: uppercase; color: var(--marker-lit) }
 .start p { margin: 0; font-size: 1.02rem; flex: 1 1 20rem }
-.start p em { font-style: normal; background: var(--marker); padding: 0 0.25em }
+.start p em { font-style: normal; color: var(--marker-lit); font-weight: 700 }
 .start .close { background: none; border: 0; color: var(--pencil); font-size: 1.2rem; line-height: 1; padding: 0 0.2rem }
 
 /* ---- score sheet ---- */
-.sheet { background: var(--paper); padding: 1.2rem 1.4rem 1rem; box-shadow: var(--shadow) }
+/* The one light surface on the page. The control bar rides inside its
+   rounded box as a console strip, so the paper begins where the score does. */
+.sheet { background: var(--paper); border-radius: 10px; padding: 0 0 1.1rem; box-shadow: var(--lit); overflow: hidden }
 
 /* The score's control bar. Two rows in one frame: what the engine marks on
    the score, then how to read it and take it away. Both rows share the field
    and swatch vocabulary so they read as one instrument, not two strips. */
 .controls {
-  margin: -0.4rem -0.4rem 1rem;
-  padding: 0.5rem 0.6rem;
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  background: color-mix(in srgb, var(--ground) 30%, var(--paper));
+  margin: 0 0 1.1rem;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--rule);
+  background: var(--panel-2);
+  color: var(--ink);
 }
 .ctl-row { display: flex; gap: 0.5rem 0.9rem; align-items: center; flex-wrap: wrap; min-height: 2rem }
 .ctl-read { margin-top: 0.4rem; padding-top: 0.45rem; border-top: 1px solid var(--rule) }
@@ -302,18 +353,18 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   font: 500 0.9rem/1.15 var(--disp);
   letter-spacing: 0.03em;
   padding: 0.35rem 0.55rem;
-  border: 1.5px solid var(--rule);
-  border-radius: 3px;
-  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--panel);
   color: var(--ink);
 }
-.field select:hover, .agent-key select:hover, .solo-pick select:hover, .ann-head select:hover { border-color: var(--ink) }
+.field select:hover, .agent-key select:hover, .solo-pick select:hover, .ann-head select:hover { border-color: var(--pencil) }
 /* Native selects paint their own chrome; the caret is drawn back on so the
    control keeps the same 1.5px box as every other field. */
 .field select, .agent-key select, .solo-pick select, .ann-head select {
   appearance: none;
   padding-right: 1.7rem;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%235a5f68' stroke-width='1.4'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238b93a4' stroke-width='1.4'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.55rem center;
   background-size: 0.6rem;
@@ -323,8 +374,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 /* A static key — a mark the player does not toggle, so it gets no box. */
 .key { display: inline-flex; align-items: center; gap: 0.4rem; font: 500 0.78rem/1 var(--disp); letter-spacing: 0.1em; text-transform: uppercase; color: var(--pencil) }
 .key i { display: inline-block; width: 14px; height: 10px; border-radius: 1px }
-.key.hl i { background: var(--marker) }
-.solo { overflow-x: auto }
+.key.hl i { background: var(--marker-lit) }
+.solo { overflow-x: auto; padding: 0 1.4rem }
 .solo g.hit path { fill: var(--marker-ink); stroke: var(--marker-ink) }
 .solo rect.hl-bar { fill: var(--marker); opacity: 0.85 }
 .phrase-tick rect { fill: var(--phrase) }
@@ -332,11 +383,11 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 .phrase-tick.weak rect, .phrase-tick.weak text { opacity: 0.5 }
 .idea-tick rect { fill: var(--idea) }
 .idea-tick text { fill: var(--idea); font: 600 12px var(--disp) }
-.scale-band path { fill: none; stroke: var(--pencil); stroke-width: 1.2 }
-.scale-band text { fill: var(--pencil); font: 500 11px var(--disp); letter-spacing: 0.02em }
+.scale-band path { fill: none; stroke: var(--paper-pencil); stroke-width: 1.2 }
+.scale-band text { fill: var(--paper-pencil); font: 500 11px var(--disp); letter-spacing: 0.02em }
 /* The chart asked for this one by name: it is the news, so it reads darker. */
-.scale-band.declared path { stroke: var(--ink); stroke-width: 1.8 }
-.scale-band.declared text { fill: var(--ink); font-weight: 700 }
+.scale-band.declared path { stroke: var(--paper-ink); stroke-width: 1.8 }
+.scale-band.declared text { fill: var(--paper-ink); font-weight: 700 }
 .empty { color: var(--pencil) }
 
 /* ---- desk ---- */
@@ -346,10 +397,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   align-items: flex-end;
   gap: 1.2rem;
   padding: 0.3rem 0 0.8rem;
-  border-bottom: 2px solid var(--ink);
+  border-bottom: 1px solid var(--rule);
   flex-wrap: wrap;
 }
-.idea-no { font: 700 3.6rem/0.9 var(--disp); letter-spacing: -0.01em; white-space: nowrap }
+.idea-no { font: 700 3.6rem/0.9 var(--disp); letter-spacing: -0.035em; white-space: nowrap; color: var(--marker-lit) }
 .idea-no small { font-size: 1.2rem; font-weight: 500; color: var(--pencil); letter-spacing: 0.06em; margin-left: 0.2rem }
 .idea-line { display: flex; flex-direction: column; gap: 0.15rem; flex: 1 1 22rem; min-width: 0 }
 .idea-line .where { font: 600 1.25rem/1.1 var(--disp); letter-spacing: 0.02em }
@@ -368,29 +419,33 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 .idea-detail ul { margin: 0.25rem 0 0; padding-left: 1rem; list-style: none }
 .idea-detail li { margin: 0.1rem 0 }
 .idea-detail li::before { content: '· '; color: var(--rule) }
-.cell { background: color-mix(in srgb, var(--marker) 45%, transparent); padding: 0 0.25em }
+/* A named cell is the one thing on the console that wears the mark's own
+   colour as a fill, so it reads as the same object as the highlight on the
+   score. Dark text: the lit cyan is too bright to carry light type. */
+.cell { background: var(--marker-lit); color: #06222a; border-radius: 4px; padding: 0.05em 0.4em; font-weight: 500 }
 .faint { color: var(--pencil) }
 .nav { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap }
 .nav .btn { padding: 0.5rem 0.7rem }
 
 .steps { display: grid; grid-template-columns: 15rem 1fr; gap: 0 2rem; margin-top: 1rem }
-@media (max-width: 52rem) { .steps { grid-template-columns: 1fr } .path { border-right: 0 } }
-.path { list-style: none; margin: 0; padding: 0; border-right: 1px solid var(--rule); align-self: start }
+@media (max-width: 52rem) { .steps { grid-template-columns: 1fr } }
+.path { list-style: none; margin: 0; padding: 0; align-self: start; display: flex; flex-direction: column; gap: 0.25rem }
 .path li {
-  padding: 0.8rem 0.9rem 0.8rem 0;
-  border-bottom: 1px solid var(--rule);
+  padding: 0.8rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
   display: grid;
   grid-template-columns: 2.2rem 1fr;
   gap: 0 0.4rem;
   cursor: pointer;
   color: var(--pencil);
 }
-.path li .n { font: 700 1.5rem/1 var(--disp); color: var(--rule) }
+.path li .n { font: 700 1.5rem/1 var(--disp); color: var(--faint) }
 .path li .t { font: 600 1.1rem/1.1 var(--disp); letter-spacing: 0.03em }
 .path li .s { grid-column: 2; font-size: 0.85rem; line-height: 1.35 }
-.path li.on { color: var(--ink) }
-.path li.on .n { color: var(--ink) }
-.path li.on .t { box-shadow: inset 0 -0.55em 0 var(--marker); display: inline-block; padding-right: 0.2em }
+.path li.on { color: var(--ink); background: var(--panel); border-color: var(--rule); box-shadow: inset 3px 0 0 var(--marker-lit) }
+.path li.on .n { color: var(--marker-lit) }
+.path li.on .t { display: inline-block }
 .path li.done .n { color: var(--ok) }
 .path li.done .n::after { content: ' ✓'; font-size: 0.8rem }
 .pane { min-width: 0 }
@@ -398,15 +453,18 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 /* The visualise step's cues: the only step body with no notation, so the list carries the pane. */
 .pane .cues { margin: 0 0 1.5rem; padding-left: 1.2rem; max-width: 66ch; font-size: 1.04rem; line-height: 1.6 }
 .pane .cues li { margin-bottom: 0.4rem }
-.ex { background: var(--paper); padding: 0.9rem 1.2rem 0.8rem; margin: 0 0 1rem; box-shadow: var(--shadow) }
+.ex { background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 0.9rem 1.2rem 1.1rem; margin: 0 0 1rem }
 .ex .exh { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 0.4rem; flex-wrap: wrap }
 .ex .exh h3 { font: 600 1.15rem/1 var(--disp); letter-spacing: 0.03em }
 .ex .exh .why { color: var(--pencil); font-size: 0.92rem; font-style: italic }
 .ex .exh .linkish { margin-left: auto }
-.notation { overflow-x: auto }
+/* Notation is black on white wherever it appears: OSMD paints it that way
+   and the console never recolours a stave. Every card that holds a score
+   gives it its own paper. */
+.notation { overflow-x: auto; background: var(--paper); border-radius: 6px; padding: 0.4rem 0.7rem }
 .notation svg { max-width: 100%; height: auto }
 .pane .foot { display: flex; justify-content: flex-end; align-items: center; margin-top: 0.4rem; gap: 0.6rem }
-.write { display: flex; flex-direction: column; gap: 0.6rem; align-items: flex-start; background: var(--paper); padding: 0.9rem 1.2rem; box-shadow: var(--shadow); margin-bottom: 1rem }
+.write { display: flex; flex-direction: column; gap: 0.6rem; align-items: flex-start; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 0.9rem 1.2rem; margin-bottom: 1rem }
 .write .check { font-size: 0.95rem }
 .write .check input { display: block; margin-top: 0.3rem; font: 0.9rem var(--body) }
 .verdict { display: flex; flex-direction: column; gap: 0.2rem; margin: 0; font-size: 0.95rem }
@@ -414,7 +472,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 .verdict .miss { color: var(--alarm) }
 
 /* ---- all ideas ---- */
-.drawer { margin: 1.5rem 0 0; border: 1px solid var(--rule); background: color-mix(in srgb, var(--paper) 55%, var(--ground)); padding: 0.9rem 1.1rem }
+.drawer { margin: 1.5rem 0 0; border: 1px solid var(--rule); border-radius: 10px; background: var(--panel); padding: 0.9rem 1.1rem }
 .drawer .dh { display: flex; gap: 1rem; align-items: baseline; margin-bottom: 0.5rem; flex-wrap: wrap }
 .drawer .dh h2 { font: 600 1.1rem/1 var(--disp); letter-spacing: 0.1em; text-transform: uppercase }
 .drawer .dh span { color: var(--pencil); font-size: 0.9rem }
@@ -422,8 +480,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 .drawer table { width: 100%; border-collapse: collapse; font-size: 0.95rem }
 .drawer td { padding: 0.4rem 0.6rem 0.4rem 0; border-top: 1px solid var(--rule); vertical-align: baseline }
 .drawer tr { cursor: pointer }
-.drawer tr:hover td { background: color-mix(in srgb, var(--marker) 18%, transparent) }
-.drawer tr.sel td { background: color-mix(in srgb, var(--marker) 35%, transparent) }
+.drawer tr:hover td { background: var(--panel-2) }
+.drawer tr.sel td { background: color-mix(in srgb, var(--marker-lit) 14%, transparent) }
 .drawer td.n { width: 2.5rem; font: 700 1.1rem/1 var(--disp) }
 .drawer td.w { width: 11rem; white-space: nowrap }
 .drawer td.c { color: var(--pencil); width: 12rem }
@@ -431,7 +489,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 .drawer td.f .stock { color: var(--pencil); font-style: italic }
 
 /* ---- details (engine diagnostics) ---- */
-.details { margin: 1rem 0 0; padding: 1rem 1.2rem; background: var(--paper); box-shadow: var(--shadow); font-size: 0.95rem }
+.details { margin: 1rem 0 0; padding: 1rem 1.2rem; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; font-size: 0.95rem }
 .details h2 { font: 600 0.8rem/1 var(--disp); letter-spacing: 0.14em; text-transform: uppercase; color: var(--pencil); margin: 1rem 0 0.4rem }
 .details h2:first-child { margin-top: 0 }
 .details dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 1.25rem }
@@ -474,10 +532,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   width: 15px;
   height: 15px;
   border: 1.5px solid var(--pencil);
-  border-radius: 2px;
-  background: var(--paper);
+  border-radius: 3px;
+  background: var(--panel);
 }
-.agent-on input:checked { background: var(--ink); border-color: var(--ink) }
+.agent-on input:checked { background: var(--marker-lit); border-color: var(--marker-lit) }
 /* The tick is drawn on the box: a 15px control cannot carry a glyph. */
 .agent-on input:checked::after {
   content: '';
@@ -485,7 +543,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   width: 4px;
   height: 8px;
   margin: 0.5px auto 0;
-  border: solid var(--paper);
+  border: solid #06222a;
   border-width: 0 1.5px 1.5px 0;
   transform: rotate(42deg);
 }
@@ -505,18 +563,19 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 /* Said before the run, not after it: by the time the analysis is on screen
    it is too late to be worth knowing. */
 .agent-key .agent-need { color: var(--warn) }
-.agent { border-left: 3px solid #b58a3c; padding: 0.4rem 1rem; margin: 0.6rem 0; }
+.agent { border-left: 3px solid var(--ov-device-lit); padding: 0.4rem 1rem; margin: 0.6rem 0; }
 .agent-sourced { position: relative; }
 .agent .dh span { opacity: 0.6; font-size: 0.85em; }
 .progress { display: flex; flex-direction: column; gap: 0.35rem; margin: 1rem 0; max-width: 28rem; }
-.progress progress { width: 100%; height: 0.5rem; accent-color: #b58a3c; }
+.progress progress { width: 100%; height: 0.5rem; accent-color: var(--ov-device-lit); }
 .progress span { font-size: 0.9em; opacity: 0.8; }
-.agent-marker circle { fill: #b58a3c; opacity: 0.85; cursor: pointer; }
+/* Drawn on the score, so it takes the paper amber, not the lit one. */
+.agent-marker circle { fill: var(--ov-device); opacity: 0.85; cursor: pointer; }
 .agent-marker:hover circle { opacity: 1; }
 .agent-tip {
   position: fixed; z-index: 30; max-width: 320px; padding: 0.5rem 0.7rem;
-  background: #fffdf7; border: 1px solid #b58a3c; border-radius: 4px;
-  font-size: 0.85rem; line-height: 1.35; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  background: var(--panel-2); color: var(--ink); border: 1px solid var(--ov-device-lit); border-radius: 6px;
+  font-size: 0.85rem; line-height: 1.35; box-shadow: 0 12px 32px -12px rgba(0,0,0,0.9);
 }
 .agent-mood, .agent-model { display: inline-flex; gap: 0.45rem; align-items: center }
 .agent-mood > span, .agent-model > span {
@@ -545,22 +604,24 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 .ann-head select { flex: 0 1 20rem; min-width: 10rem; font-family: var(--mono); letter-spacing: 0 }
 #modes { display: flex; gap: 0.3rem }
 #modes button {
-  padding: 0.3rem 0.7rem;
-  border: 1.5px solid var(--ink);
-  background: none;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--panel);
   color: var(--ink);
   font: 500 0.85rem/1 var(--disp);
 }
-#modes button.on { background: var(--ink); color: var(--ground) }
+#modes button.on { background: var(--marker-lit); border-color: var(--marker-lit); color: #06222a; font-weight: 700 }
 #counts { margin-left: auto; font: 0.85rem var(--mono); color: var(--pencil) }
 #save-btn, #engine-btn, #scales-btn {
-  padding: 0.3rem 0.7rem;
-  border: 1.5px solid var(--pencil);
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
   background: none;
   color: var(--pencil);
   font: 500 0.85rem/1 var(--disp);
 }
-#save-btn:hover, #engine-btn:hover, #scales-btn:hover { border-color: var(--ink); color: var(--ink) }
+#save-btn:hover, #engine-btn:hover, #scales-btn:hover { border-color: var(--pencil); color: var(--ink) }
 #engine-btn:disabled, #scales-btn:disabled { opacity: 0.5 }
 #scales-btn.on { background: var(--pencil); color: var(--ground) }
 #saved { width: 10px; height: 10px; border-radius: 50%; background: var(--ok) }
@@ -574,7 +635,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   margin: 0 0 1rem;
   padding: 0.9rem 1.1rem;
   border-left: 5px solid var(--pencil);
-  background: var(--paper);
+  background: var(--panel);
+  border-radius: 0 8px 8px 0;
   font-size: 0.95rem;
   max-width: 62ch;
 }
@@ -593,25 +655,17 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   fill: var(--outside) !important;
   stroke: var(--outside) !important;
 }
-.ann-star rect { fill: #b8952f; opacity: 0.5 }
-.ann-star text { fill: #b8952f; font-size: 12px }
+.ann-star rect { fill: var(--star); opacity: 0.4 }
+.ann-star text { fill: var(--star); font-size: 12px }
 .ann-variation rect { fill: var(--variation); opacity: 0.45 }
 .ann-variation text { fill: var(--variation); font: 600 12px var(--disp) }
-.ann-scale text { fill: var(--pencil); font: 500 10px var(--disp); cursor: pointer }
+.ann-scale text { fill: var(--paper-pencil); font: 500 10px var(--disp); cursor: pointer }
 .ann-scale.off text { text-decoration: line-through; opacity: 0.45 }
 .pending { outline: 2px solid var(--idea); outline-offset: 2px }
 
-/* Engine-evidence overlays (score audit) */
-:root {
-  --ov-cell: #2f6fb2;
-  --ov-device: #d97706;
-  --ov-recurring: #2f855a;
-  --ov-language: #b83280;
-  /* The stock wash already had this value inline; naming it lets the control
-     swatch quote the same grey the score is shaded with. */
-  --ov-stock: #8892a0;
-}
-
+/* Engine-evidence overlays (score audit). The --ov-* pairs live in the
+   token block at the top: the plain value paints the mark on the sheet, the
+   -lit value paints its toggle on the console. */
 /* Each toggle wears the colour of the mark it draws, so the row is the legend.
    The box is the real checkbox with its chrome removed — keyboard and screen
    reader behaviour is untouched, only the paint is ours. */
@@ -628,10 +682,11 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   text-transform: uppercase;
   color: var(--pencil);
 }
-.overlays .ov:hover { background: color-mix(in srgb, var(--ground) 70%, var(--paper)) }
-.overlays .ov:has(input:checked) { color: var(--ink); background: var(--paper); box-shadow: inset 0 0 0 1px var(--rule) }
+.overlays .ov:hover { background: var(--panel) }
+.overlays .ov:has(input:checked) { color: var(--ink); background: var(--panel); box-shadow: inset 0 0 0 1px var(--rule) }
 /* The ring goes on the chip: a 2px outline round a 13px box is unreadable,
-   and --idea is too close to --ov-cell to show against that swatch. */
+   and --idea-lit is the same cyan as --ov-cell-lit, so it would vanish
+   against that swatch. */
 .overlays .ov:has(input:focus-visible) { outline: 2px solid var(--ink); outline-offset: 1px }
 .overlays .ov input {
   appearance: none;
@@ -644,25 +699,25 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   background: transparent;
 }
 .overlays .ov input:checked { background: var(--sw, var(--pencil)) }
-.overlays .ov-ticks { --sw: var(--phrase) }
+.overlays .ov-ticks { --sw: var(--phrase-lit) }
 /* One toggle, two marks: the swatch is split rather than picking a favourite. */
-.overlays .ov-ticks input:checked { background: linear-gradient(90deg, var(--phrase) 0 50%, var(--idea) 50% 100%) }
-.overlays .ov-cells { --sw: var(--ov-cell) }
-.overlays .ov-devices { --sw: var(--ov-device) }
-.overlays .ov-recurring { --sw: var(--ov-recurring) }
-.overlays .ov-language { --sw: var(--ov-language) }
+.overlays .ov-ticks input:checked { background: linear-gradient(90deg, var(--phrase-lit) 0 50%, var(--idea-lit) 50% 100%) }
+.overlays .ov-cells { --sw: var(--ov-cell-lit) }
+.overlays .ov-devices { --sw: var(--ov-device-lit) }
+.overlays .ov-recurring { --sw: var(--ov-recurring-lit) }
+.overlays .ov-language { --sw: var(--ov-language-lit) }
 /* Boundary candidates are drawn as small pencil carets, not bars. */
 .overlays .ov-candidates input {
   border: 0;
   border-radius: 0;
-  background: color-mix(in srgb, var(--pencil) 42%, var(--paper));
+  background: color-mix(in srgb, var(--pencil) 42%, var(--panel));
   clip-path: polygon(50% 0, 100% 100%, 0 100%);
 }
 .overlays .ov-candidates input:checked { background: var(--pencil) }
 /* Stock passages are shaded, not underlined; the swatch is a wash of the
    same grey rather than a solid block that would overstate the mark. */
-.overlays .ov-stock { --sw: var(--ov-stock) }
-.overlays .ov-stock input:checked { background: color-mix(in srgb, var(--ov-stock) 32%, var(--paper)) }
+.overlays .ov-stock { --sw: var(--ov-stock-lit) }
+.overlays .ov-stock input:checked { background: color-mix(in srgb, var(--ov-stock-lit) 40%, var(--panel)) }
 .eng-overlay { cursor: pointer }
 .eng-overlay.ov-cell rect { fill: var(--ov-cell) }
 .eng-overlay.ov-device rect { fill: var(--ov-device) }

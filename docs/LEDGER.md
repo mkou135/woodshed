@@ -1397,3 +1397,36 @@ Golden re-pinned: eight lines added, the ten original byte-identical
 `corpus:wjd` unchanged 456 (WJD ingest is its own path). Spec "Note
 order"; OPEN_QUESTIONS "Which notes are the solo in a piano score?".
 So What locks a 2-bar form — the vamp question on the owner's own file.
+2026-09-06 · session 24 · a new visual system for the whole browser
+layer. Three directions were drawn on the real practice desk (Hey Lock,
+idea 1 of 34, real MuseScore notation) on a Claude Design canvas; the
+owner picked **studio console** — near-black ground, one lit white sheet
+for the notation, saturated cyan/magenta/lime carrying every engine mark.
+Applying it across index, annotate, engine and bench. `engine.css` and
+`bench.css` hold no colour of their own, so the retheme is a token change
+in `style.css` plus the rules that assumed a light ground. Exports
+(`export.ts`) stay light — they are printed and sent. Writing
+`docs/DESIGN_SYSTEM.md` as the fifth maintained file, so the visual layer
+stops drifting the way the 2026-08-24 practice-desk spec did.
+
+2026-09-06 · session 24 (cont.) · the console ships. Two families
+self-hosted (Space Grotesk 400/500/700, IBM Plex Mono 400/500); the three
+old faces removed. One token block in `style.css` drives all four pages —
+`engine.css`/`bench.css` restate no colour, and the engine diagrams are
+`currentColor`, so both fell into place. Every mark measured against the
+surface it lands on: all ≥4.5:1 (`--faint` was 3.66 and moved to #7b8496).
+`bench.ts`'s two series-colour constants moved to the `-lit` ramp — charts
+sit on a panel, not on paper. `export.ts` retuned to the paper ramp and
+stays light. Caught in review: `text-transform: uppercase` on the chord
+line renders `Cm7` as `CM7`; now a rule in DESIGN_SYSTEM "Type".
+Docs: DESIGN_SYSTEM.md (new, fifth maintained file), CLAUDE.md protocol +
+non-negotiables, DECISIONS 2026-09-06. Typecheck clean; build clean; tests
+688 pass / 0 fail / 59 files. Built from main first, where `peers.test.ts`
+failed on the second-voice `excerpt` crash — pre-existing, unrelated to
+the retheme, and fixed by the then-unmerged `ingest-note-order` branch
+(verified in a worktree), so this branch is rebased onto that one.
+Not verified in-browser: the engine's own marks on the score. They do not
+draw under headless Chrome — OSMD lays out at zero width there ("width
+not > 0 in measure 1") — and that is true on main too, so the paper ramp
+was checked numerically rather than by eye. Worth a look on a real
+machine → OPEN_QUESTIONS.

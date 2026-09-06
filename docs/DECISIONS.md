@@ -1445,3 +1445,48 @@ Evidence class: measured, ten solos, 623 tests, `corpus:wjd` unchanged ·
 owner chose the folder and the test shape, Claude built it · would
 reverse: a golden that churns on every change (drop the top-finding
 field first, the counts last), or the transcriptions moving again.
+
+## 2026-09-06 · The studio console replaces the practice desk (session 24)
+
+Question: the practice-desk system (grey desk, white sheets, one yellow
+highlighter, Barlow Condensed / Source Serif 4 / JetBrains Mono) had run
+since session 6. The owner wanted a different, more vibrant one.
+
+**Decision.** Three directions were drawn on the *real* practice desk — Hey
+Lock, idea 1 of 34, real MuseScore notation of bars 73–80 and of a real
+generated exercise — on a Claude Design canvas, so the choice was made on the
+product rather than on swatches. The owner picked **studio console**:
+near-black ground, one lit white sheet for the score, saturated
+cyan/magenta/lime carrying every engine mark. Applied across all four pages.
+
+Three things that fell out of it and are now rules:
+
+1. **The score decided the theme.** OSMD renders black-on-white and cannot be
+   recoloured. Rather than fight that, the sheet became the only light
+   surface on the page and gets a bloom (`--lit`) nothing else has.
+2. **Every meaningful colour exists twice.** A mark on the sheet needs to
+   read on white; the same mark's toggle sits on near-black. `--x` for the
+   sheet, `--x-lit` for the console. Measured: every value clears 4.5:1
+   against the surface it actually lands on.
+3. **The printed export stays light.** `export.ts` output is printed and
+   sent, and cannot reach the self-hosted faces; it keeps Georgia on white
+   but quotes the *paper* half of each mark pair, so a printout matches the
+   screen.
+
+`engine.css` and `bench.css` turned out to hold no colour of their own and
+the engine diagrams are all `currentColor`, so the retheme was a token change
+plus the rules that assumed a light ground — evidence that the token
+discipline was worth keeping.
+
+Also: `docs/DESIGN_SYSTEM.md` is now the fifth continuously maintained file.
+The visual layer previously had only a dated spec
+(`docs/superpowers/specs/2026-08-24-practice-desk-design.md`), and it had
+drifted — `--ok`, `--alarm`, `--outside`, `--variation` and the whole `--ov-*`
+family were in the CSS and not in it, and three of the four pages did not
+exist when it was written. Dated specs are records; state needs a maintained
+file.
+
+Evidence class: owner picked from three built directions · owner + Claude ·
+would reverse: the owner finding the console tiring over a long practice
+session, or notation legibility suffering against the lit sheet in a real
+room.

@@ -469,3 +469,16 @@ longer surface as a finding. By design today; worth deciding whether a
 device whose *other* spans do not overlap should instead be split rather
 than absorbed. Would resolve: an owner read of whether 75/84 deserve
 their own menu entry.
+
+- **Do the engine's marks read on the lit sheet in a real room?**
+  (2026-09-06, session 24.) The paper half of the mark palette was verified
+  numerically — every value clears 4.5:1 against `--paper` — but never seen
+  in place: phrase/idea ticks, the highlight wash and the overlay badges do
+  not draw under headless Chrome, where OSMD lays out at zero width
+  ("SkyBottomLineCalculator: width not > 0 in measure 1"). This reproduces
+  on `main`, so it is the harness and not the retheme. Resolve: open
+  `npm run dev`, drop `hey-lock.mxl`, turn every overlay on and look at
+  bars 76–77 — a mark that reads as grey, or a wash that swallows a
+  notehead, means the paper ramp needs darkening. Separately worth knowing
+  whether the ticks failing to draw headlessly is only a harness artefact or
+  a real fragility in `score.ts`'s anchor lookup.
