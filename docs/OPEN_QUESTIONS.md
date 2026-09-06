@@ -482,3 +482,20 @@ their own menu entry.
   notehead, means the paper ramp needs darkening. Separately worth knowing
   whether the ticks failing to draw headlessly is only a harness artefact or
   a real fragility in `score.ts`'s anchor lookup.
+
+- **Is the `minority` peers golden pinning a polyphonic pool?**
+  (2026-09-06, session 24, from review of PR #10.) The multi-voice deferral
+  in DECISIONS 2026-09-03 is scoped to *piano* scores, and its mitigation was
+  moving both piano files out of `peers/` into `piano/`. Minority is a horn
+  transcription and stayed — but it is the one peer carrying `<voice>2</voice>`
+  behind `<backup>`, and the note-order fix pools those voices rather than
+  filtering them. Measured: 1203 notes, **96 at a duplicate onset, 23 onsets
+  carrying an exact unison** (hey-lock 0, au-privave 1). Those reach
+  segmentation as zero-length gaps and the n-gram search as zero-semitone
+  steps, so `findings=44 units=111` is now pinned as correct output for a
+  line that includes ~56 harmony notes. Resolve: decide whether ingest should
+  pick a melody line (highest voice? voice 1?) rather than pool, or whether
+  Minority belongs in `piano/` alongside the two-stave files. Either answer
+  re-pins that golden line, so a future correct fix will read as a regression
+  against it until then. Related: "Which notes are the solo in a piano
+  score?".

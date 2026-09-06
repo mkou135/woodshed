@@ -90,7 +90,7 @@ main { max-width: 92rem; margin: 0 auto; padding: 0 1.25rem 6rem }
 h1, h2, h3 { margin: 0; font-family: var(--disp) }
 button { font: inherit; cursor: pointer }
 button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--idea-lit); outline-offset: 2px }
-/* Fields sit on paper, so the focused one also darkens its own box. */
+/* Fields sit on the console, so the focused one also brightens its box. */
 .field select:focus-visible, .field input:focus-visible { border-color: var(--ink) }
 .mono { font-family: var(--mono); font-variant-numeric: tabular-nums }
 .label {
@@ -625,7 +625,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 #engine-btn:disabled, #scales-btn:disabled { opacity: 0.5 }
 #scales-btn.on { background: var(--pencil); color: var(--ground) }
 #saved { width: 10px; height: 10px; border-radius: 50%; background: var(--ok) }
-#saved.dirty { background: var(--rule); animation: ann-pulse 1.1s ease-in-out infinite }
+#saved.dirty { background: var(--warn); animation: ann-pulse 1.1s ease-in-out infinite }
 @keyframes ann-pulse { 0%, 100% { opacity: 0.4 } 50% { opacity: 1 } }
 .ann-help { margin: 0 0 1rem; color: var(--pencil); font-size: 0.85rem }
 /* Shown when the dev-only `/__annotate` bridge is absent. Nothing has gone
@@ -644,6 +644,18 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
    which inverted the hierarchy on the first line a stranger sees here. */
 .ann-offline b { display: block; margin-bottom: 0.2rem; font: 600 1.25rem/1.2 var(--disp); letter-spacing: 0.03em }
 .ann-offline code { font-family: var(--mono); font-size: 0.85em }
+/* The annotate page renders OSMD straight into #sheet. On the old light
+   ground the body colour served as its paper by accident; on the console it
+   needs saying, or the score is black ink on a near-black page. Same
+   treatment as the analyser's `.sheet`. */
+#sheet:not(:empty) {
+  background: var(--paper);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  box-shadow: var(--lit);
+  overflow-x: auto;
+}
+
 .ann-idea rect { fill: var(--idea) }
 .ann-idea text { fill: var(--idea); font: 600 12px var(--disp) }
 .ann-phrase rect { fill: var(--phrase) }
@@ -724,12 +736,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 .eng-overlay.ov-recurring rect { fill: var(--ov-recurring) }
 .eng-overlay.ov-language rect { fill: var(--ov-language) }
 .cand-caret { cursor: pointer }
-.cand-caret path { fill: var(--pencil); opacity: 0.8 }
+.cand-caret path { fill: var(--paper-pencil); opacity: 0.8 }
 .stock-shade { fill: var(--ov-stock); fill-opacity: 0.13; cursor: pointer }
 .ov-badge { font: 700 9px var(--disp, sans-serif) }
 .eng-overlay.ov-cell .ov-badge { fill: var(--ov-cell) }
 .eng-overlay.ov-device .ov-badge { fill: var(--ov-device) }
 .eng-overlay.ov-recurring .ov-badge { fill: var(--ov-recurring) }
 .eng-overlay.ov-language .ov-badge { fill: var(--ov-language) }
-.cand-caret .ov-badge { fill: var(--pencil) }
+.cand-caret .ov-badge { fill: var(--paper-pencil) }
 .export-annotations { font-size: 0.8rem }
