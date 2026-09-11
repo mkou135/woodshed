@@ -1430,3 +1430,16 @@ draw under headless Chrome — OSMD lays out at zero width there ("width
 not > 0 in measure 1") — and that is true on main too, so the paper ramp
 was checked numerically rather than by eye. Worth a look on a real
 machine → OPEN_QUESTIONS.
+
+2026-09-11 · session 25 · MuseScore plugin handoff landed. The owner
+wants Woodshed to also run inside MuseScore Studio 4 as a QML plugin,
+against the open score. The handoff was written in a separate chat with
+research behind it and is committed verbatim as
+`docs/MUSESCORE_PLUGIN_HANDOFF.md`. Nothing in `src/` or `app/` touched.
+Its shape: two throwaway spikes before any port — Spike A (can a bundled
+build of `src/core/` load and run in MuseScore's QML JS engine at all),
+Spike B (can a `Cursor` over `curScore` yield everything `src/ingest/`
+gets from MusicXML, and can a new score be created for exercise output,
+given `readScore()`/`writeScore()` are dead in Mu4). Then a second ingest
+adapter beside `src/ingest/`, engine untouched; `src/agent/` out of scope.
+Next task is Spike A only, reported before anything else.
