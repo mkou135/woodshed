@@ -30,7 +30,14 @@ ExtensionBlank {
         // Qt.resolvedUrl gives file:///… with spaces as %20; writeScore wants
         // a plain POSIX path, and the default extensions folder is under
         // "Application Support".
-        return decodeURIComponent(Qt.resolvedUrl(relative).toString().replace(/^file:\/\//, ""))
+        const encoded = Qt.resolvedUrl(relative).toString().replace(/^file:\/\//, "")
+        try {
+            return decodeURIComponent(encoded)
+        } catch (e) {
+            // A stray "%" in a folder name is the only way in here.
+            if (e instanceof URIError) return encoded
+            throw e
+        }
     }
 
     function analyse() {
@@ -56,7 +63,7 @@ ExtensionBlank {
         reader.textDocument.source = ""
         reader.textDocument.source = Qt.resolvedUrl("tmp/solo.musicxml")
         if (reader.textDocument.status !== TextDocument.Loaded) {
-            root.error = "Could not read the export back: " + reader.textDocument.errorString
+            root.error = "Could not read the export back (status " + reader.textDocument.status + "): " + reader.textDocument.errorString
             return
         }
         const xml = reader.text
