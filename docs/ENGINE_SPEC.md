@@ -1005,6 +1005,11 @@ ids; no pitch, count or interval can ride in one. Runs whenever a key is
 present (CLI env `ANTHROPIC_API_KEY`; page BYOK from localStorage,
 browser-direct); keyless runs are byte-identical to the engine alone.
 
+The deterministic pipeline (`run`, `runXml`, `describeFinding`) lives in
+`src/run.ts`, which imports nothing from `src/agent/`; `pipeline.ts`
+re-exports it and adds `runWithAgent`. The MuseScore bundle enters through
+`run.ts` and so carries neither the SDK nor zod (spec 2026-09-14).
+
 - Model: default `claude-opus-5`; the page's model dropdown (next to the
   BYOK key, `localStorage` `woodshed.agentModel`: Opus 5 / Sonnet 5 /
   Haiku 4.5) or the CLI env `ANTHROPIC_MODEL` override it

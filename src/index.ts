@@ -21,7 +21,7 @@ export type { SoloProfile, RegionProfile, BarProfile } from './analyse/profile.t
 export { generateExercises } from './generate/index.ts'
 export type { Exercise, ExerciseBar } from './generate/index.ts'
 export { exerciseToMusicXml } from './render/musicxml.ts'
-export { run, describeFinding, practiseOver } from './pipeline.ts'
+export { run, runXml, describeFinding, practiseOver } from './pipeline.ts'
 export { buildUnits, chordName, noteName } from './practice/unit.ts'
 export type { PracticeUnit, Step, UnitSummary } from './practice/unit.ts'
 export { barSpans, detail, displayName, headline, namedCells, teacherNames } from './practice/describe.ts'
