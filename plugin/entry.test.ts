@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { analyseXml } from './entry.ts'
+import { runXml } from '../src/run.ts'
 
 describe('analyseXml', () => {
   const xml = readFileSync('fixtures/minimal-tenor.musicxml', 'utf8')
@@ -21,6 +22,32 @@ describe('analyseXml', () => {
       expect(typeof u.header).toBe('string')
       expect(u.prompts.length).toBeGreaterThan(0)
       for (const p of u.prompts) expect(typeof p).toBe('string')
+    }
+  })
+
+  it('maps title, tune and warnings from the engine result', () => {
+    const r = analyseXml(xml)
+    const engine = runXml(xml)
+    // No fixture carries a title: the fallback is null, never undefined or ''.
+    expect(r.title).toBeNull()
+    expect(r.tune).toBe(engine.tune.title || null)
+    expect(r.warnings).toEqual(
+      engine.report.adjustments.filter((a) => a.severity !== 'info').map((a) => a.reason),
+    )
+    // Only warn/blocking reach the panel; every info reason stays out.
+    for (const a of engine.report.adjustments) {
+      if (a.severity === 'info') expect(r.warnings).not.toContain(a.reason)
+    }
+
+    // Test with two-soloists.musicxml to exercise the filter on non-empty list
+    const twoXml = readFileSync('fixtures/two-soloists.musicxml', 'utf8')
+    const r2 = analyseXml(twoXml)
+    const engine2 = runXml(twoXml)
+    expect(r2.warnings).toEqual(
+      engine2.report.adjustments.filter((a) => a.severity !== 'info').map((a) => a.reason),
+    )
+    for (const a of engine2.report.adjustments) {
+      if (a.severity === 'info') expect(r2.warnings).not.toContain(a.reason)
     }
   })
 })
