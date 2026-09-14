@@ -1490,3 +1490,24 @@ Evidence class: owner picked from three built directions · owner + Claude ·
 would reverse: the owner finding the console tiring over a long practice
 session, or notation legibility suffering against the lit sheet in a real
 room.
+
+## 2026-09-14 · A MuseScore extension, fed by a MusicXML round trip (session 25)
+
+Question: how does the engine run inside MuseScore, and how does it read the
+open score?
+
+Decision: a 4.7 extension (manifest + QML form), not a legacy plugin; the
+score reaches the engine as MusicXML exported by MuseScore itself and read
+back through a hidden Qt Quick `TextEdit`, not by walking the object model.
+Findings only — no marks on the score, no exercises, no agent.
+
+Evidence: read from the v4.7.4 source. `writeScore` is implemented through
+the real export scenario; no file-reading API exists for an extension
+(`api.filesystem` commented out, `FileIO` unregistered, `newQProcess`
+NOT_IMPLEMENTED, XHR gated by an env var MuseScore does not set);
+`TextDocument.source` reads a local file with no gate. The Harmony API has no
+`kind`, so an object-model ingest would derive quality from text.
+
+Evidence class: source reading + one manual run · owner + Claude ·
+would reverse: a `kind` on the Harmony API, or export time that a player
+notices (the panel prints it).

@@ -499,3 +499,26 @@ their own menu entry.
   re-pins that golden line, so a future correct fix will read as a regression
   against it until then. Related: "Which notes are the solo in a piano
   score?".
+
+## MuseScore plugin follow-ups (2026-09-14)
+
+- **Exercises as new tabs.** `exerciseToMusicXml` plus
+  `api.engraving.readScore(path)` would open each exercise as a score.
+  Resolve: decide whether one tab per exercise is tolerable, or whether a
+  single "exercises" score with a section break per exercise is the shape.
+- **Agent layer in the plugin.** The SDK cannot run in QJSEngine; a raw
+  `XMLHttpRequest` client to the Messages API is a separate design, and
+  QML's XHR does reach the network. Resolve: whether the plugin is worth
+  the agent at all before designing it.
+- **Object-model ingest.** Would drop the export round trip. Blocked on
+  chord quality: the Harmony API exposes text and MuseScore's parsed name,
+  not `kind`. Resolve: measure export time first; if it is under a second
+  on the longest peer, leave this alone.
+- **Extension API stability.** `api.filesystem` exists in source but is
+  switched off in 4.7.4; if a later 4.x switches it on, the `TextEdit`
+  read-back can go. Resolve: re-read `extapi.h` on each MuseScore upgrade.
+  Also measured in 4.7.4: `MuseApi.Controls` exports `StyledListView` but
+  the module fails to load it (missing `internal` folder), while
+  `FlatButton`, `StyledTextLabel`, `ListItemBlank` and `StyledFlickable`
+  all load fine. Re-check the whole set on each upgrade, not just
+  `api.filesystem`.

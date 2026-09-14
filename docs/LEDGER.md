@@ -1430,3 +1430,35 @@ draw under headless Chrome — OSMD lays out at zero width there ("width
 not > 0 in measure 1") — and that is true on main too, so the paper ramp
 was checked numerically rather than by eye. Worth a look on a real
 machine → OPEN_QUESTIONS.
+
+2026-09-14 · session 25 · the engine runs inside MuseScore. Spec
+`docs/superpowers/specs/2026-09-14-musescore-plugin-design.md`, plan
+`docs/superpowers/plans/2026-09-14-musescore-plugin.md`, both owner-approved
+in chat. Read from the v4.7.4 source: `writeScore` runs the real export
+scenario; no file-reading API exists for an extension (`api.filesystem`
+commented out, `FileIO` unregistered, `newQProcess` NOT_IMPLEMENTED, XHR
+gated by an env var MuseScore does not set), but Qt Quick's
+`TextDocument.source` reads a local file ungated; the Harmony API exposes
+no `kind`. Shipped: `ingestXml`; `src/run.ts` (run/runXml/describeFinding,
+no agent import); `plugin/entry.ts` `analyseXml`; `vite.plugin.config.ts`
+→ `plugin/woodshed.js` (282,864 bytes, ES2016 IIFE, needs
+`publicDir: false`); `plugin/bundle.test.ts` runs it in a bare `node:vm`
+context against Blake and reproduces the pinned top finding;
+`plugin/manifest.json`, `plugin/Woodshed.qml`, `scripts/plugin-install.ts`;
+npm `plugin:build`, `plugin:install`. Installed and launched three times
+with Blake open; MuseScore parsed the manifest and dispatched the action
+each time. First launch: the panel failed to load — `Type StyledListView
+unavailable … "internal": no such directory` — swapped for plain `ListView`.
+Review then caught `Qt.resolvedUrl(...).toString()` percent-encodes the
+space in "Application Support", so `writeScore` would have received
+`Application%20Support`; added `decodeURIComponent`. After both fixes the
+log shows no load error. Not verified in-app: the panel itself — it
+auto-opened only on the first launch and could not be reopened by script,
+so nobody has seen the findings list render or the export run. Owner's
+next step: open Blake, Plugins → "Woodshed: analyse solo", expect
+"major-seventh arpeggio from the b3" at bars 73, 77 on top, ~15 findings,
+two timings on the bottom line, and `tmp/solo.musicxml` in the extension
+folder afterward. Harmless "used before its declaration" warnings from
+fast-xml-parser's hoisted functions log on every open. Typecheck clean;
+tests 698 pass / 0 fail / 62 files. Branch `musescore-plugin`, 10 commits
+ahead of main before this one (eight implementation, two spec/plan).

@@ -6,7 +6,7 @@ the code. Each section names the file that implements it — if this file and
 the code disagree, that is a bug to fix immediately, in whichever direction
 the DECISIONS log supports.
 
-Last updated: 2026-09-02 (session 21).
+Last updated: 2026-09-14 (session 25).
 
 ## Units
 
@@ -1034,6 +1034,32 @@ re-exports it and adds `runWithAgent`. The MuseScore bundle enters through
 - `npm run eval:agent`: idea recall on the first 20 WJD solos, engine vs
   adjudicated, recordings only. Ship rule: job 3 does not run live by
   default until the adjudicated number beats the engine's.
+
+## MuseScore plugin (`plugin/`, spec docs/superpowers/specs/2026-09-14-musescore-plugin-design.md)
+
+- Vehicle: a MuseScore 4.7 extension (`plugin/manifest.json`, type `form`);
+  installed to `~/Library/Application Support/MuseScore/MuseScore4/extensions/woodshed`
+  by `npm run plugin:install`.
+- Engine bundle: `plugin/woodshed.js`, built by `vite.plugin.config.ts`
+  from `plugin/entry.ts` — IIFE, global `woodshed`, target ES2016, unminified.
+  Entry imports `src/run.ts` only; the agent layer is never reached.
+- Boundary: `analyseXml(xml) → PluginResult` — `findings` (the `FindingView`s
+  in rank order), `units` (id, findingIds, header, the four step prompts),
+  `warnings` (adjustments at warn/blocking), `title`, `tune`, `timing`.
+- Ingest: MuseScore exports the open score to `plugin/tmp/solo.musicxml`
+  (`api.engraving.writeScore`), the panel reads it back through a hidden
+  `TextEdit` (`TextDocument.source`), and `ingestXml` parses it. The export
+  path is `decodeURIComponent`-ed before use — the default extensions
+  folder sits under "Application Support", and `Qt.resolvedUrl(...)`
+  percent-encodes the space. Same MusicXML rules as the page; chord
+  quality from `<kind>`.
+- Panel list: plain Qt Quick `ListView`, not `MuseApi.Controls`'
+  `StyledListView` — the shipped 4.7.4 `MuseApi.Controls` module lacks the
+  `internal` folder that control imports, so it fails to load.
+- Not governed by DESIGN_SYSTEM.md: the panel uses `MuseApi.Theme`.
+- Proof: `plugin/bundle.test.ts` runs the bundle in a bare `node:vm`
+  context (no TextDecoder/process/fetch/DOM) against Blake and asserts the
+  pinned top finding. Skips without the bundle.
 
 ## Verification targets
 

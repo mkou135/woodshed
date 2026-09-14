@@ -48,6 +48,8 @@ npm run test:run   # NEVER bare `npm test` — watch mode, hangs tool calls
 npm run test:run -- -u   # re-pin goldens/peers.txt after an intended engine change
 npm run typecheck
 npm run build
+npm run plugin:build   # engine → plugin/woodshed.js (ES2016 IIFE for MuseScore's QJSEngine)
+npm run plugin:install # build, then copy plugin/ into MuseScore 4's extensions folder; restart MuseScore
 ```
 
 ## Non-negotiables
@@ -75,6 +77,9 @@ npm run build
   statistics with an attribution note; never commit or ship the notes
   themselves, and write test fixtures by hand rather than quoting a lick.
   See DECISIONS 2026-08-24 "Corpus licensing".
+- `plugin/entry.ts` imports `src/run.ts`, never `src/pipeline.ts` or
+  anything under `src/agent/`: the bundle runs in Qt's JavaScript engine,
+  where the SDK cannot. `plugin/bundle.test.ts` is the proof.
 
 ## Verifying
 
