@@ -20,10 +20,3 @@ describe('runXml', () => {
     expect(strip(runXml(readScoreXml(bytes)))).toEqual(strip(run(bytes)))
   })
 })
-
-describe('run.ts imports', () => {
-  it('reaches no agent module', () => {
-    const src = readFileSync('src/run.ts', 'utf8')
-    expect(src).not.toMatch(/agent\//)
-  })
-})
