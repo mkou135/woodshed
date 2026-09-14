@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { exerciseToMusicXml } from './musicxml.ts'
+import { exerciseToMusicXml, unitToMusicXml } from './musicxml.ts'
 import { instrumentFromTranspose } from '../core/instrument.ts'
 import { parseScore } from '../ingest/parseScore.ts'
+import { ingestXml } from '../ingest/index.ts'
 import type { Exercise } from '../generate/index.ts'
+import type { PracticeUnit } from '../practice/unit.ts'
 
 const tenor = instrumentFromTranspose(-2, -1)
 
@@ -130,5 +132,60 @@ describe('exerciseToMusicXml', () => {
     }
     const xml = exerciseToMusicXml(flat, tenor)
     expect(xml).toMatch(/<step>B<\/step>\s*<alter>-1<\/alter>/)
+  })
+})
+
+const rhythmic: Exercise = {
+  ...exercise,
+  id: 'f1-loop',
+  title: 'the line as played',
+  transformation: 'loop',
+  bars: [{ rootPc: 0, quality: 'major-seventh', midis: [], events: [
+    { midi: 60, duration: 480 }, { midi: 62, duration: 480 }, { midi: 64, duration: 960 }, { midi: null, duration: 1920 },
+  ] }],
+}
+
+const unit = {
+  id: 'u1', header: 'Bars 73–74 · maj7 arpeggio from the b3',
+  steps: [
+    { kind: 'loop', exercise: rhythmic, prompt: 'p' },
+    { kind: 'through', tune: 'Hey Lock', exercises: [exercise], prompt: 'p' },
+    { kind: 'visualise', cues: ['c'], prompt: 'p' },
+    { kind: 'vary', exercises: [exercise, exercise], prompt: 'p' },
+    { kind: 'write', template: '<xml/>', examples: [exercise], prompt: 'p' },
+  ],
+} as unknown as PracticeUnit
+
+describe('unitToMusicXml', () => {
+  const xml = unitToMusicXml(unit, tenor)
+
+  it('is one part our parser reads back, with continuous measure numbers', () => {
+    const score = ingestXml(xml)
+    // loop 1 bar + through 2 + vary 2×2 + write 2 = 9
+    expect(score.barCount).toBe(9)
+    const numbers = [...xml.matchAll(/<measure number="(\d+)"/g)].map((m) => Number(m[1]))
+    expect(numbers).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9])
+  })
+
+  it('opens every exercise on a new system with its title, and attributes for its divisions', () => {
+    expect((xml.match(/<print new-system="yes"\/>/g) ?? []).length).toBe(5)
+    expect((xml.match(/<words>/g) ?? []).length).toBe(5)
+    expect((xml.match(/<attributes>/g) ?? []).length).toBe(5)
+    expect(xml).toContain('<words>Loop · the line as played</words>')
+    expect(xml).toContain('<words>Through Hey Lock · digital pattern 1235 through the cycle of fourths</words>')
+    expect(xml).toContain('<words>Vary · digital pattern 1235 through the cycle of fourths</words>')
+    expect(xml).toContain('<words>Write your own — examples · digital pattern 1235 through the cycle of fourths</words>')
+  })
+
+  it('titles the score with the unit header and keeps the transposition', () => {
+    expect(xml).toContain('<work-title>Bars 73–74 · maj7 arpeggio from the b3</work-title>')
+    expect(ingestXml(xml).instrument.name).toBe('Bb tenor saxophone')
+  })
+
+  it('leaves exerciseToMusicXml unchanged', () => {
+    const one = exerciseToMusicXml(exercise, tenor)
+    expect(one).not.toContain('<print')
+    expect(one).not.toContain('<words>')
+    expect((one.match(/<attributes>/g) ?? []).length).toBe(1)
   })
 })

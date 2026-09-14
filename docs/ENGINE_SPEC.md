@@ -600,6 +600,16 @@ Even eighths (divisions 2) unless `ExerciseBar.events` present, then
 divisions 48 per quarter, exact plain/dotted/triplet types, `cue` notes
 small. Flats-preferred spelling.
 
+`unitToMusicXml(unit, instrument, options)` renders a practice unit as one
+part: for each step (loop → through → vary → write; visualise contributes
+nothing) every exercise becomes a run of measures opened by
+`<print new-system="yes"/>`, a words direction with its title (the step's
+first exercise prefixed `Loop ·`, `Through <tune> ·`, `Vary ·`, `Write your
+own — examples ·`) and its own `<attributes>` (divisions differ between
+even-eighth and rhythmic exercises). Measure numbers run continuously;
+`<work-title>` is the unit header. `exerciseToMusicXml` is the one-exercise
+case of the same builder and its output is unchanged.
+
 ## iReal charts (`practice/ireal.ts`)
 
 `irealb://` only. 50-char block unscramble; one cell = one beat; cells per

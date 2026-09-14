@@ -1,6 +1,7 @@
 import type { Exercise, ExerciseBar, ExerciseEvent, BarChord } from '../generate/index.ts'
 import { TICKS_PER_QUARTER } from '../core/types.ts'
 import type { Instrument, Quality } from '../core/types.ts'
+import type { Step, PracticeUnit } from '../practice/unit.ts'
 
 /**
  * Written pitch spelling, flats preferred — the jazz convention, and the way
@@ -224,13 +225,13 @@ function eventXml(event: ExerciseEvent, beam: string, tuplet: string, sharps: bo
 function rhythmicMeasureXml(
   bar: ExerciseBar,
   number: number,
-  instrument: Instrument,
-  timeSig: [number, number],
+  _instrument: Instrument,
+  _timeSig: [number, number],
   options: RenderOptions,
+  head: string,
 ): string {
   const events = expandRests(bar.events ?? [])
   const chords: BarChord[] = bar.chords ?? [{ onset: 0, rootPc: bar.rootPc, quality: bar.quality }]
-  const head = number === 1 ? attributesXml(instrument, FINE_DIVISIONS, timeSig, options) : ''
   let out = `<measure number="${number}">${head}`
   const beams = beamMarks(events)
   const tuplets = tupletMarks(events)
@@ -262,17 +263,43 @@ function restsXml(eighths: number): string {
   return out
 }
 
-function measureXml(bar: ExerciseBar, number: number, instrument: Instrument, options: RenderOptions): string {
+function measureXml(bar: ExerciseBar, number: number, _instrument: Instrument, options: RenderOptions, head: string): string {
   const midis = bar.midis.slice(0, EIGHTHS_PER_BAR)
   const beams = beamMarks(midis.map((midi) => ({ midi, duration: TICKS_PER_QUARTER / 2 })))
   const notes = midis
     .map((midi, i) => `<note>${pitchXml(midi, (options.keyFifths ?? 0) > 0)}<duration>1</duration><type>eighth</type>${beams[i]}</note>`)
     .join('')
-  const head = number === 1 ? attributesXml(instrument, DIVISIONS, [4, 4], options) : ''
   return (
     `<measure number="${number}">${head}${harmonyXml(bar)}${notes}` +
     `${restsXml(EIGHTHS_PER_BAR - midis.length)}</measure>`
   )
+}
+
+function scoreXml(title: string, measures: string[]): string {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.1 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">
+<score-partwise version="3.1">
+  <work><work-title>${escapeXml(title)}</work-title></work>
+  <part-list><score-part id="P1"><part-name>Exercise</part-name></score-part></part-list>
+  <part id="P1">
+      ${measures.join('\n      ')}
+  </part>
+</score-partwise>
+`
+}
+
+/** An exercise's measures, numbered from `from`; `lead` is prepended to the first measure's content (print, words). */
+function exerciseMeasures(exercise: Exercise, instrument: Instrument, options: RenderOptions, from: number, lead = ''): string[] {
+  const rhythmic = exercise.bars.some((b) => b.events)
+  const timeSig = exercise.timeSig ?? [4, 4]
+  return exercise.bars.map((bar, index) => {
+    const head = index === 0
+      ? lead + attributesXml(instrument, rhythmic ? FINE_DIVISIONS : DIVISIONS, rhythmic ? timeSig : [4, 4], options)
+      : ''
+    return rhythmic
+      ? rhythmicMeasureXml(bar, from + index, instrument, timeSig, options, head)
+      : measureXml(bar, from + index, instrument, options, head)
+  })
 }
 
 /**
@@ -284,22 +311,44 @@ function measureXml(bar: ExerciseBar, number: number, instrument: Instrument, op
  * artefact rather than something the player meant.
  */
 export function exerciseToMusicXml(exercise: Exercise, instrument: Instrument, options: RenderOptions = {}): string {
-  const rhythmic = exercise.bars.some((b) => b.events)
-  const timeSig = exercise.timeSig ?? [4, 4]
-  const measures = exercise.bars
-    .map((bar, index) => rhythmic
-      ? rhythmicMeasureXml(bar, index + 1, instrument, timeSig, options)
-      : measureXml(bar, index + 1, instrument, options))
-    .join('\n      ')
+  const measures = exerciseMeasures(exercise, instrument, options, 1)
+  return scoreXml(exercise.title, measures)
+}
 
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.1 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">
-<score-partwise version="3.1">
-  <work><work-title>${escapeXml(exercise.title)}</work-title></work>
-  <part-list><score-part id="P1"><part-name>Exercise</part-name></score-part></part-list>
-  <part id="P1">
-      ${measures}
-  </part>
-</score-partwise>
-`
+const STEP_TITLE: Record<string, (step: Step) => string> = {
+  loop: () => 'Loop',
+  through: (s) => `Through ${(s as Extract<Step, { kind: 'through' }>).tune}`,
+  vary: () => 'Vary',
+  write: () => 'Write your own — examples',
+}
+
+function stepExercises(step: Step): Exercise[] {
+  switch (step.kind) {
+    case 'loop': return [step.exercise]
+    case 'through': return step.exercises
+    case 'vary': return step.exercises
+    case 'write': return step.examples
+    case 'visualise': return []
+  }
+}
+
+function sectionLead(title: string): string {
+  return `<print new-system="yes"/><direction placement="above"><direction-type><words>${escapeXml(title)}</words></direction-type></direction>`
+}
+
+/**
+ * One practice unit as one score: a section per step, every exercise on its
+ * own system under its title, measures numbered straight through. The
+ * MuseScore plugin opens this as a tab; the visualise step has no notes and
+ * stays in the panel. Spec 2026-09-14 marks-and-exercises D3.
+ */
+export function unitToMusicXml(unit: PracticeUnit, instrument: Instrument, options: RenderOptions = {}): string {
+  const measures: string[] = []
+  for (const step of unit.steps) {
+    stepExercises(step).forEach((exercise, i) => {
+      const title = i === 0 ? `${STEP_TITLE[step.kind](step)} · ${exercise.title}` : exercise.title
+      measures.push(...exerciseMeasures(exercise, instrument, options, measures.length + 1, sectionLead(title)))
+    })
+  }
+  return scoreXml(unit.header, measures)
 }
