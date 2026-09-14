@@ -50,4 +50,15 @@ describe('analyseXml', () => {
       if (a.severity === 'info') expect(r2.warnings).not.toContain(a.reason)
     }
   })
+
+  it('carries a mark plan, a colour per finding and a score per unit', () => {
+    const r = analyseXml(xml)
+    expect(Array.isArray(r.marks)).toBe(true)
+    for (const f of r.findings) expect(f.colour).toMatch(/^#[0-9a-f]{6}$/)
+    for (const u of r.units) {
+      expect(u.scoreXml.startsWith('<?xml')).toBe(true)
+      expect(u.scoreXml).toContain('<transpose>')
+    }
+    expect(JSON.parse(JSON.stringify(r))).toEqual(r)
+  })
 })

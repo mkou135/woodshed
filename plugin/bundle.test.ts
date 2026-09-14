@@ -16,7 +16,7 @@ const HAS_BUNDLE = existsSync(BUNDLE)
  * `String.prototype.trimStart`/`trimEnd`/`matchAll`/`replaceAll`, or
  * `Object.fromEntries`.
  */
-function bareLoad(): { analyseXml: (xml: string) => { findings: { name: string }[]; units: unknown[] } } {
+function bareLoad(): { analyseXml: (xml: string) => { findings: { name: string }[]; units: unknown[]; marks: unknown[] } } {
   const ctx = createContext({})
   runInContext(`
     delete Array.prototype.flat; delete Array.prototype.flatMap
@@ -52,5 +52,6 @@ describe.skipIf(!HAS_BUNDLE)('plugin/woodshed.js (run `npm run plugin:build` fir
     expect(r.findings[0].name).toBe('major-seventh arpeggio from the b3')
     expect(r.findings.length).toBeGreaterThanOrEqual(6)
     expect(r.findings.length).toBeLessThanOrEqual(17)
+    expect(r.marks.length).toBeGreaterThan(0)
   })
 })
