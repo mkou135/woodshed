@@ -499,3 +499,48 @@ their own menu entry.
   re-pins that golden line, so a future correct fix will read as a regression
   against it until then. Related: "Which notes are the solo in a piano
   score?".
+
+## MuseScore plugin follow-ups (2026-09-14)
+
+- **Exercises as new tabs.** `exerciseToMusicXml` plus
+  `api.engraving.readScore(path)` would open each exercise as a score.
+  Resolve: decide whether one tab per exercise is tolerable, or whether a
+  single "exercises" score with a section break per exercise is the shape.
+- **Agent layer in the plugin.** The SDK cannot run in QJSEngine; a raw
+  `XMLHttpRequest` client to the Messages API is a separate design, and
+  QML's XHR does reach the network. Resolve: whether the plugin is worth
+  the agent at all before designing it.
+- **Object-model ingest.** Would drop the export round trip. Blocked on
+  chord quality: the Harmony API exposes text and MuseScore's parsed name,
+  not `kind`. Resolve: measure export time first; if it is under a second
+  on the longest peer, leave this alone.
+- **Extension API stability.** `api.filesystem` exists in source but is
+  switched off in 4.7.4; if a later 4.x switches it on, the `TextEdit`
+  read-back can go. Resolve: re-read `extapi.h` on each MuseScore upgrade.
+  Also measured in 4.7.4: `MuseApi.Controls` exports `StyledListView`,
+  `ListItemBlank` and `FlatButton` but none of them loads — the first
+  imports a missing `internal` folder, the other two reach `Muse.Ui`
+  (`NavigationFocusBorder is not a type`), which the extension engine
+  does not expose. Only `ExtensionBlank` and `StyledTextLabel` load; the
+  panel is otherwise plain Qt Quick coloured from `MuseApi.Theme`. And
+  MuseScore's own extension error page (`ExtensionErrorMessage.qml`) is
+  missing from the build, so any QML load failure shows as an empty
+  dialog — the log is the only place the reason appears. Re-check the
+  whole set on each upgrade, not just `api.filesystem`.
+- **Qt V4 builtins.** V4 in 4.7.4 lacks `flat`/`flatMap`/`trimStart`/
+  `trimEnd`/`at`/`findLast`/`matchAll`/`replaceAll`/`Object.fromEntries`;
+  the bundle carries guarded polyfills for the four it uses. Resolve: on
+  each MuseScore upgrade, drop the polyfills whose guards no longer fire.
+- **The copy and exercise tabs are unverified in-app** (2026-09-14). The
+  QML was reviewed by reading only. Unknowns until the owner's run: that
+  `cursor.element.type === api.engraving.Element.CHORD` is the right test,
+  that `TextDocument.saveAs` completes before `readScore` reads the file,
+  and how many marks the key lookup places on Blake (tuplet beats round to
+  MuseScore ticks; pickup bars shift nothing since keys are file-order
+  measures). Resolve: run it; read "placed N of M" and the log.
+- **`tmp/` accumulates** one export per annotate/exercise press and no
+  extension API deletes files. Resolve: reuse one name per kind if
+  `readScore` on an already-open path turns out to open a second tab after
+  all; else document "empty the folder now and then".
+- **Header row width.** Three buttons plus the title in a 560 px panel may
+  overflow. Resolve: look; wrap into two rows if it does.

@@ -6,7 +6,7 @@ the code. Each section names the file that implements it — if this file and
 the code disagree, that is a bug to fix immediately, in whichever direction
 the DECISIONS log supports.
 
-Last updated: 2026-09-02 (session 21).
+Last updated: 2026-09-14 (session 25).
 
 ## Units
 
@@ -600,6 +600,16 @@ Even eighths (divisions 2) unless `ExerciseBar.events` present, then
 divisions 48 per quarter, exact plain/dotted/triplet types, `cue` notes
 small. Flats-preferred spelling.
 
+`unitToMusicXml(unit, instrument, options)` renders a practice unit as one
+part: for each step (loop → through → vary → write; visualise contributes
+nothing) every exercise becomes a run of measures opened by
+`<print new-system="yes"/>`, a words direction with its title (the step's
+first exercise prefixed `Loop ·`, `Through <tune> ·`, `Vary ·`, `Write your
+own — examples ·`) and its own `<attributes>` (divisions differ between
+even-eighth and rhythmic exercises). Measure numbers run continuously;
+`<work-title>` is the unit header. `exerciseToMusicXml` is the one-exercise
+case of the same builder and its output is unchanged.
+
 ## iReal charts (`practice/ireal.ts`)
 
 `irealb://` only. 50-char block unscramble; one cell = one beat; cells per
@@ -1005,6 +1015,11 @@ ids; no pitch, count or interval can ride in one. Runs whenever a key is
 present (CLI env `ANTHROPIC_API_KEY`; page BYOK from localStorage,
 browser-direct); keyless runs are byte-identical to the engine alone.
 
+The deterministic pipeline (`run`, `runXml`, `describeFinding`) lives in
+`src/run.ts`, which imports nothing from `src/agent/`; `pipeline.ts`
+re-exports it and adds `runWithAgent`. The MuseScore bundle enters through
+`run.ts` and so carries neither the SDK nor zod (spec 2026-09-14).
+
 - Model: default `claude-opus-5`; the page's model dropdown (next to the
   BYOK key, `localStorage` `woodshed.agentModel`: Opus 5 / Sonnet 5 /
   Haiku 4.5) or the CLI env `ANTHROPIC_MODEL` override it
@@ -1029,6 +1044,78 @@ browser-direct); keyless runs are byte-identical to the engine alone.
 - `npm run eval:agent`: idea recall on the first 20 WJD solos, engine vs
   adjudicated, recordings only. Ship rule: job 3 does not run live by
   default until the adjudicated number beats the engine's.
+
+## MuseScore plugin (`plugin/`, spec docs/superpowers/specs/2026-09-14-musescore-plugin-design.md)
+
+- Vehicle: a MuseScore 4.7 extension (`plugin/manifest.json`, type `form`);
+  installed to `~/Library/Application Support/MuseScore/MuseScore4/extensions/woodshed`
+  by `npm run plugin:install`.
+- Engine bundle: `plugin/woodshed.js`, built by `vite.plugin.config.ts`
+  from `plugin/entry.ts` — IIFE, global `woodshed`, target ES2016, unminified.
+  Entry imports `src/run.ts` only; the agent layer is never reached.
+- Boundary: `analyseXml(xml) → PluginResult` — `findings` (the `FindingView`s
+  in rank order, each with a paper-ramp `colour`), `units` (id, findingIds,
+  header, the four step prompts, and `scoreXml` — the unit rendered by
+  `unitToMusicXml` with `<transpose>` kept), `warnings` (adjustments at
+  warn/blocking), `marks` (the `markPlan` below), `title`, `tune`, `timing`.
+  Every unit's score is rendered up front; the bundle holds no state.
+- Ingest: MuseScore exports the open score to the **installed** extension's
+  `tmp/solo.musicxml` (`~/Library/Application Support/MuseScore/MuseScore4/
+  extensions/woodshed/tmp/`, not the repo's `plugin/tmp/`) via
+  `api.engraving.writeScore`, the panel reads it back through a hidden
+  `TextEdit` (`TextDocument.source`), and `ingestXml` parses it. The export
+  path is `decodeURIComponent`-ed before use — the default extensions
+  folder sits under "Application Support", and `Qt.resolvedUrl(...)`
+  percent-encodes the space; a literal `%` in a folder name throws
+  `URIError`, caught to fall back to the undecoded path. Same MusicXML
+  rules as the page; chord quality from `<kind>`.
+- Panel controls: `ExtensionBlank` and `StyledTextLabel` from
+  `MuseApi.Controls`; everything else (button, list, rows) is plain Qt
+  Quick coloured from `MuseApi.Theme`. `StyledListView`, `ListItemBlank`
+  and `FlatButton` all fail to load in 4.7.4 (missing `internal` folder;
+  `Muse.Ui` types the extension engine does not expose).
+- Not governed by DESIGN_SYSTEM.md: the panel uses `MuseApi.Theme`.
+- Runtime gaps: Qt 6.10's V4 lacks the ES2019 array/string builtins
+  (`flat`, `flatMap`, `trimStart`, `trimEnd`, and also `at`, `findLast`,
+  `matchAll`, `replaceAll`, `Object.fromEntries`); `vite.plugin.config.ts`
+  prepends guarded polyfills for the four the bundle uses, and
+  `plugin/bundle.test.ts` deletes all of them from its VM context before
+  loading, so a new use of one fails the test rather than the panel.
+- Proof: `plugin/bundle.test.ts` runs the bundle in a bare `node:vm`
+  context (no TextDecoder/process/fetch/DOM, and V4's missing builtins
+  removed) against Blake and asserts the pinned top finding. Skips without
+  the bundle. `plugin/imports.test.ts` walks the entry's import graph
+  statically (no build needed) and asserts it never reaches the agent
+  layer or the Anthropic SDK/zod, and that `fflate` has one importer.
+  `npm run typecheck` also runs `tsconfig.plugin.json` — `plugin/entry.ts`
+  and everything it imports, checked without the DOM lib.
+- Marks on the copy (`render/marks.ts` `markPlan`): one `colour` mark per
+  note in every finding span (colour by `findingColour`: language →
+  device → cell → recurring, the page's lane precedence); one staff `text`
+  per occurrence, `"<rank> · <name>"`; one system `text` per phrase start
+  (`"1"`, at the phrase onset when that precedes its first note) and per
+  idea after the first (`"1.2"`); one staff `text` per warn/blocking
+  adjustment at its bar, `"⚠ <reason>"`. Written bars only; a repeat's
+  second pass gets nothing. Colours are the paper ramp (DESIGN_SYSTEM
+  "Marks — the pairs"), copied into `PAPER`. Later marks win on a shared
+  note, so a device inside a cell shows the device.
+- Copy and exercise tabs (`plugin/Woodshed.qml`, spec
+  docs/superpowers/specs/2026-09-14-musescore-marks-and-exercises-design.md):
+  "Open annotated copy" writes the export again through a second hidden
+  `TextEdit` (`TextDocument.saveAs`, the one file-writing route an
+  extension has) as `tmp/annotated-<ms>.musicxml`, opens it with
+  `api.engraving.readScore` (a new tab, the original untouched), then one
+  cursor pass over track 0 indexes chord segments by
+  `"<measure index>:<tick in measure>"` (both 1-based measure numbers, ticks
+  in `api.engraving.division` units, `beat × division` rounded) and, inside
+  `startCmd`/`endCmd`, colours every note of a hit chord or adds
+  `STAFF_TEXT`/`SYSTEM_TEXT` via `newElement` + `cursor.add`. Marks with no
+  chord at their key are skipped and counted; the panel reports "placed N
+  of M". "Open exercises for this idea" writes the selected finding's unit
+  `scoreXml` as `tmp/exercises-<unit>-<ms>.musicxml` and opens it. Fresh
+  names each press because `readScore` on an open path refocuses the tab;
+  `tmp/` accumulates (no delete API). **Not yet seen running** as of
+  2026-09-14 — the owner's acceptance run is pending (LEDGER).
 
 ## Verification targets
 

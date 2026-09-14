@@ -1430,3 +1430,87 @@ draw under headless Chrome — OSMD lays out at zero width there ("width
 not > 0 in measure 1") — and that is true on main too, so the paper ramp
 was checked numerically rather than by eye. Worth a look on a real
 machine → OPEN_QUESTIONS.
+
+2026-09-14 · session 25 · the engine runs inside MuseScore. Spec
+`docs/superpowers/specs/2026-09-14-musescore-plugin-design.md`, plan
+`docs/superpowers/plans/2026-09-14-musescore-plugin.md`, both owner-approved
+in chat. Read from the v4.7.4 source: `writeScore` runs the real export
+scenario; no file-reading API exists for an extension (`api.filesystem`
+commented out, `FileIO` unregistered, `newQProcess` NOT_IMPLEMENTED, XHR
+gated by an env var MuseScore does not set), but Qt Quick's
+`TextDocument.source` reads a local file ungated; the Harmony API exposes
+no `kind`. Shipped: `ingestXml`; `src/run.ts` (run/runXml/describeFinding,
+no agent import); `plugin/entry.ts` `analyseXml`; `vite.plugin.config.ts`
+→ `plugin/woodshed.js` (282,864 bytes, ES2016 IIFE, needs
+`publicDir: false`); `plugin/bundle.test.ts` runs it in a bare `node:vm`
+context against Blake and reproduces the pinned top finding;
+`plugin/manifest.json`, `plugin/Woodshed.qml`, `scripts/plugin-install.ts`;
+npm `plugin:build`, `plugin:install`. Installed and launched three times
+with Blake open; MuseScore parsed the manifest and dispatched the action
+each time. First launch: the panel failed to load — `Type StyledListView
+unavailable … "internal": no such directory` — swapped for plain `ListView`.
+Review then caught `Qt.resolvedUrl(...).toString()` percent-encodes the
+space in "Application Support", so `writeScore` would have received
+`Application%20Support`; added `decodeURIComponent`. After both fixes the
+log shows no load error. Not verified in-app: the panel itself — it
+auto-opened only on the first launch and could not be reopened by script,
+so nobody has seen the findings list render or the export run. Owner's
+next step: open Blake, Plugins → "Woodshed: analyse solo", expect
+"major-seventh arpeggio from the b3" at bars 73, 77 on top, ~15 findings,
+two timings on the bottom line, and `tmp/solo.musicxml` in the extension
+folder afterward. Harmless "used before its declaration" warnings from
+fast-xml-parser's hoisted functions log on every open. Typecheck clean;
+tests 698 pass / 0 fail / 62 files. Branch `musescore-plugin`, 10 commits
+ahead of main before this one (eight implementation, two spec/plan).
+
+Final whole-branch review found the bundle's top-level `flatMap` call
+(from `shapes.ts`'s `DICTIONARY`) would throw at load in Qt 6.10's V4 —
+the panel could not have rendered on any of those three launches. Fixed
+with a guarded polyfill banner in `vite.plugin.config.ts` (`flat`,
+`flatMap`, `trimStart`, `trimEnd`) and a `plugin/bundle.test.ts` VM
+context that deletes those plus five more V4 gaps before loading the
+bundle, so the test would have caught it. Also added: `plugin/
+imports.test.ts`, a build-free static walk of the entry's import graph
+proving it never reaches the agent layer or the Anthropic SDK/zod, and
+that `fflate` has one importer; `tsconfig.plugin.json`, a DOM-free
+typecheck of `plugin/entry.ts` and everything it imports, now part of
+`npm run typecheck`; the read-back error now names `TextDocument.status`;
+`localPath` survives a literal `%` in a folder name. Owner's next step,
+extended: then press Analyse again and confirm the list re-renders and
+the export timing changes — the second run is the only exercise of the
+`textDocument.source` reset.
+
+2026-09-14 · session 25 (cont.) · the panel renders. Owner's first run
+showed an empty dialog: the log had `Type ListItemBlank unavailable …
+NavigationFocusBorder is not a type` — `ListItemBlank` and `FlatButton`
+reach `Muse.Ui`, which the extension engine does not expose, and
+MuseScore's own error page is missing from the build, so a QML failure
+is a blank window. Rows and button are now plain Qt Quick with
+`MuseApi.Theme` colours; only `ExtensionBlank` and `StyledTextLabel`
+survive from `MuseApi.Controls`. Also learned: MuseScore scans
+`extensions/` at launch only and caches compiled QML for the session, so
+every reinstall needs a full quit. After the restart the new session
+logged no load error and `tmp/solo.musicxml` (582 KB) was written —
+the export path and read-back work. Not yet seen by Claude: the list
+itself; the owner moved on to the next request without a screenshot.
+
+2026-09-14 · session 25 (cont.) · marks on a copy, exercises as tabs.
+Owner asked to see the licks on the score, open exercises in a tab, and
+see the engine's annotations on a copy; chose copy-only marks, all four
+layers (coloured lick noteheads, occurrence labels, phrase/idea numbers,
+warnings), one exercise tab per practice unit on demand. Spec and plan
+under docs/superpowers/{specs,plans}/2026-09-14-musescore-marks-and-
+exercises*. Shipped: `render/marks.ts` `markPlan` + `findingColour` +
+`PAPER` (the paper ramp, one host over); `render/musicxml.ts`
+`unitToMusicXml` (single-exercise output byte-identical, pinned);
+`plugin/entry.ts` adds `marks`, `findings[].colour`, `units[].scoreXml`;
+`Woodshed.qml` gains a writer `TextEdit`, "Open annotated copy" (cursor
+walk, `startCmd`/`endCmd` in a `finally`, placed/total in a status line),
+"Open exercises for this idea", a colour dot per row. Caught in review:
+`Score.barCount` counts played bars (the second-pass test subtracts the
+repeats); the barrel already exported a `Mark` (staff-text marks) — the
+new type is `CopyMark` there. Typecheck clean; tests 713 pass / 0 fail /
+64 files; bundle 288 KB. **Not verified in-app:** the owner paused before
+the run, so nobody has seen the two new buttons work; merged to main at
+the owner's request with that stated here and in OPEN_QUESTIONS. Next
+session starts with: install, relaunch, Blake, both buttons, screenshot.

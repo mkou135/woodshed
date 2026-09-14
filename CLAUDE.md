@@ -48,6 +48,8 @@ npm run test:run   # NEVER bare `npm test` — watch mode, hangs tool calls
 npm run test:run -- -u   # re-pin goldens/peers.txt after an intended engine change
 npm run typecheck
 npm run build
+npm run plugin:build   # engine → plugin/woodshed.js (ES2016 IIFE for MuseScore's QJSEngine)
+npm run plugin:install # build, then copy plugin/ into MuseScore 4's extensions folder; restart MuseScore
 ```
 
 ## Non-negotiables
@@ -75,6 +77,9 @@ npm run build
   statistics with an attribution note; never commit or ship the notes
   themselves, and write test fixtures by hand rather than quoting a lick.
   See DECISIONS 2026-08-24 "Corpus licensing".
+- `plugin/entry.ts` imports `src/run.ts`, never `src/pipeline.ts` or
+  anything under `src/agent/`: the bundle runs in Qt's JavaScript engine,
+  where the SDK cannot. `plugin/bundle.test.ts` is the proof.
 
 ## Verifying
 
@@ -94,3 +99,7 @@ cycle exercise whose bars all ascend. `npm run solo` prints it;
 `src/peers.test.ts` runs every file in the folder through the structural
 invariants and pins per-solo counts in `goldens/peers.txt`; without the folder
 those suites skip, never fail.
+The plugin's acceptance is the same solo in MuseScore 4: `npm run plugin:install`,
+quit and relaunch MuseScore, open Blake, Plugins → Woodshed; "Open annotated
+copy" must show the same top finding coloured and labelled at bars 73 and 77
+in a new tab, with nothing changed on the original.

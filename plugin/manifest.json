@@ -1,0 +1,18 @@
+{
+  "uri": "musescore://extensions/woodshed",
+  "type": "form",
+  "title": "Woodshed",
+  "description": "Analyses the open solo and lists the vocabulary it contains.",
+  "version": "0.1.0",
+  "ui_context": "ProjectOpened",
+  "actions": [
+    {
+      "code": "analyse",
+      "type": "form",
+      "title": "Woodshed: analyse solo",
+      "path": "Woodshed.qml",
+      "show_on_appmenu": true,
+      "show_on_toolbar": false
+    }
+  ]
+}

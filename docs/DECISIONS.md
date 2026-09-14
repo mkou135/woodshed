@@ -1490,3 +1490,44 @@ Evidence class: owner picked from three built directions · owner + Claude ·
 would reverse: the owner finding the console tiring over a long practice
 session, or notation legibility suffering against the lit sheet in a real
 room.
+
+## 2026-09-14 · A MuseScore extension, fed by a MusicXML round trip (session 25)
+
+Question: how does the engine run inside MuseScore, and how does it read the
+open score?
+
+Decision: a 4.7 extension (manifest + QML form), not a legacy plugin; the
+score reaches the engine as MusicXML exported by MuseScore itself and read
+back through a hidden Qt Quick `TextEdit`, not by walking the object model.
+Findings only — no marks on the score, no exercises, no agent.
+
+Evidence: read from the v4.7.4 source. `writeScore` is implemented through
+the real export scenario; no file-reading API exists for an extension
+(`api.filesystem` commented out, `FileIO` unregistered, `newQProcess`
+NOT_IMPLEMENTED, XHR gated by an env var MuseScore does not set);
+`TextDocument.source` reads a local file with no gate. The Harmony API has no
+`kind`, so an object-model ingest would derive quality from text.
+
+Evidence class: source reading + one manual run · owner + Claude ·
+would reverse: a `kind` on the Harmony API, or export time that a player
+notices (the panel prints it).
+
+## 2026-09-14 · Marks on a copy are planned by the engine and drawn by the panel (session 25)
+
+Question: how do the engine's findings, phrases and warnings get onto a
+MuseScore score, and how do exercises get into MuseScore?
+
+Decision: the engine emits a pure mark plan (`render/marks.ts`: written
+bar, beat, colour, words) and the panel applies it through MuseScore's
+cursor API to a *copy* — the export re-opened as a new tab — never to the
+open file. Exercises: one tab per practice unit, rendered by the engine
+(`unitToMusicXml`, a section per step) and opened through `readScore`. The
+alternative, rewriting the MusicXML export with colour and words elements,
+was rejected: it round-trips a 580 KB MuseScore export through the XML
+builder with fidelity risk on every element and doubles the bundle.
+Colours are the design system's paper ramp, because the copy is a sheet.
+
+Evidence class: API reading (v4.7.4 source) + engine tests; the in-app
+run is pending · owner + Claude · would reverse: the cursor walk placing
+too few marks on real solos (the panel prints placed/total), or MuseScore
+exposing a proper duplicate-and-annotate API.
