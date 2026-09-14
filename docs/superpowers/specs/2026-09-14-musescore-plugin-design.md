@@ -31,8 +31,19 @@ Read from the `v4.7.4` tag of `musescore/MuseScore` and from the copy in
   (`engravingpluginapihelper.cpp`) through the real export scenario and only
   for the current score; `musicxml`, `xml` and `mxl` are registered writer
   extensions (`musicxmlmodule.cpp`).
-- `api.filesystem` (`filesystemapi.h`) has `readTextFile`, `writeTextFile`,
-  `remove`, `scanFiles`. The old `FileIO` QML type is not registered in 4.7.
+- There is no file-reading API for a 4.7.4 extension. `filesystemapi.h`
+  exists but its `api.filesystem` property is commented out in `extapi.h`,
+  `require()` is only in the macros engine and only resolves `MuseApi.*`
+  names, the old `FileIO` QML type is not registered, `newQProcess` is
+  `NOT_IMPLEMENTED`, and QML `XMLHttpRequest` refuses local files unless
+  `QML_XHR_ALLOW_FILE_READ=1`, which MuseScore does not set (`main.cpp`).
+- What does read a local file: Qt Quick's `TextDocument.source` (Qt 6.7+,
+  `qquicktextdocument.cpp` `load()`): a hidden `TextEdit` whose
+  `textDocument.source` is a `file:` URL loads it synchronously as plain
+  text with no gate; `textEdit.text` is the content.
+- `exportScores` with one notation writes exactly the path given and
+  replaces silently (`isCreatingOnlyOneFile` → `ReplaceAll`); the MusicXML
+  writer is `PER_PART`, and every peer file has one part.
 - The Harmony API exposes `plainText`, `displayText` and `harmonyName`
   (MuseScore's parsed canonical name). It does **not** expose the MusicXML
   `kind`. Reading chords from the object model would therefore have to
@@ -42,16 +53,20 @@ Read from the `v4.7.4` tag of `musescore/MuseScore` and from the copy in
 
 ### D1 — extension, not legacy plugin
 
-The extension framework is what MuseScore is building on, and it is the one
-with a file-system API. A legacy plugin would need a shell subprocess or an
-environment variable to read the exported file back.
+The extension framework is what MuseScore is building on; `manifest.json`
+plus a form is the shape new plugins take, and the form's QML engine has
+the same `api.engraving` the legacy one does. The read-back route
+(`TextDocument.source`) is plain Qt Quick and works in either.
 Would reverse: the extension API breaking across a 4.x release while legacy
 plugins keep working.
 
 ### D2 — MusicXML round trip, not object-model ingest
 
-The plugin exports the open score to a temporary `.musicxml`, reads it back
-as a string and hands it to the existing ingest. Every rule in
+The plugin exports the open score to `<plugin dir>/tmp/solo.musicxml`, reads
+it back through a hidden `TextEdit` and hands the string to the existing
+ingest. The file is overwritten on every run and never deleted, since no
+API can delete it; it is one score's worth of XML in the plugin's own
+folder. Every rule in
 `ENGINE_SPEC.md` "Note order", "Repeats" and the harmony parse applies
 unchanged, chord quality still comes from `<kind>`, and the input is the
 same MuseScore export the peers corpus and `goldens/peers.txt` already pin.
@@ -122,9 +137,11 @@ npm: `plugin:build`, `plugin:install` (build then copy).
 
 1. Panel opens (or "Analyse again" is pressed). `api.engraving.curScore`
    null → line "Open a score first."
-2. `writeScore(curScore, <plugin dir>/tmp/solo, "musicxml")` false → line
-   "MuseScore refused to export the score."
-3. `api.filesystem.readTextFile(path)` → string; `remove(path)`.
+2. `api.engraving.writeScore(curScore, <plugin dir>/tmp/solo.musicxml,
+   "musicxml")` false → line "MuseScore refused to export the score."
+3. Set the hidden `TextEdit`'s `textDocument.source` to the file URL (reset
+   to empty first so a second run reloads); `status` not `Loaded` → line
+   with `errorString`. `text` is the XML.
 4. `Engine.woodshed.analyseXml(xml)` inside try/catch → `PluginResult` or
    an error line.
 5. List renders. Timing line at the bottom: export ms + engine ms.
