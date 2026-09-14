@@ -522,3 +522,7 @@ their own menu entry.
   `FlatButton`, `StyledTextLabel`, `ListItemBlank` and `StyledFlickable`
   all load fine. Re-check the whole set on each upgrade, not just
   `api.filesystem`.
+- **Qt V4 builtins.** V4 in 4.7.4 lacks `flat`/`flatMap`/`trimStart`/
+  `trimEnd`/`at`/`findLast`/`matchAll`/`replaceAll`/`Object.fromEntries`;
+  the bundle carries guarded polyfills for the four it uses. Resolve: on
+  each MuseScore upgrade, drop the polyfills whose guards no longer fire.

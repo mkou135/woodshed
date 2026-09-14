@@ -1046,20 +1046,34 @@ re-exports it and adds `runWithAgent`. The MuseScore bundle enters through
 - Boundary: `analyseXml(xml) → PluginResult` — `findings` (the `FindingView`s
   in rank order), `units` (id, findingIds, header, the four step prompts),
   `warnings` (adjustments at warn/blocking), `title`, `tune`, `timing`.
-- Ingest: MuseScore exports the open score to `plugin/tmp/solo.musicxml`
-  (`api.engraving.writeScore`), the panel reads it back through a hidden
+- Ingest: MuseScore exports the open score to the **installed** extension's
+  `tmp/solo.musicxml` (`~/Library/Application Support/MuseScore/MuseScore4/
+  extensions/woodshed/tmp/`, not the repo's `plugin/tmp/`) via
+  `api.engraving.writeScore`, the panel reads it back through a hidden
   `TextEdit` (`TextDocument.source`), and `ingestXml` parses it. The export
   path is `decodeURIComponent`-ed before use — the default extensions
   folder sits under "Application Support", and `Qt.resolvedUrl(...)`
-  percent-encodes the space. Same MusicXML rules as the page; chord
-  quality from `<kind>`.
+  percent-encodes the space; a literal `%` in a folder name throws
+  `URIError`, caught to fall back to the undecoded path. Same MusicXML
+  rules as the page; chord quality from `<kind>`.
 - Panel list: plain Qt Quick `ListView`, not `MuseApi.Controls`'
   `StyledListView` — the shipped 4.7.4 `MuseApi.Controls` module lacks the
   `internal` folder that control imports, so it fails to load.
 - Not governed by DESIGN_SYSTEM.md: the panel uses `MuseApi.Theme`.
+- Runtime gaps: Qt 6.10's V4 lacks the ES2019 array/string builtins
+  (`flat`, `flatMap`, `trimStart`, `trimEnd`, and also `at`, `findLast`,
+  `matchAll`, `replaceAll`, `Object.fromEntries`); `vite.plugin.config.ts`
+  prepends guarded polyfills for the four the bundle uses, and
+  `plugin/bundle.test.ts` deletes all of them from its VM context before
+  loading, so a new use of one fails the test rather than the panel.
 - Proof: `plugin/bundle.test.ts` runs the bundle in a bare `node:vm`
-  context (no TextDecoder/process/fetch/DOM) against Blake and asserts the
-  pinned top finding. Skips without the bundle.
+  context (no TextDecoder/process/fetch/DOM, and V4's missing builtins
+  removed) against Blake and asserts the pinned top finding. Skips without
+  the bundle. `plugin/imports.test.ts` walks the entry's import graph
+  statically (no build needed) and asserts it never reaches the agent
+  layer or the Anthropic SDK/zod, and that `fflate` has one importer.
+  `npm run typecheck` also runs `tsconfig.plugin.json` — `plugin/entry.ts`
+  and everything it imports, checked without the DOM lib.
 
 ## Verification targets
 

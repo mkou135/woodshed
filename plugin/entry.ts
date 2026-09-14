@@ -43,7 +43,7 @@ export function analyseXml(xml: string): PluginResult {
       prompts: u.steps.map((s) => s.prompt),
     })),
     warnings: r.report.adjustments
-      .filter((a) => a.severity !== 'info')
+      .filter((a) => (['warn', 'blocking'] as const).includes(a.severity as 'warn' | 'blocking'))
       .map((a) => a.reason),
     timing: r.timing ?? { ingest: 0, prepare: 0, analyse: 0, practice: 0, total: 0 },
   }

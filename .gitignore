@@ -11,3 +11,5 @@ docs/research/audio-and-intent.md
 design/
 
 plugin/woodshed.js
+plugin/tmp/*
+!plugin/tmp/.gitkeep

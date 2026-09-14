@@ -1462,3 +1462,20 @@ folder afterward. Harmless "used before its declaration" warnings from
 fast-xml-parser's hoisted functions log on every open. Typecheck clean;
 tests 698 pass / 0 fail / 62 files. Branch `musescore-plugin`, 10 commits
 ahead of main before this one (eight implementation, two spec/plan).
+
+Final whole-branch review found the bundle's top-level `flatMap` call
+(from `shapes.ts`'s `DICTIONARY`) would throw at load in Qt 6.10's V4 —
+the panel could not have rendered on any of those three launches. Fixed
+with a guarded polyfill banner in `vite.plugin.config.ts` (`flat`,
+`flatMap`, `trimStart`, `trimEnd`) and a `plugin/bundle.test.ts` VM
+context that deletes those plus five more V4 gaps before loading the
+bundle, so the test would have caught it. Also added: `plugin/
+imports.test.ts`, a build-free static walk of the entry's import graph
+proving it never reaches the agent layer or the Anthropic SDK/zod, and
+that `fflate` has one importer; `tsconfig.plugin.json`, a DOM-free
+typecheck of `plugin/entry.ts` and everything it imports, now part of
+`npm run typecheck`; the read-back error now names `TextDocument.status`;
+`localPath` survives a literal `%` in a folder name. Owner's next step,
+extended: then press Analyse again and confirm the list re-renders and
+the export timing changes — the second run is the only exercise of the
+`textDocument.source` reset.
