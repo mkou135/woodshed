@@ -176,6 +176,10 @@ here and change it there in the same commit.
 
 The MuseScore panel (`plugin/Woodshed.qml`) is not the app either: it takes
 MuseScore's own theme through `MuseApi.Theme` and quotes none of these tokens.
+The *copy* of the score it annotates is a sheet, though, and its marks take
+the paper ramp above: `src/render/marks.ts` `PAPER` copies those seven
+values (cells, devices, recurring, common language, phrase, idea, and the
+device ochre again for warnings) and must move when `style.css` does.
 
 ## Working on this
 

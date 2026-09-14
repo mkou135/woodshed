@@ -1493,3 +1493,24 @@ every reinstall needs a full quit. After the restart the new session
 logged no load error and `tmp/solo.musicxml` (582 KB) was written —
 the export path and read-back work. Not yet seen by Claude: the list
 itself; the owner moved on to the next request without a screenshot.
+
+2026-09-14 · session 25 (cont.) · marks on a copy, exercises as tabs.
+Owner asked to see the licks on the score, open exercises in a tab, and
+see the engine's annotations on a copy; chose copy-only marks, all four
+layers (coloured lick noteheads, occurrence labels, phrase/idea numbers,
+warnings), one exercise tab per practice unit on demand. Spec and plan
+under docs/superpowers/{specs,plans}/2026-09-14-musescore-marks-and-
+exercises*. Shipped: `render/marks.ts` `markPlan` + `findingColour` +
+`PAPER` (the paper ramp, one host over); `render/musicxml.ts`
+`unitToMusicXml` (single-exercise output byte-identical, pinned);
+`plugin/entry.ts` adds `marks`, `findings[].colour`, `units[].scoreXml`;
+`Woodshed.qml` gains a writer `TextEdit`, "Open annotated copy" (cursor
+walk, `startCmd`/`endCmd` in a `finally`, placed/total in a status line),
+"Open exercises for this idea", a colour dot per row. Caught in review:
+`Score.barCount` counts played bars (the second-pass test subtracts the
+repeats); the barrel already exported a `Mark` (staff-text marks) — the
+new type is `CopyMark` there. Typecheck clean; tests 713 pass / 0 fail /
+64 files; bundle 288 KB. **Not verified in-app:** the owner paused before
+the run, so nobody has seen the two new buttons work; merged to main at
+the owner's request with that stated here and in OPEN_QUESTIONS. Next
+session starts with: install, relaunch, Blake, both buttons, screenshot.

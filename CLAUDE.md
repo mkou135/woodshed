@@ -99,3 +99,7 @@ cycle exercise whose bars all ascend. `npm run solo` prints it;
 `src/peers.test.ts` runs every file in the folder through the structural
 invariants and pins per-solo counts in `goldens/peers.txt`; without the folder
 those suites skip, never fail.
+The plugin's acceptance is the same solo in MuseScore 4: `npm run plugin:install`,
+quit and relaunch MuseScore, open Blake, Plugins → Woodshed; "Open annotated
+copy" must show the same top finding coloured and labelled at bars 73 and 77
+in a new tab, with nothing changed on the original.

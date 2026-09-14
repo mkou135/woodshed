@@ -101,7 +101,7 @@ keeps the bundle stateless; nothing is rendered lazily.
   Then, on the returned score: `startCmd('Woodshed marks')`; one cursor
   pass over track 0 building a map `"<measureIndex>:<tickInMeasure>" →
   segment tick` for every chord segment; for each mark, compute the key
-  from `bar - 1` and `beat × division`, skip silently when absent; colour
+  from `bar` (both sides 1-based) and `beat × division`, skip silently when absent; colour
   every note of the chord, or `rewindToTick` + `newElement` + `.text` +
   `.color` + `cursor.add`; `endCmd()`. Marks the walk cannot place are
   counted and reported in the panel line ("placed 212 of 214 marks").

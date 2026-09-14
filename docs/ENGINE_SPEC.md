@@ -1054,8 +1054,11 @@ re-exports it and adds `runWithAgent`. The MuseScore bundle enters through
   from `plugin/entry.ts` — IIFE, global `woodshed`, target ES2016, unminified.
   Entry imports `src/run.ts` only; the agent layer is never reached.
 - Boundary: `analyseXml(xml) → PluginResult` — `findings` (the `FindingView`s
-  in rank order), `units` (id, findingIds, header, the four step prompts),
-  `warnings` (adjustments at warn/blocking), `title`, `tune`, `timing`.
+  in rank order, each with a paper-ramp `colour`), `units` (id, findingIds,
+  header, the four step prompts, and `scoreXml` — the unit rendered by
+  `unitToMusicXml` with `<transpose>` kept), `warnings` (adjustments at
+  warn/blocking), `marks` (the `markPlan` below), `title`, `tune`, `timing`.
+  Every unit's score is rendered up front; the bundle holds no state.
 - Ingest: MuseScore exports the open score to the **installed** extension's
   `tmp/solo.musicxml` (`~/Library/Application Support/MuseScore/MuseScore4/
   extensions/woodshed/tmp/`, not the repo's `plugin/tmp/`) via
@@ -1096,6 +1099,23 @@ re-exports it and adds `runWithAgent`. The MuseScore bundle enters through
   second pass gets nothing. Colours are the paper ramp (DESIGN_SYSTEM
   "Marks — the pairs"), copied into `PAPER`. Later marks win on a shared
   note, so a device inside a cell shows the device.
+- Copy and exercise tabs (`plugin/Woodshed.qml`, spec
+  docs/superpowers/specs/2026-09-14-musescore-marks-and-exercises-design.md):
+  "Open annotated copy" writes the export again through a second hidden
+  `TextEdit` (`TextDocument.saveAs`, the one file-writing route an
+  extension has) as `tmp/annotated-<ms>.musicxml`, opens it with
+  `api.engraving.readScore` (a new tab, the original untouched), then one
+  cursor pass over track 0 indexes chord segments by
+  `"<measure index>:<tick in measure>"` (both 1-based measure numbers, ticks
+  in `api.engraving.division` units, `beat × division` rounded) and, inside
+  `startCmd`/`endCmd`, colours every note of a hit chord or adds
+  `STAFF_TEXT`/`SYSTEM_TEXT` via `newElement` + `cursor.add`. Marks with no
+  chord at their key are skipped and counted; the panel reports "placed N
+  of M". "Open exercises for this idea" writes the selected finding's unit
+  `scoreXml` as `tmp/exercises-<unit>-<ms>.musicxml` and opens it. Fresh
+  names each press because `readScore` on an open path refocuses the tab;
+  `tmp/` accumulates (no delete API). **Not yet seen running** as of
+  2026-09-14 — the owner's acceptance run is pending (LEDGER).
 
 ## Verification targets
 

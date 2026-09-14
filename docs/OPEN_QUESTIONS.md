@@ -531,3 +531,16 @@ their own menu entry.
   `trimEnd`/`at`/`findLast`/`matchAll`/`replaceAll`/`Object.fromEntries`;
   the bundle carries guarded polyfills for the four it uses. Resolve: on
   each MuseScore upgrade, drop the polyfills whose guards no longer fire.
+- **The copy and exercise tabs are unverified in-app** (2026-09-14). The
+  QML was reviewed by reading only. Unknowns until the owner's run: that
+  `cursor.element.type === api.engraving.Element.CHORD` is the right test,
+  that `TextDocument.saveAs` completes before `readScore` reads the file,
+  and how many marks the key lookup places on Blake (tuplet beats round to
+  MuseScore ticks; pickup bars shift nothing since keys are file-order
+  measures). Resolve: run it; read "placed N of M" and the log.
+- **`tmp/` accumulates** one export per annotate/exercise press and no
+  extension API deletes files. Resolve: reuse one name per kind if
+  `readScore` on an already-open path turns out to open a second tab after
+  all; else document "empty the folder now and then".
+- **Header row width.** Three buttons plus the title in a 560 px panel may
+  overflow. Resolve: look; wrap into two rows if it does.
