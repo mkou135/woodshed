@@ -517,11 +517,16 @@ their own menu entry.
 - **Extension API stability.** `api.filesystem` exists in source but is
   switched off in 4.7.4; if a later 4.x switches it on, the `TextEdit`
   read-back can go. Resolve: re-read `extapi.h` on each MuseScore upgrade.
-  Also measured in 4.7.4: `MuseApi.Controls` exports `StyledListView` but
-  the module fails to load it (missing `internal` folder), while
-  `FlatButton`, `StyledTextLabel`, `ListItemBlank` and `StyledFlickable`
-  all load fine. Re-check the whole set on each upgrade, not just
-  `api.filesystem`.
+  Also measured in 4.7.4: `MuseApi.Controls` exports `StyledListView`,
+  `ListItemBlank` and `FlatButton` but none of them loads — the first
+  imports a missing `internal` folder, the other two reach `Muse.Ui`
+  (`NavigationFocusBorder is not a type`), which the extension engine
+  does not expose. Only `ExtensionBlank` and `StyledTextLabel` load; the
+  panel is otherwise plain Qt Quick coloured from `MuseApi.Theme`. And
+  MuseScore's own extension error page (`ExtensionErrorMessage.qml`) is
+  missing from the build, so any QML load failure shows as an empty
+  dialog — the log is the only place the reason appears. Re-check the
+  whole set on each upgrade, not just `api.filesystem`.
 - **Qt V4 builtins.** V4 in 4.7.4 lacks `flat`/`flatMap`/`trimStart`/
   `trimEnd`/`at`/`findLast`/`matchAll`/`replaceAll`/`Object.fromEntries`;
   the bundle carries guarded polyfills for the four it uses. Resolve: on

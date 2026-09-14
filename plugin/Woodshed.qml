@@ -105,9 +105,37 @@ ExtensionBlank {
                 anchors.verticalCenter: parent.verticalCenter
             }
 
-            FlatButton {
-                text: "Analyse again"
-                onClicked: root.analyse()
+            // FlatButton and ListItemBlank (MuseApi.Controls) reach MuseScore's
+            // internal Muse.Ui module (NavigationFocusBorder), which the
+            // extension engine does not expose in 4.7.4: "Type ListItemBlank
+            // unavailable … NavigationFocusBorder is not a type". Only
+            // ExtensionBlank and StyledTextLabel load, so the button and the
+            // list rows are plain Qt Quick, coloured from MuseApi.Theme.
+            Rectangle {
+                id: again
+                width: againLabel.implicitWidth + 24
+                height: 30
+                radius: 3
+                color: Theme.buttonColor
+                opacity: againArea.pressed ? Theme.buttonOpacityHit
+                       : againArea.containsMouse ? Theme.buttonOpacityHover
+                       : Theme.buttonOpacityNormal
+                border.width: Theme.borderWidth
+                border.color: Theme.strokeColor
+                anchors.verticalCenter: parent.verticalCenter
+
+                StyledTextLabel {
+                    id: againLabel
+                    anchors.centerIn: parent
+                    text: "Analyse again"
+                }
+
+                MouseArea {
+                    id: againArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: root.analyse()
+                }
             }
         }
 
@@ -129,7 +157,8 @@ ExtensionBlank {
         // StyledListView (MuseApi.Controls) imports an "internal" folder
         // this MuseScore 4.7.4 build's module does not ship, so the panel
         // fails to load with "Type StyledListView unavailable". Qt Quick's
-        // own ListView needs no extra import and renders the same delegate.
+        // own ListView needs no extra import; its rows are plain Rectangles
+        // for the reason given at the button above.
         ListView {
             id: list
             width: parent.width
@@ -138,11 +167,21 @@ ExtensionBlank {
             spacing: 4
             model: root.result ? root.result.findings : []
 
-            delegate: ListItemBlank {
+            delegate: Rectangle {
                 width: list.width
                 height: body.implicitHeight + 16
-                isSelected: index === root.selected
-                onClicked: root.selected = (root.selected === index ? -1 : index)
+                radius: 3
+                color: index === root.selected ? Theme.accentColor
+                     : rowArea.containsMouse ? Theme.buttonColor
+                     : "transparent"
+                opacity: index === root.selected ? Theme.accentOpacityNormal : 1.0
+
+                MouseArea {
+                    id: rowArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: root.selected = (root.selected === index ? -1 : index)
+                }
 
                 Column {
                     id: body

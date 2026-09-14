@@ -1479,3 +1479,17 @@ typecheck of `plugin/entry.ts` and everything it imports, now part of
 extended: then press Analyse again and confirm the list re-renders and
 the export timing changes — the second run is the only exercise of the
 `textDocument.source` reset.
+
+2026-09-14 · session 25 (cont.) · the panel renders. Owner's first run
+showed an empty dialog: the log had `Type ListItemBlank unavailable …
+NavigationFocusBorder is not a type` — `ListItemBlank` and `FlatButton`
+reach `Muse.Ui`, which the extension engine does not expose, and
+MuseScore's own error page is missing from the build, so a QML failure
+is a blank window. Rows and button are now plain Qt Quick with
+`MuseApi.Theme` colours; only `ExtensionBlank` and `StyledTextLabel`
+survive from `MuseApi.Controls`. Also learned: MuseScore scans
+`extensions/` at launch only and caches compiled QML for the session, so
+every reinstall needs a full quit. After the restart the new session
+logged no load error and `tmp/solo.musicxml` (582 KB) was written —
+the export path and read-back work. Not yet seen by Claude: the list
+itself; the owner moved on to the next request without a screenshot.

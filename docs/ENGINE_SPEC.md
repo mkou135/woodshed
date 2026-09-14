@@ -1056,9 +1056,11 @@ re-exports it and adds `runWithAgent`. The MuseScore bundle enters through
   percent-encodes the space; a literal `%` in a folder name throws
   `URIError`, caught to fall back to the undecoded path. Same MusicXML
   rules as the page; chord quality from `<kind>`.
-- Panel list: plain Qt Quick `ListView`, not `MuseApi.Controls`'
-  `StyledListView` — the shipped 4.7.4 `MuseApi.Controls` module lacks the
-  `internal` folder that control imports, so it fails to load.
+- Panel controls: `ExtensionBlank` and `StyledTextLabel` from
+  `MuseApi.Controls`; everything else (button, list, rows) is plain Qt
+  Quick coloured from `MuseApi.Theme`. `StyledListView`, `ListItemBlank`
+  and `FlatButton` all fail to load in 4.7.4 (missing `internal` folder;
+  `Muse.Ui` types the extension engine does not expose).
 - Not governed by DESIGN_SYSTEM.md: the panel uses `MuseApi.Theme`.
 - Runtime gaps: Qt 6.10's V4 lacks the ES2019 array/string builtins
   (`flat`, `flatMap`, `trimStart`, `trimEnd`, and also `at`, `findLast`,
