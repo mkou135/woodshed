@@ -27,8 +27,10 @@ ExtensionBlank {
     }
 
     function localPath(relative) {
-        // Qt.resolvedUrl gives file:///…; writeScore wants a plain path.
-        return Qt.resolvedUrl(relative).toString().replace(/^file:\/\//, "")
+        // Qt.resolvedUrl gives file:///… with spaces as %20; writeScore wants
+        // a plain POSIX path, and the default extensions folder is under
+        // "Application Support".
+        return decodeURIComponent(Qt.resolvedUrl(relative).toString().replace(/^file:\/\//, ""))
     }
 
     function analyse() {
