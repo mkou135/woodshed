@@ -12,7 +12,11 @@ export { UnsupportedScoreError } from './parseScore.ts'
  * the roughly one file in eight that carries chords only as words.
  */
 export function ingest(bytes: Uint8Array): Score {
-  const xml = readScoreXml(bytes)
+  return ingestXml(readScoreXml(bytes))
+}
+
+/** The same, from MusicXML already decoded to a string (the MuseScore plugin's path). */
+export function ingestXml(xml: string): Score {
   const score = parseScore(xml)
 
   const harmony = parseHarmonyTrack(xml)

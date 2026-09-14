@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { ingest } from './index.ts'
+import { ingest, ingestXml } from './index.ts'
 
 const load = (name: string): Uint8Array =>
   new Uint8Array(readFileSync(`fixtures/${name}`))
@@ -29,5 +29,13 @@ describe('ingest', () => {
   it('preserves marks that are not chords', () => {
     const score = ingest(load('transcriber-notes.musicxml'))
     expect(score.marks.map((m) => m.text)).toContain('sloppy')
+  })
+})
+
+describe('ingestXml', () => {
+  it('gives the same Score as ingest on the bytes', () => {
+    const bytes = new Uint8Array(readFileSync('fixtures/minimal-tenor.musicxml'))
+    const xml = readFileSync('fixtures/minimal-tenor.musicxml', 'utf8')
+    expect(ingestXml(xml)).toEqual(ingest(bytes))
   })
 })
