@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "npm run typecheck && vite build",
     "plugin:build": "vite build -c vite.plugin.config.ts",
+    "plugin:install": "npm run plugin:build && node --experimental-strip-types --no-warnings scripts/plugin-install.ts",
     "test": "vitest",
     "test:run": "vitest run",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.app.json",
