@@ -9,3 +9,5 @@ docs/research/audio-and-intent.md
 
 # Claude Design working files for the visual layer (artboards + seeded canvas)
 design/
+
+plugin/woodshed.js
