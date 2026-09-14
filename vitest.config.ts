@@ -11,6 +11,6 @@ export default defineConfig({
     // only app/ tests expected here are pure functions like
     // annotationExportHtml; anything needing a real DOM (downloadHtml,
     // ScoreView.exportAnnotations) isn't unit-tested this way regardless.
-    include: ['src/**/*.test.ts', 'app/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'app/**/*.test.ts', 'plugin/**/*.test.ts'],
   },
 })
