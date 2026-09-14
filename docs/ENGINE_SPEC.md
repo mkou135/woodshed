@@ -1076,6 +1076,16 @@ re-exports it and adds `runWithAgent`. The MuseScore bundle enters through
   layer or the Anthropic SDK/zod, and that `fflate` has one importer.
   `npm run typecheck` also runs `tsconfig.plugin.json` — `plugin/entry.ts`
   and everything it imports, checked without the DOM lib.
+- Marks on the copy (`render/marks.ts` `markPlan`): one `colour` mark per
+  note in every finding span (colour by `findingColour`: language →
+  device → cell → recurring, the page's lane precedence); one staff `text`
+  per occurrence, `"<rank> · <name>"`; one system `text` per phrase start
+  (`"1"`, at the phrase onset when that precedes its first note) and per
+  idea after the first (`"1.2"`); one staff `text` per warn/blocking
+  adjustment at its bar, `"⚠ <reason>"`. Written bars only; a repeat's
+  second pass gets nothing. Colours are the paper ramp (DESIGN_SYSTEM
+  "Marks — the pairs"), copied into `PAPER`. Later marks win on a shared
+  note, so a device inside a cell shows the device.
 
 ## Verification targets
 

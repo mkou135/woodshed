@@ -6,7 +6,7 @@ export type { Adjustment, AdjustmentKind, Severity } from './prepare/adjustments
 export type { SoloistRegion } from './prepare/soloists.ts'
 export type { FormResult } from './prepare/form.ts'
 export type {
-  Score, Note, Chord, ChordTrack, Instrument, Mark, Quality, Provenance,
+  Score, Note, Chord, ChordTrack, Instrument, Mark as ScoreMark, Quality, Provenance,
 } from './core/types.ts'
 export { TICKS_PER_QUARTER } from './core/types.ts'
 export { degreeOf, intervalsOf, isChordTone, pitchClass } from './core/pitch.ts'
@@ -21,6 +21,8 @@ export type { SoloProfile, RegionProfile, BarProfile } from './analyse/profile.t
 export { generateExercises } from './generate/index.ts'
 export type { Exercise, ExerciseBar } from './generate/index.ts'
 export { exerciseToMusicXml } from './render/musicxml.ts'
+export { markPlan, findingColour, PAPER } from './render/marks.ts'
+export type { Mark } from './render/marks.ts'
 export { run, runXml, describeFinding, practiseOver } from './pipeline.ts'
 export { buildUnits, chordName, noteName } from './practice/unit.ts'
 export type { PracticeUnit, Step, UnitSummary } from './practice/unit.ts'
