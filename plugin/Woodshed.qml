@@ -117,7 +117,11 @@ ExtensionBlank {
             text: root.result ? root.result.warnings.join("\n") : ""
         }
 
-        StyledListView {
+        // StyledListView (MuseApi.Controls) imports an "internal" folder
+        // this MuseScore 4.7.4 build's module does not ship, so the panel
+        // fails to load with "Type StyledListView unavailable". Qt Quick's
+        // own ListView needs no extra import and renders the same delegate.
+        ListView {
             id: list
             width: parent.width
             height: parent.height - y - timing.height - 24
